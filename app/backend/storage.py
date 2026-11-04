@@ -7,8 +7,10 @@ from uuid import uuid4
 from pydantic import TypeAdapter, ValidationError
 
 from backend.rules import (
+    CandidateFields,
     CandidateSnapshot,
     FieldError,
+    Language,
     NonBlank,
     StrictModel,
     apply_proposals,
@@ -18,6 +20,7 @@ from backend.rules import (
 )
 
 _QUESTION = TypeAdapter(NonBlank)
+_LANGUAGE = TypeAdapter(Language)
 
 
 class StorageFailure(Exception):
@@ -58,6 +61,33 @@ class TurnPending(Exception):
     def __init__(self, request_id: str):
         super().__init__(request_id)
         self.request_id = request_id
+
+
+class WrongTurnPhase(Exception):
+    """The turn is not in the phase this step needs: reload and resume it."""
+
+
+class InvalidExtraction(Exception):
+    """An interpretation with an invalid part; errors has the details, nothing was written."""
+
+    def __init__(self, errors: list[FieldError]):
+        self.errors = [
+            FieldError(
+                field=None if error.field is None else _sanitized(error.field),
+                error=_sanitized(error.error),
+            )
+            for error in errors
+        ]
+        super().__init__("; ".join(error.error for error in self.errors))
+
+
+class ClarificationRefused(Exception):
+    """The clarification was not saved; field and error say why, nothing was written."""
+
+    def __init__(self, field: str, error: str):
+        super().__init__(f"{field}: {error}")
+        self.field = field
+        self.error = error
 
 
 class Message(StrictModel):
@@ -251,16 +281,12 @@ def save_turn(
         fields = applied.fields if refusals else counted.fields
         questions, question_errors = _valid_questions(pending_questions)
         now = _now()
-        updated = snapshot.model_copy(
-            update={
-                "fields": fields,
-                "pending_questions": [*snapshot.pending_questions, *questions],
-                "stop_requested": (
-                    snapshot.stop_requested if stop_requested is None else stop_requested
-                ),
-                "updated_at": now,
-                "revision": snapshot.revision + 1,
-            }
+        updated = _next_revision(
+            snapshot,
+            now,
+            fields=fields,
+            pending_questions=[*snapshot.pending_questions, *questions],
+            stop_requested=snapshot.stop_requested if stop_requested is None else stop_requested,
         )
         if candidate_message is not None:
             _append_message(connection, application_id, "candidate", candidate_message, now)
@@ -270,11 +296,80 @@ def save_turn(
     return TurnResult(snapshot=updated, errors=applied.errors + refusals + question_errors)
 
 
-def close_application(
-    db_path, application_id: str, expected_revision: int, final_message: str, summary: str
+def commit_interpretation(
+    db_path,
+    application_id: str,
+    request_id: str,
+    expected_revision: int,
+    *,
+    proposals,
+    pending_questions=(),
+    language: str | None = None,
+    stop_requested: bool | None = None,
 ) -> CandidateSnapshot:
     with _transaction(db_path) as connection:
-        snapshot = _read_open_snapshot(connection, application_id, expected_revision)
+        snapshot, turn = _read_turn_state(
+            connection, application_id, request_id, "received", expected_revision
+        )
+        now = _now()
+        updated = _interpreted_snapshot(
+            snapshot, now, proposals, pending_questions, language, stop_requested
+        )
+        _write_snapshot(connection, updated)
+        _advance_turn(connection, application_id, turn.request_id, "interpreted", now)
+    return updated
+
+
+def complete_turn(
+    db_path,
+    application_id: str,
+    request_id: str,
+    expected_revision: int,
+    *,
+    reply: str,
+    question_field: str | None = None,
+    question_kind: str | None = None,
+) -> CandidateSnapshot:
+    _check_question_context(question_field, question_kind)
+    with _transaction(db_path) as connection:
+        snapshot, turn = _read_turn_state(
+            connection, application_id, request_id, "interpreted", expected_revision
+        )
+        _check_reply(reply)
+        changes = {}
+        if question_kind == "clarification":
+            counted = record_clarifications(snapshot.fields, [question_field])
+            if counted.errors:
+                raise ClarificationRefused(question_field, counted.errors[0].error)
+            changes["fields"] = counted.fields
+        if question_field is not None:
+            changes["last_question_field"] = question_field
+            changes["last_question_kind"] = question_kind
+        now = _now()
+        sequence = _append_message(connection, application_id, "assistant", reply, now)
+        updated = _next_revision(snapshot, now, **changes)
+        _write_snapshot(connection, updated)
+        _advance_turn(connection, application_id, turn.request_id, "completed", now, sequence)
+    return updated
+
+
+def close_application(
+    db_path,
+    application_id: str,
+    expected_revision: int,
+    final_message: str,
+    summary: str,
+    *,
+    request_id: str | None = None,
+) -> CandidateSnapshot:
+    with _transaction(db_path) as connection:
+        if request_id is None:
+            turn = None
+            snapshot = _read_open_snapshot(connection, application_id, expected_revision)
+        else:
+            snapshot, turn = _read_turn_state(
+                connection, application_id, request_id, "interpreted", expected_revision
+            )
         if snapshot.stop_requested:
             raise CannotClose("stop_requested")
         if _is_blank(final_message):
@@ -285,18 +380,18 @@ def close_application(
         if not evaluation.closeable:
             raise CannotClose("not_closeable")
         now = _now()
-        closed = snapshot.model_copy(
-            update={
-                "outcome": evaluation.outcome,
-                "outcome_reasons": evaluation.outcome_reasons,
-                "closed_at": now,
-                "summary": summary,
-                "updated_at": now,
-                "revision": snapshot.revision + 1,
-            }
+        closed = _next_revision(
+            snapshot,
+            now,
+            outcome=evaluation.outcome,
+            outcome_reasons=evaluation.outcome_reasons,
+            closed_at=now,
+            summary=_sanitized(summary),
         )
-        _append_message(connection, application_id, "assistant", final_message, now)
+        sequence = _append_message(connection, application_id, "assistant", final_message, now)
         _write_snapshot(connection, closed)
+        if turn is not None:
+            _advance_turn(connection, application_id, turn.request_id, "completed", now, sequence)
     return closed
 
 
@@ -334,6 +429,61 @@ def _next_revision(snapshot: CandidateSnapshot, now: datetime, **changes) -> Can
     return snapshot.model_copy(
         update={**changes, "updated_at": now, "revision": snapshot.revision + 1}
     )
+
+
+def _check_question_context(question_field, question_kind) -> None:
+    if (question_field is None) != (question_kind is None):
+        raise ValueError("question_field and question_kind go together")
+    if question_field is None:
+        return
+    if not isinstance(question_field, str) or question_field not in CandidateFields.model_fields:
+        raise ValueError("question_field must be a screening field")
+    if question_kind not in ("initial", "clarification"):
+        raise ValueError("question_kind must be initial or clarification")
+
+
+def _interpreted_snapshot(
+    snapshot: CandidateSnapshot, now: datetime, proposals, pending_questions, language, stop_requested
+) -> CandidateSnapshot:
+    """The snapshot with a whole interpretation applied, or InvalidExtraction."""
+    try:
+        errors = []
+        fields = snapshot.fields
+        if isinstance(proposals, (list, tuple)):
+            applied = apply_proposals(fields, proposals)
+            fields = applied.fields
+            errors.extend(applied.errors)
+        else:
+            errors.append(FieldError(field=None, error="invalid_proposals"))
+        questions, question_errors = _valid_questions(pending_questions)
+        errors.extend(question_errors)
+        if language is not None and not _is_language(language):
+            errors.append(FieldError(field="language", error="invalid_language"))
+        if stop_requested is not None and not isinstance(stop_requested, bool):
+            errors.append(FieldError(field="stop_requested", error="invalid_stop_requested"))
+        if errors:
+            raise InvalidExtraction(errors)
+        updated = _next_revision(
+            snapshot,
+            now,
+            fields=fields,
+            pending_questions=[*snapshot.pending_questions, *questions],
+            language=snapshot.language if language is None else language,
+            stop_requested=snapshot.stop_requested if stop_requested is None else stop_requested,
+        )
+        updated.model_dump_json()
+    except ValueError as exc:  # Includes Pydantic validation and serialization errors.
+        unusable = FieldError(field=None, error="unserializable_output")
+        raise InvalidExtraction([unusable]) from exc
+    return updated
+
+
+def _is_language(language) -> bool:
+    try:
+        _LANGUAGE.validate_python(language, strict=True)
+    except ValidationError:
+        return False
+    return True
 
 
 def _check_argument_types(candidate_message, assistant_message, stop_requested) -> None:
@@ -439,11 +589,43 @@ def _unfinished_turn(connection, application_id: str) -> Turn | None:
 
 def _read_open_snapshot(connection, application_id: str, expected_revision: int) -> CandidateSnapshot:
     snapshot = _read_snapshot(connection, application_id)
-    if snapshot.closed_at is not None:
-        raise ApplicationClosed(application_id)
-    if snapshot.revision != expected_revision:
-        raise StaleRevision(application_id)
+    _check_open(snapshot, expected_revision)
     return snapshot
+
+
+def _check_open(snapshot: CandidateSnapshot, expected_revision: int) -> None:
+    if snapshot.closed_at is not None:
+        raise ApplicationClosed(snapshot.id)
+    if snapshot.revision != expected_revision:
+        raise StaleRevision(snapshot.id)
+
+
+def _read_turn_state(
+    connection, application_id: str, request_id: str, phase: str, expected_revision: int
+) -> tuple[CandidateSnapshot, Turn]:
+    # The phase goes first: a step retried after it succeeded has an old revision by
+    # definition, and the caller must see "resume", not "stale", even after closing.
+    snapshot = _read_snapshot(connection, application_id)
+    turn = _require_turn(connection, application_id, request_id)
+    if turn.phase != phase:
+        raise WrongTurnPhase(f"{turn.request_id}: {turn.phase}")
+    _check_open(snapshot, expected_revision)
+    return snapshot, turn
+
+
+def _advance_turn(
+    connection,
+    application_id: str,
+    request_id: str,
+    phase: str,
+    now: datetime,
+    reply_sequence: int | None = None,
+) -> None:
+    connection.execute(
+        "UPDATE turns SET phase = ?, reply_sequence = ?, updated_at = ?"
+        " WHERE application_id = ? AND request_id = ?",
+        (phase, reply_sequence, now.isoformat(), application_id, request_id),
+    )
 
 
 def _write_snapshot(connection, snapshot: CandidateSnapshot) -> None:

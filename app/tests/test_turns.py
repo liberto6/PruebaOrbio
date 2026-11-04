@@ -3,16 +3,23 @@ import sqlite3
 
 import pytest
 
-from backend.rules import CandidateSnapshot
+from backend.rules import ApplyResult, CandidateSnapshot
 from backend.storage import (
     ApplicationClosed,
+    CannotClose,
+    ClarificationRefused,
+    InvalidExtraction,
     InvalidReply,
+    StaleRevision,
     StorageFailure,
     TurnConflict,
     TurnPending,
     UnknownApplication,
     UnknownTurn,
+    WrongTurnPhase,
     close_application,
+    commit_interpretation,
+    complete_turn,
     create_application,
     init_db,
     load_application,
@@ -431,3 +438,599 @@ def test_recruiter_decision_does_not_bump_the_revision_during_a_turn(db):
     updated = set_recruiter_decision(db, application.id, "advance")
 
     assert updated.revision == received.application.snapshot.revision
+
+
+def received(db, greeting=None):
+    """An application with one turn in phase received, and its current revision."""
+    application = create_application(db, greeting=greeting)
+    turn = receive_turn(db, application.id, "r1", "Soy Ana")
+    return application.id, turn.application.snapshot.revision
+
+
+def interpreted(db, proposals=(), **changes):
+    """An application with one turn in phase interpreted, and its current revision."""
+    application_id, revision = received(db)
+    snapshot = commit_interpretation(
+        db, application_id, "r1", revision, proposals=proposals, **changes
+    )
+    return application_id, snapshot.revision
+
+
+def test_commit_interpretation_applies_everything_and_advances_the_turn(db):
+    application_id, revision = received(db)
+
+    snapshot = commit_interpretation(
+        db,
+        application_id,
+        "r1",
+        revision,
+        proposals=[prop("full_name", "Ana García"), unresolved("start_timing")],
+        pending_questions=["¿Cuánto se paga?"],
+        language="en",
+        stop_requested=True,
+    )
+
+    stored = load_application(db, application_id)
+    assert stored.snapshot == snapshot
+    assert snapshot.revision == revision + 1
+    assert snapshot.fields.full_name.normalized == "Ana García"
+    assert snapshot.fields.start_timing.status == "unresolved"
+    assert snapshot.pending_questions == ["¿Cuánto se paga?"]
+    assert snapshot.language == "en"
+    assert snapshot.stop_requested is True
+    assert snapshot.outcome == "incomplete"
+    assert load_turn(db, application_id, "r1").phase == "interpreted"
+    assert message_texts(db, application_id) == ["Soy Ana"]
+
+
+def test_commit_interpretation_with_none_keeps_language_and_stop(db):
+    application_id, revision = interpreted(db, language="en", stop_requested=True)
+    revision = complete_turn(db, application_id, "r1", revision, reply="De acuerdo.").revision
+    receive_turn(db, application_id, "r2", "Sigo")
+
+    snapshot = commit_interpretation(db, application_id, "r2", revision + 1, proposals=[])
+
+    assert snapshot.language == "en"
+    assert snapshot.stop_requested is True
+
+
+@pytest.mark.parametrize(
+    ("extraction", "field"),
+    [
+        ({"proposals": [prop("full_name", "Ana"), prop("driving_license", "yes")]}, "driving_license"),
+        ({"proposals": [None]}, None),
+        ({"proposals": "abc"}, None),
+        ({"proposals": 3}, None),
+        ({"proposals": {}}, None),
+        ({"proposals": [prop("full_name", "Ana", raw="hola \ud83d")]}, "full_name"),
+        ({"proposals": [prop("full_name", "hola \ud83d")]}, "full_name"),
+        ({"proposals": [prop("salary\ud83d", "x")]}, "salary?"),
+        ({"pending_questions": ["¿Cuánto?", ""]}, "pending_questions"),
+        ({"pending_questions": ["hola \ud83d"]}, "pending_questions"),
+        ({"pending_questions": "abc"}, "pending_questions"),
+        ({"language": "fr"}, "language"),
+        ({"language": ["es"]}, "language"),
+        ({"stop_requested": "false"}, "stop_requested"),
+        ({"stop_requested": 1}, "stop_requested"),
+    ],
+)
+def test_any_invalid_part_of_an_extraction_writes_nothing(db, extraction, field):
+    application_id, revision = received(db)
+    before = everything(db, application_id)
+    arguments = {"proposals": [prop("full_name", "Ana")], **extraction}
+
+    with pytest.raises(InvalidExtraction) as refused:
+        commit_interpretation(db, application_id, "r1", revision, **arguments)
+
+    assert field in [error.field for error in refused.value.errors]
+    assert all(error.model_dump_json() for error in refused.value.errors)
+    assert everything(db, application_id) == before
+
+
+def test_extraction_that_cannot_be_serialized_is_invalid_and_writes_nothing(db, monkeypatch):
+    application_id, revision = received(db)
+    before = everything(db, application_id)
+
+    def unserializable(fields, proposals):
+        state = fields.full_name.model_copy(update={"raw": "hola \ud83d"})
+        return ApplyResult(fields=fields, errors=[]).model_copy(
+            update={"fields": fields.model_copy(update={"full_name": state})}
+        )
+
+    monkeypatch.setattr("backend.storage.apply_proposals", unserializable)
+
+    with pytest.raises(InvalidExtraction):
+        commit_interpretation(db, application_id, "r1", revision, proposals=[])
+
+    assert everything(db, application_id) == before
+
+
+def test_save_turn_keeps_its_per_field_errors(db):
+    application = create_application(db)
+
+    result = save_turn(
+        db, application.id, 0, candidate_message="hola", proposals=[prop("driving_license", "yes")]
+    )
+
+    assert [error.field for error in result.errors] == ["driving_license"]
+    assert result.snapshot.revision == 1
+
+
+def test_retried_commit_interpretation_does_not_reapply_anything(db):
+    application_id, revision = received(db)
+    arguments = {
+        "proposals": [prop("full_name", "Ana García")],
+        "pending_questions": ["¿Cuánto se paga?"],
+    }
+    commit_interpretation(db, application_id, "r1", revision, **arguments)
+    before = everything(db, application_id)
+
+    for expected in (revision, revision + 1):
+        with pytest.raises(WrongTurnPhase):
+            commit_interpretation(db, application_id, "r1", expected, **arguments)
+
+    assert everything(db, application_id) == before
+    assert before[0].snapshot.pending_questions == ["¿Cuánto se paga?"]
+
+
+@pytest.mark.parametrize(
+    ("operation", "table"),
+    [("UPDATE", "applications"), ("UPDATE", "turns")],
+)
+def test_failed_commit_interpretation_rolls_everything_back(db, operation, table):
+    application_id, revision = received(db)
+    before = everything(db, application_id)
+    fail_on(db, operation, table)
+
+    with pytest.raises(StorageFailure):
+        commit_interpretation(
+            db, application_id, "r1", revision, proposals=[prop("full_name", "Ana")]
+        )
+
+    assert everything(db, application_id) == before
+    stop_failing(db)
+    snapshot = commit_interpretation(
+        db, application_id, "r1", revision, proposals=[prop("full_name", "Ana")]
+    )
+    assert snapshot.fields.full_name.status == "resolved"
+
+
+def test_commit_interpretation_refuses_unknown_application_and_turn(db):
+    application_id, revision = received(db)
+
+    with pytest.raises(UnknownApplication):
+        commit_interpretation(db, "nope", "r1", revision, proposals=[])
+    with pytest.raises(UnknownTurn):
+        commit_interpretation(db, application_id, "nope", revision, proposals=[])
+
+
+def test_stale_commit_interpretation_loses_to_the_other_writer(db):
+    application_id, revision = received(db)
+    loaded = load_application(db, application_id).snapshot.revision
+    save_turn(db, application_id, revision, proposals=[LICENSE_TRUE])
+    before = everything(db, application_id)
+
+    with pytest.raises(StaleRevision):
+        commit_interpretation(
+            db, application_id, "r1", loaded, proposals=[prop("full_name", "Ana")]
+        )
+
+    assert everything(db, application_id) == before
+
+
+def test_commit_interpretation_keeps_a_recruiter_decision_made_meanwhile(db):
+    application_id, revision = received(db)
+    set_recruiter_decision(db, application_id, "advance")
+
+    snapshot = commit_interpretation(db, application_id, "r1", revision, proposals=[])
+
+    assert snapshot.recruiter_decision == "advance"
+
+
+def test_complete_turn_saves_reply_question_context_and_finishes_the_turn(db):
+    application_id, revision = interpreted(db)
+
+    snapshot = complete_turn(
+        db,
+        application_id,
+        "r1",
+        revision,
+        reply="¿Tienes carnet? \ud83d",
+        question_field="driving_license",
+        question_kind="initial",
+    )
+
+    stored = load_application(db, application_id)
+    assert stored.snapshot == snapshot
+    assert snapshot.revision == revision + 1
+    assert snapshot.last_question_field == "driving_license"
+    assert snapshot.last_question_kind == "initial"
+    assert snapshot.fields.driving_license.clarifications_asked == 0
+    assert [(m.sequence, m.role, m.text) for m in stored.messages][-1] == (
+        2,
+        "assistant",
+        "¿Tienes carnet? ?",
+    )
+    turn = load_turn(db, application_id, "r1")
+    assert (turn.phase, turn.reply_sequence) == ("completed", 2)
+    assert load_unfinished_turn(db, application_id) is None
+
+
+def test_clarification_consumes_budget_and_stop_acknowledgement_keeps_the_context(db):
+    application_id, revision = interpreted(db)
+    snapshot = complete_turn(
+        db,
+        application_id,
+        "r1",
+        revision,
+        reply="¿Con apellidos?",
+        question_field="full_name",
+        question_kind="clarification",
+    )
+    assert snapshot.fields.full_name.clarifications_asked == 1
+
+    receive_turn(db, application_id, "r2", "Paro aquí")
+    revision = snapshot.revision + 1
+    revision = commit_interpretation(
+        db, application_id, "r2", revision, proposals=[], stop_requested=True
+    ).revision
+    acknowledged = complete_turn(db, application_id, "r2", revision, reply="De acuerdo.")
+
+    assert acknowledged.last_question_field == "full_name"
+    assert acknowledged.last_question_kind == "clarification"
+    assert acknowledged.fields.full_name.clarifications_asked == 1
+
+
+def run_clarified_turn(db, application_id, revision, request_id):
+    receive_turn(db, application_id, request_id, "no sé")
+    snapshot = commit_interpretation(db, application_id, request_id, revision + 1, proposals=[])
+    return snapshot.revision
+
+
+def test_third_clarification_is_refused_and_changes_nothing(db):
+    application_id, revision = interpreted(db)
+    clarify = {"question_field": "full_name", "question_kind": "clarification"}
+    revision = complete_turn(db, application_id, "r1", revision, reply="¿Otra vez?", **clarify).revision
+    revision = run_clarified_turn(db, application_id, revision, "r2")
+    revision = complete_turn(db, application_id, "r2", revision, reply="¿Ejemplo?", **clarify).revision
+    revision = run_clarified_turn(db, application_id, revision, "r3")
+    before = everything(db, application_id)
+
+    with pytest.raises(ClarificationRefused) as refused:
+        complete_turn(db, application_id, "r3", revision, reply="¿Una más?", **clarify)
+
+    assert refused.value.field == "full_name"
+    assert everything(db, application_id) == before
+    assert load_turn(db, application_id, "r3").phase == "interpreted"
+    assert before[0].snapshot.fields.full_name.clarifications_asked == 2
+
+    finished = complete_turn(
+        db,
+        application_id,
+        "r3",
+        revision,
+        reply="¿Tienes carnet?",
+        question_field="driving_license",
+        question_kind="initial",
+    )
+    assert finished.fields.full_name.clarifications_asked == 2
+    assert finished.last_question_field == "driving_license"
+
+
+@pytest.mark.parametrize("reply", ["", "   ", None, 3])
+def test_invalid_reply_writes_nothing(db, reply):
+    application_id, revision = interpreted(db)
+    before = everything(db, application_id)
+
+    with pytest.raises(InvalidReply):
+        complete_turn(db, application_id, "r1", revision, reply=reply)
+
+    assert everything(db, application_id) == before
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        {"question_field": "full_name"},
+        {"question_kind": "initial"},
+        {"question_field": "salary", "question_kind": "initial"},
+        {"question_field": ["full_name"], "question_kind": "initial"},
+        {"question_field": "full_name", "question_kind": "reminder"},
+    ],
+)
+def test_inconsistent_question_context_is_a_caller_bug_and_writes_nothing(db, question):
+    application_id, revision = interpreted(db)
+    before = everything(db, application_id)
+
+    with pytest.raises(ValueError):
+        complete_turn(db, application_id, "r1", revision, reply="¿Algo?", **question)
+
+    assert everything(db, application_id) == before
+
+
+@pytest.mark.parametrize(
+    ("operation", "table"),
+    [("INSERT", "messages"), ("UPDATE", "applications"), ("UPDATE", "turns")],
+)
+def test_failed_complete_turn_rolls_everything_back(db, operation, table):
+    application_id, revision = interpreted(db)
+    before = everything(db, application_id)
+    clarify = {"question_field": "full_name", "question_kind": "clarification"}
+    fail_on(db, operation, table)
+
+    with pytest.raises(StorageFailure):
+        complete_turn(db, application_id, "r1", revision, reply="¿Otra vez?", **clarify)
+
+    assert everything(db, application_id) == before
+    stop_failing(db)
+    snapshot = complete_turn(db, application_id, "r1", revision, reply="¿Otra vez?", **clarify)
+    assert snapshot.fields.full_name.clarifications_asked == 1
+
+
+def test_complete_turn_requires_the_interpreted_phase(db):
+    application_id, revision = received(db)
+    before = everything(db, application_id)
+
+    with pytest.raises(WrongTurnPhase):
+        complete_turn(db, application_id, "r1", revision, reply="Hola")
+
+    assert everything(db, application_id) == before
+
+
+def test_retried_complete_turn_does_not_append_or_count_again(db):
+    application_id, revision = interpreted(db)
+    clarify = {"question_field": "full_name", "question_kind": "clarification"}
+    complete_turn(db, application_id, "r1", revision, reply="¿Otra vez?", **clarify)
+    before = everything(db, application_id)
+
+    with pytest.raises(WrongTurnPhase):
+        complete_turn(db, application_id, "r1", revision, reply="¿Otra vez?", **clarify)
+
+    assert everything(db, application_id) == before
+
+
+def test_stale_complete_turn_is_refused(db):
+    application_id, revision = interpreted(db)
+    save_turn(db, application_id, revision, proposals=[LICENSE_TRUE])
+    before = everything(db, application_id)
+
+    with pytest.raises(StaleRevision):
+        complete_turn(db, application_id, "r1", revision, reply="Hola")
+
+    assert everything(db, application_id) == before
+
+
+def test_complete_turn_refuses_unknown_application_and_turn(db):
+    application_id, revision = interpreted(db)
+
+    with pytest.raises(UnknownApplication):
+        complete_turn(db, "nope", "r1", revision, reply="Hola")
+    with pytest.raises(UnknownTurn):
+        complete_turn(db, application_id, "nope", revision, reply="Hola")
+
+
+def test_duplicate_receive_after_completion_returns_the_committed_reply(db):
+    application_id, revision = interpreted(db)
+    complete_turn(db, application_id, "r1", revision, reply="¿Tienes carnet?")
+    before = everything(db, application_id)
+
+    again = receive_turn(db, application_id, "r1", "Soy Ana")
+
+    assert again.created is False
+    assert again.turn.phase == "completed"
+    assert again.turn.reply_sequence == 2
+    assert [message.text for message in again.application.messages][-1] == "¿Tienes carnet?"
+    assert everything(db, application_id) == before
+    with pytest.raises(TurnConflict):
+        receive_turn(db, application_id, "r1", "Soy Eva")
+
+
+def test_next_request_is_accepted_after_completion(db):
+    application_id, revision = interpreted(db)
+    complete_turn(db, application_id, "r1", revision, reply="¿Tienes carnet?")
+
+    assert receive_turn(db, application_id, "r2", "Sí").turn.candidate_sequence == 3
+
+
+def test_close_with_request_id_saves_everything_and_completes_the_turn(db):
+    application_id, revision = interpreted(db, proposals=ALL_RESOLVED)
+
+    closed = close_application(
+        db, application_id, revision, "Gracias \ud83d", "Resumen \ud83d", request_id="r1"
+    )
+
+    stored = load_application(db, application_id)
+    assert stored.snapshot == closed
+    assert closed.outcome == "qualified"
+    assert closed.summary == "Resumen ?"
+    assert closed.closed_at is not None
+    assert closed.revision == revision + 1
+    assert [message.text for message in stored.messages] == ["Soy Ana", "Gracias ?"]
+    turn = load_turn(db, application_id, "r1")
+    assert (turn.phase, turn.reply_sequence) == ("completed", 2)
+    assert load_unfinished_turn(db, application_id) is None
+
+
+def test_surrogate_in_the_summary_no_longer_blocks_an_e2_style_close(db):
+    application_id, revision = interpreted(db, proposals=ALL_RESOLVED)
+
+    closed = close_application(db, application_id, revision, "Gracias", "Resumen \ud83d")
+
+    assert closed.summary == "Resumen ?"
+    assert load_application(db, application_id).snapshot == closed
+
+
+def test_retry_of_a_completed_closing_request_gets_its_committed_result(db):
+    application_id, revision = interpreted(db, proposals=ALL_RESOLVED)
+    close_application(db, application_id, revision, "Gracias", "Resumen", request_id="r1")
+    before = everything(db, application_id)
+
+    again = receive_turn(db, application_id, "r1", "Soy Ana")
+
+    assert again.created is False
+    assert again.turn.phase == "completed"
+    assert again.application.snapshot.outcome == "qualified"
+    assert again.application.messages[-1].text == "Gracias"
+    with pytest.raises(TurnConflict):
+        receive_turn(db, application_id, "r1", "Soy Eva")
+    with pytest.raises(ApplicationClosed):
+        receive_turn(db, application_id, "r2", "Hola")
+    assert everything(db, application_id) == before
+
+
+@pytest.mark.parametrize(
+    "operation",
+    [
+        lambda db, app, rev: close_application(db, app, rev, "Otra", "Otro", request_id="r1"),
+        lambda db, app, rev: complete_turn(db, app, "r1", rev, reply="Otra"),
+        lambda db, app, rev: commit_interpretation(db, app, "r1", rev, proposals=[]),
+    ],
+    ids=["close", "complete", "interpret"],
+)
+def test_retries_after_a_completed_close_report_the_phase_and_write_nothing(db, operation):
+    application_id, revision = interpreted(db, proposals=ALL_RESOLVED)
+    close_application(db, application_id, revision, "Gracias", "Resumen", request_id="r1")
+    before = everything(db, application_id)
+
+    for expected in (revision, revision + 1):
+        with pytest.raises(WrongTurnPhase):
+            operation(db, application_id, expected)
+
+    assert everything(db, application_id) == before
+
+
+def test_close_with_request_id_requires_the_interpreted_phase(db):
+    application = create_application(db)
+    save_turn(db, application.id, 0, proposals=ALL_RESOLVED)
+    receive_turn(db, application.id, "r1", "Soy Ana")
+    before = everything(db, application.id)
+
+    with pytest.raises(WrongTurnPhase):
+        close_application(db, application.id, 2, "Gracias", "Resumen", request_id="r1")
+
+    assert everything(db, application.id) == before
+
+
+def test_close_with_unknown_application_or_turn_is_refused(db):
+    application_id, revision = interpreted(db, proposals=ALL_RESOLVED)
+
+    with pytest.raises(UnknownApplication):
+        close_application(db, "nope", revision, "Gracias", "Resumen", request_id="r1")
+    with pytest.raises(UnknownTurn):
+        close_application(db, application_id, revision, "Gracias", "Resumen", request_id="nope")
+
+
+@pytest.mark.parametrize(
+    ("changes", "code"),
+    [
+        ({"proposals": ALL_RESOLVED, "stop_requested": True}, "stop_requested"),
+        ({"proposals": [LICENSE_TRUE]}, "not_closeable"),
+    ],
+    ids=["stopped", "not_closeable"],
+)
+def test_refused_close_with_request_id_leaves_the_turn_interpreted(db, changes, code):
+    application_id, revision = interpreted(db, **changes)
+    before = everything(db, application_id)
+
+    with pytest.raises(CannotClose, match=code):
+        close_application(db, application_id, revision, "Gracias", "Resumen", request_id="r1")
+
+    assert everything(db, application_id) == before
+    assert load_turn(db, application_id, "r1").phase == "interpreted"
+
+
+@pytest.mark.parametrize(
+    ("final_message", "summary", "code"),
+    [(" ", "Resumen", "final_message_missing"), ("Gracias", 3, "summary_missing")],
+)
+def test_close_with_invalid_texts_is_refused_and_keeps_the_turn(db, final_message, summary, code):
+    application_id, revision = interpreted(db, proposals=ALL_RESOLVED)
+    before = everything(db, application_id)
+
+    with pytest.raises(CannotClose, match=code):
+        close_application(db, application_id, revision, final_message, summary, request_id="r1")
+
+    assert everything(db, application_id) == before
+
+
+def test_stale_close_with_request_id_is_refused(db):
+    application_id, revision = interpreted(db, proposals=ALL_RESOLVED)
+    save_turn(db, application_id, revision, pending_questions=["¿Cuánto?"])
+    before = everything(db, application_id)
+
+    with pytest.raises(StaleRevision):
+        close_application(db, application_id, revision, "Gracias", "Resumen", request_id="r1")
+
+    assert everything(db, application_id) == before
+
+
+def test_close_re_evaluates_fields_changed_before_it_inside_the_transaction(db):
+    application_id, revision = interpreted(db, proposals=ALL_RESOLVED)
+    revision = save_turn(db, application_id, revision, proposals=[LICENSE_FALSE]).snapshot.revision
+
+    closed = close_application(db, application_id, revision, "Gracias", "Resumen", request_id="r1")
+
+    assert closed.outcome == "disqualified"
+    assert closed.outcome_reasons == ["no_driving_license"]
+
+
+@pytest.mark.parametrize(
+    ("operation", "table"),
+    [("INSERT", "messages"), ("UPDATE", "applications"), ("UPDATE", "turns")],
+)
+def test_failed_close_with_request_id_rolls_everything_back(db, operation, table):
+    application_id, revision = interpreted(db, proposals=ALL_RESOLVED)
+    before = everything(db, application_id)
+    fail_on(db, operation, table)
+
+    with pytest.raises(StorageFailure):
+        close_application(db, application_id, revision, "Gracias", "Resumen", request_id="r1")
+
+    assert everything(db, application_id) == before
+    stop_failing(db)
+    closed = close_application(db, application_id, revision, "Gracias", "Resumen", request_id="r1")
+    assert closed.outcome == "qualified"
+
+
+@pytest.mark.parametrize(
+    ("prepare", "operation"),
+    [
+        (received, lambda db, app, rev: commit_interpretation(db, app, "r1", rev, proposals=[])),
+        (interpreted, lambda db, app, rev: complete_turn(db, app, "r1", rev, reply="Hola")),
+        (
+            lambda db: interpreted(db, proposals=ALL_RESOLVED),
+            lambda db, app, rev: close_application(db, app, rev, "Hola", "Resumen", request_id="r1"),
+        ),
+    ],
+    ids=["interpret", "complete", "close"],
+)
+def test_exception_outside_sqlite_in_the_write_rolls_everything_back(
+    db, monkeypatch, prepare, operation
+):
+    application_id, revision = prepare(db)
+    before = everything(db, application_id)
+
+    def boom(*_):
+        raise RuntimeError("forced")
+
+    monkeypatch.setattr("backend.storage._write_snapshot", boom)
+    with pytest.raises(RuntimeError):
+        operation(db, application_id, revision)
+    monkeypatch.undo()
+
+    assert everything(db, application_id) == before
+
+
+def test_exception_outside_sqlite_rolls_back_receive(db, monkeypatch):
+    application = create_application(db)
+    before = everything(db, application.id)
+
+    def boom(*_):
+        raise RuntimeError("forced")
+
+    monkeypatch.setattr("backend.storage._write_snapshot", boom)
+    with pytest.raises(RuntimeError):
+        receive_turn(db, application.id, "r1", "Soy Ana")
+    monkeypatch.undo()
+
+    assert everything(db, application.id) == before
