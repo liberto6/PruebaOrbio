@@ -15,6 +15,7 @@ T = TypeVar("T")
 NonBlank = Annotated[str, StringConstraints(pattern=r"\S")]
 Duration = Annotated[float, Field(ge=0, allow_inf_nan=False)]
 Outcome = Literal["incomplete", "qualified", "disqualified", "pending_review"]
+MAX_CLARIFICATIONS = 2
 
 
 def _is_iso_date(text: str) -> bool:
@@ -91,7 +92,7 @@ class FieldState(StrictModel, Generic[T]):
     normalized: T | None
     status: Literal["missing", "resolved", "unresolved"]
     reason: NonBlank | None
-    clarifications_asked: int = Field(ge=0)
+    clarifications_asked: int = Field(ge=0, le=MAX_CLARIFICATIONS)
 
     @model_validator(mode="after")
     def status_matches_values(self):
@@ -147,14 +148,14 @@ class Proposal(StrictModel):
     reason: NonBlank | None
 
 
-class ProposalError(StrictModel):
+class FieldError(StrictModel):
     field: str | None
     error: str
 
 
 class ApplyResult(StrictModel):
     fields: CandidateFields
-    errors: list[ProposalError]
+    errors: list[FieldError]
 
 
 MISSING_FIELD = {
@@ -194,7 +195,7 @@ def apply_proposals(fields: CandidateFields, proposals: list) -> ApplyResult:
             current = getattr(updated, proposal.field)
             new_state = _state_from_proposal(proposal, current)
         except ValidationError as exc:
-            errors.append(ProposalError(field=_submitted_field(submitted), error=_describe(exc)))
+            errors.append(FieldError(field=_submitted_field(submitted), error=_describe(exc)))
         else:
             updated = updated.model_copy(update={proposal.field: new_state})
     return ApplyResult(fields=updated, errors=errors)
@@ -235,6 +236,24 @@ def _to_years(experience: ExperienceProposal) -> float:
     if experience.unit == "months":
         return experience.amount / 12
     return experience.amount
+
+
+def record_clarifications(fields: CandidateFields, field_names: list[str]) -> ApplyResult:
+    updated = fields
+    errors = []
+    for name in field_names:
+        if name not in CandidateFields.model_fields:
+            errors.append(FieldError(field=name, error="unknown_field"))
+            continue
+        current = getattr(updated, name)
+        if current.clarifications_asked >= MAX_CLARIFICATIONS:
+            errors.append(FieldError(field=name, error="clarification_limit_reached"))
+            continue
+        counted = current.model_copy(
+            update={"clarifications_asked": current.clarifications_asked + 1}
+        )
+        updated = updated.model_copy(update={name: counted})
+    return ApplyResult(fields=updated, errors=errors)
 
 
 def _submitted_field(submitted: Any) -> str | None:

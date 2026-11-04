@@ -12,6 +12,7 @@ from backend.rules import (
     evaluate,
     evaluate_coverage,
     new_snapshot,
+    record_clarifications,
 )
 
 NOW = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
@@ -225,6 +226,7 @@ def test_invalid_proposal_does_not_block_valid_fields_in_the_same_turn():
         {"raw": "x", "normalized": None, "status": "resolved", "reason": None, "clarifications_asked": 0},
         {"raw": "x", "normalized": True, "status": "resolved", "reason": None, "clarifications_asked": -1},
         {"raw": None, "normalized": True, "status": "resolved", "reason": None, "clarifications_asked": 0},
+        {"raw": "x", "normalized": True, "status": "resolved", "reason": None, "clarifications_asked": 3},
     ],
 )
 def test_snapshot_with_an_inconsistent_field_state_is_invalid(field_json):
@@ -916,3 +918,117 @@ def test_evaluation_does_not_change_the_fields():
     evaluate(fields)
 
     assert fields.model_dump_json() == before
+
+
+def test_unresolved_start_timing_follows_the_general_pending_review_rule():
+    result = evaluate(all_resolved_except(unresolved("start_timing")))
+
+    assert result.outcome == "pending_review"
+    assert result.outcome_reasons == ["start_timing_unresolved"]
+    assert result.closeable is True
+
+
+def test_recording_a_clarification_counts_only_that_field():
+    fields = missing_fields()
+
+    result = record_clarifications(fields, ["full_name"])
+
+    assert result.errors == []
+    assert result.fields.full_name.clarifications_asked == 1
+    assert result.fields.availability.clarifications_asked == 0
+    assert fields.full_name.clarifications_asked == 0
+
+
+def test_clarification_beyond_the_limit_is_refused_without_changing_state():
+    at_limit = record_clarifications(missing_fields(), ["full_name", "full_name"])
+    assert at_limit.errors == []
+    assert at_limit.fields.full_name.clarifications_asked == 2
+
+    result = record_clarifications(at_limit.fields, ["full_name", "availability"])
+
+    assert [(error.field, error.error) for error in result.errors] == [
+        ("full_name", "clarification_limit_reached")
+    ]
+    assert result.fields.full_name == at_limit.fields.full_name
+    assert result.fields.availability.clarifications_asked == 1
+
+
+def test_clarification_for_an_unknown_field_is_reported():
+    start = missing_fields()
+
+    result = record_clarifications(start, ["salary"])
+
+    assert [(error.field, error.error) for error in result.errors] == [("salary", "unknown_field")]
+    assert result.fields == start
+
+
+def test_ambiguous_or_invalid_answers_alone_never_use_the_budget():
+    result = apply_proposals(
+        missing_fields(),
+        [
+            unresolved("driving_license"),
+            unresolved("driving_license"),
+            proposal("full_name", 3),
+        ],
+    )
+
+    assert result.fields.driving_license.clarifications_asked == 0
+    assert result.fields.full_name.clarifications_asked == 0
+
+
+def test_clarification_can_follow_an_invalid_answer_on_a_missing_field():
+    start = apply_proposals(missing_fields(), [proposal("full_name", 3)]).fields
+
+    result = record_clarifications(start, ["full_name"])
+
+    assert result.errors == []
+    assert result.fields.full_name.status == "missing"
+    assert result.fields.full_name.clarifications_asked == 1
+
+
+def at_budget_limit(field_proposal):
+    field = field_proposal["field"]
+    fields = apply_proposals(all_resolved_except(), [field_proposal]).fields
+    return record_clarifications(fields, [field, field]).fields
+
+
+def test_clear_correction_at_the_limit_resolves_and_keeps_the_count():
+    fields = at_budget_limit(unresolved("driving_license"))
+
+    result = apply_proposals(fields, [proposal("driving_license", True, raw="sí, lo tengo")])
+
+    field = result.fields.driving_license
+    assert (field.status, field.normalized, field.reason) == ("resolved", True, None)
+    assert field.clarifications_asked == 2
+    assert evaluate(result.fields).outcome == "qualified"
+
+
+def test_ambiguous_correction_at_the_limit_clears_a_stale_rejection_for_review():
+    fields = at_budget_limit(LICENSE_FALSE)
+    assert evaluate(fields).outcome == "disqualified"
+
+    result = apply_proposals(fields, [unresolved("driving_license")])
+
+    field = result.fields.driving_license
+    assert (field.status, field.normalized, field.raw) == ("unresolved", None, "no sé")
+    assert field.clarifications_asked == 2
+    assert evaluate(result.fields).outcome == "pending_review"
+    assert record_clarifications(result.fields, ["driving_license"]).errors
+
+
+def test_explicit_inability_to_answer_stays_closeable_as_pending_review():
+    result = evaluate(
+        all_resolved_except(
+            proposal(
+                "preferred_schedule",
+                None,
+                status="unresolved",
+                raw="no lo puedo decir aún",
+                reason="candidate_cannot_answer",
+            )
+        )
+    )
+
+    assert result.outcome == "pending_review"
+    assert result.outcome_reasons == ["preferred_schedule_unresolved"]
+    assert result.closeable is True
