@@ -242,6 +242,9 @@ def record_clarifications(fields: CandidateFields, field_names: list[str]) -> Ap
     updated = fields
     errors = []
     for name in field_names:
+        if not isinstance(name, str):
+            errors.append(FieldError(field=None, error="unknown_field"))
+            continue
         if name not in CandidateFields.model_fields:
             errors.append(FieldError(field=name, error="unknown_field"))
             continue

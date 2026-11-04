@@ -4,15 +4,20 @@ from datetime import datetime, timezone
 from typing import Literal
 from uuid import uuid4
 
+from pydantic import TypeAdapter, ValidationError
+
 from backend.rules import (
     CandidateSnapshot,
     FieldError,
+    NonBlank,
     StrictModel,
     apply_proposals,
     evaluate,
     new_snapshot,
     record_clarifications,
 )
+
+_QUESTION = TypeAdapter(NonBlank)
 
 
 class StorageFailure(Exception):
@@ -137,15 +142,22 @@ def save_turn(
     clarifications=(),
     stop_requested: bool | None = None,
 ) -> TurnResult:
+    _check_argument_types(candidate_message, assistant_message, stop_requested)
     with _transaction(db_path) as connection:
         snapshot = _read_open_snapshot(connection, application_id, expected_revision)
         applied = apply_proposals(snapshot.fields, proposals)
         counted = record_clarifications(applied.fields, clarifications)
+        refusals = counted.errors
+        if clarifications and assistant_message is None:
+            refusals = [*refusals, FieldError(field=None, error="clarification_without_message")]
+        # A refusal counts nothing and drops the question, so E3 can reply differently.
+        fields = applied.fields if refusals else counted.fields
+        questions, question_errors = _valid_questions(pending_questions)
         now = _now()
         updated = snapshot.model_copy(
             update={
-                "fields": counted.fields,
-                "pending_questions": [*snapshot.pending_questions, *pending_questions],
+                "fields": fields,
+                "pending_questions": [*snapshot.pending_questions, *questions],
                 "stop_requested": (
                     snapshot.stop_requested if stop_requested is None else stop_requested
                 ),
@@ -155,10 +167,10 @@ def save_turn(
         )
         if candidate_message is not None:
             _append_message(connection, application_id, "candidate", candidate_message, now)
-        if assistant_message is not None:
+        if assistant_message is not None and not refusals:
             _append_message(connection, application_id, "assistant", assistant_message, now)
         _write_snapshot(connection, updated)
-    return TurnResult(snapshot=updated, errors=applied.errors + counted.errors)
+    return TurnResult(snapshot=updated, errors=applied.errors + refusals + question_errors)
 
 
 def close_application(
@@ -211,6 +223,28 @@ def _is_blank(text: str | None) -> bool:
     return text is None or not text.strip()
 
 
+def _check_argument_types(candidate_message, assistant_message, stop_requested) -> None:
+    for message in (candidate_message, assistant_message):
+        if message is not None and not isinstance(message, str):
+            raise TypeError("messages must be strings or None")
+    if stop_requested is not None and not isinstance(stop_requested, bool):
+        raise TypeError("stop_requested must be a bool or None")
+
+
+def _valid_questions(submitted) -> tuple[list[str], list[FieldError]]:
+    invalid = FieldError(field="pending_questions", error="invalid_pending_question")
+    if not isinstance(submitted, (list, tuple)):
+        return [], [invalid]
+    questions = []
+    errors = []
+    for question in submitted:
+        try:
+            questions.append(_QUESTION.validate_python(question, strict=True))
+        except ValidationError:
+            errors.append(invalid)
+    return questions, errors
+
+
 def _column_values(snapshot: CandidateSnapshot) -> tuple:
     """Filter columns and JSON, all taken from the same snapshot."""
     data = snapshot.model_dump(mode="json")
@@ -258,5 +292,5 @@ def _append_message(connection, application_id: str, role: str, text: str, now: 
     connection.execute(
         "INSERT INTO messages (application_id, sequence, role, text, created_at)"
         " VALUES (?, ?, ?, ?, ?)",
-        (application_id, last + 1, role, text, now.isoformat()),
+        (application_id, last + 1, role, text.encode("utf-8", "replace").decode(), now.isoformat()),
     )

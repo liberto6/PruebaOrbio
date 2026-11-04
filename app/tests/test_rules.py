@@ -962,6 +962,18 @@ def test_clarification_for_an_unknown_field_is_reported():
     assert result.fields == start
 
 
+def test_malformed_clarification_entries_are_reported_without_a_field():
+    start = missing_fields()
+
+    result = record_clarifications(start, [3, ["x"]])
+
+    assert [(error.field, error.error) for error in result.errors] == [
+        (None, "unknown_field"),
+        (None, "unknown_field"),
+    ]
+    assert result.fields == start
+
+
 def test_ambiguous_or_invalid_answers_alone_never_use_the_budget():
     result = apply_proposals(
         missing_fields(),

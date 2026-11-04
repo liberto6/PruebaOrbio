@@ -193,6 +193,7 @@ def test_invalid_proposal_keeps_the_message_and_the_valid_rest_of_the_turn(db):
         application.id,
         0,
         candidate_message="yes, 3",
+        assistant_message="¿Puedes aclararlo?",
         proposals=[prop("driving_license", "yes"), prop("full_name", "Ana García")],
         clarifications=["salary"],
     )
@@ -207,16 +208,91 @@ def test_invalid_proposal_keeps_the_message_and_the_valid_rest_of_the_turn(db):
 
 def test_refused_clarification_is_reported_and_the_turn_still_commits(db):
     application = create_application(db)
-    save_turn(db, application.id, 0, clarifications=["full_name", "full_name"])
+    save_turn(db, application.id, 0, assistant_message="¿Nombre?", clarifications=["full_name"])
+    save_turn(db, application.id, 1, assistant_message="¿Apellidos?", clarifications=["full_name"])
 
     result = save_turn(
-        db, application.id, 1, candidate_message="Ana", clarifications=["full_name"]
+        db,
+        application.id,
+        2,
+        candidate_message="Ana",
+        assistant_message="¿Y tu nombre?",
+        clarifications=["full_name"],
     )
 
     stored = load_application(db, application.id)
     assert [error.error for error in result.errors] == ["clarification_limit_reached"]
     assert stored.snapshot.fields.full_name.clarifications_asked == 2
+    assert stored.snapshot.revision == 3
+    assert message_tuples(db, application.id) == [
+        (1, "assistant", "¿Nombre?"),
+        (2, "assistant", "¿Apellidos?"),
+        (3, "candidate", "Ana"),
+    ]
+
+
+def test_one_refused_clarification_counts_nothing_but_the_rest_of_the_turn_commits(db):
+    application = create_application(db)
+    save_turn(db, application.id, 0, assistant_message="¿Nombre?", clarifications=["full_name"])
+    save_turn(db, application.id, 1, assistant_message="¿Apellidos?", clarifications=["full_name"])
+
+    result = save_turn(
+        db,
+        application.id,
+        2,
+        candidate_message="Ana",
+        assistant_message="¿Nombre y disponibilidad?",
+        proposals=[LICENSE_TRUE],
+        pending_questions=["¿Cuánto se paga?"],
+        clarifications=["availability", "full_name"],
+    )
+
+    stored = load_application(db, application.id).snapshot
+    assert [(error.field, error.error) for error in result.errors] == [
+        ("full_name", "clarification_limit_reached")
+    ]
+    assert stored.fields.availability.clarifications_asked == 0
+    assert stored.fields.driving_license.normalized is True
+    assert stored.pending_questions == ["¿Cuánto se paga?"]
+    assert stored.revision == 3
+    assert message_tuples(db, application.id)[-1] == (3, "candidate", "Ana")
+
+
+def test_clarification_without_an_assistant_message_is_reported_and_not_counted(db):
+    application = create_application(db)
+
+    result = save_turn(
+        db,
+        application.id,
+        0,
+        candidate_message="Ana",
+        proposals=[LICENSE_TRUE],
+        clarifications=["full_name"],
+    )
+
+    stored = load_application(db, application.id).snapshot
+    assert [(error.field, error.error) for error in result.errors] == [
+        (None, "clarification_without_message")
+    ]
+    assert stored.fields.full_name.clarifications_asked == 0
+    assert stored.fields.driving_license.normalized is True
+    assert stored.revision == 1
     assert message_tuples(db, application.id) == [(1, "candidate", "Ana")]
+
+
+def test_invalid_proposal_alone_does_not_drop_the_assistant_message(db):
+    application = create_application(db)
+
+    result = save_turn(
+        db,
+        application.id,
+        0,
+        assistant_message="¿Puedes aclararlo?",
+        proposals=[prop("driving_license", "yes")],
+    )
+
+    assert [error.field for error in result.errors] == ["driving_license"]
+    assert message_tuples(db, application.id) == [(1, "assistant", "¿Puedes aclararlo?")]
 
 
 def test_stale_revision_is_rejected_without_duplicating_the_turn(db):
@@ -251,7 +327,14 @@ def test_stop_request_keeps_the_application_incomplete_and_can_be_cleared(db):
 
 def test_incomplete_application_resumes_from_stored_state(db):
     application = create_application(db)
-    save_turn(db, application.id, 0, proposals=[LICENSE_TRUE], clarifications=["full_name"])
+    save_turn(
+        db,
+        application.id,
+        0,
+        assistant_message="¿Nombre completo?",
+        proposals=[LICENSE_TRUE],
+        clarifications=["full_name"],
+    )
 
     stored = load_application(db, application.id).snapshot
     result = save_turn(
@@ -521,3 +604,158 @@ def test_invalid_recruiter_decision_is_refused(db):
 def test_recruiter_decision_on_an_unknown_application_is_refused(db):
     with pytest.raises(UnknownApplication):
         set_recruiter_decision(db, "nope", "advance")
+
+
+@pytest.mark.parametrize("entry", [3, ["x"], None])
+def test_malformed_clarification_entry_follows_the_refusal_rule(db, entry):
+    application = create_application(db)
+
+    result = save_turn(
+        db,
+        application.id,
+        0,
+        candidate_message="hola",
+        assistant_message="¿Nombre?",
+        clarifications=["full_name", entry],
+    )
+
+    stored = load_application(db, application.id)
+    assert [(error.field, error.error) for error in result.errors] == [(None, "unknown_field")]
+    assert stored.snapshot.fields.full_name.clarifications_asked == 0
+    assert message_tuples(db, application.id) == [(1, "candidate", "hola")]
+
+
+def test_pending_questions_accumulate_across_turns(db):
+    application = create_application(db)
+
+    save_turn(db, application.id, 0, pending_questions=["¿Cuánto se paga?"])
+    save_turn(db, application.id, 1, pending_questions=["¿Hay moto?"])
+
+    stored = load_application(db, application.id).snapshot
+    assert stored.pending_questions == ["¿Cuánto se paga?", "¿Hay moto?"]
+
+
+def test_close_as_pending_review_saves_its_reasons(db):
+    application = create_application(db)
+    proposals = [*ALL_RESOLVED[:-1], unresolved("start_timing")]
+    save_turn(db, application.id, 0, proposals=proposals)
+
+    closed = close_application(db, application.id, 1, "Gracias.", "Resumen")
+
+    assert closed.outcome == "pending_review"
+    assert closed.outcome_reasons == ["start_timing_unresolved"]
+    assert row_of(db, application.id)["outcome"] == "pending_review"
+
+
+def test_init_db_on_an_existing_database_keeps_the_data(db):
+    application = create_application(db)
+    save_turn(db, application.id, 0, candidate_message="hola")
+    before = load_application(db, application.id)
+
+    init_db(db)
+
+    assert load_application(db, application.id) == before
+
+
+def test_lone_surrogate_in_a_candidate_message_does_not_lose_it(db):
+    application = create_application(db)
+
+    save_turn(db, application.id, 0, candidate_message="hola \ud83d")
+
+    assert message_tuples(db, application.id) == [(1, "candidate", "hola ?")]
+
+
+def test_lone_surrogate_in_the_final_message_does_not_prevent_closing(db):
+    application_id = ready_to_close(db)
+
+    closed = close_application(db, application_id, 1, "gracias \ud83d", "Resumen")
+
+    assert closed.outcome == "qualified"
+    assert message_tuples(db, application_id)[-1] == (2, "assistant", "gracias ?")
+
+
+@pytest.mark.parametrize("bad", [None, 3, "", "   ", "hola \ud83d"])
+def test_invalid_pending_question_is_reported_and_the_rest_of_the_turn_commits(db, bad):
+    application = create_application(db)
+
+    result = save_turn(
+        db,
+        application.id,
+        0,
+        candidate_message="hola",
+        pending_questions=["¿Cuánto se paga?", bad],
+    )
+
+    stored = load_application(db, application.id)
+    assert [(error.field, error.error) for error in result.errors] == [
+        ("pending_questions", "invalid_pending_question")
+    ]
+    assert stored.snapshot.pending_questions == ["¿Cuánto se paga?"]
+    assert stored.snapshot.revision == 1
+    assert message_tuples(db, application.id) == [(1, "candidate", "hola")]
+
+
+def test_bare_string_of_pending_questions_is_not_split_into_characters(db):
+    application = create_application(db)
+
+    result = save_turn(db, application.id, 0, candidate_message="hola", pending_questions="abc")
+
+    stored = load_application(db, application.id)
+    assert [(error.field, error.error) for error in result.errors] == [
+        ("pending_questions", "invalid_pending_question")
+    ]
+    assert stored.snapshot.pending_questions == []
+    assert message_tuples(db, application.id) == [(1, "candidate", "hola")]
+
+
+@pytest.mark.parametrize(
+    "bad_argument",
+    [{"stop_requested": "false"}, {"stop_requested": 1}, {"candidate_message": 3}, {"assistant_message": b"x"}],
+)
+def test_wrong_argument_type_is_refused_with_nothing_committed(db, bad_argument):
+    application = create_application(db)
+    before = load_application(db, application.id)
+
+    with pytest.raises(TypeError):
+        save_turn(
+            db,
+            application.id,
+            0,
+            **{"candidate_message": "hola", "proposals": [LICENSE_TRUE], **bad_argument},
+        )
+
+    assert load_application(db, application.id) == before
+
+
+@pytest.mark.parametrize(
+    "turn",
+    [
+        {"pending_questions": [None]},
+        {"pending_questions": "abc"},
+        {"pending_questions": 3},
+        {"pending_questions": ["hola \ud83d"]},
+        {"stop_requested": "false"},
+        {"candidate_message": 3},
+        {"candidate_message": "hola \ud83d"},
+        {"assistant_message": "hola \ud83d"},
+        {"clarifications": [3]},
+        {"clarifications": [["x"]]},
+        {"clarifications": "full_name", "assistant_message": "¿Nombre?"},
+        {"proposals": [prop("full_name", "Ana", raw="hola \ud83d")]},
+        {"proposals": [prop("full_name", "hola \ud83d")]},
+        {"proposals": [unresolved("full_name") | {"reason": "hola \ud83d"}]},
+        {"proposals": [prop("availability", {"options": [], "notes": "hola \ud83d"})]},
+        {"proposals": [prop("delivery_experience", {"amount": float("nan"), "unit": "years", "platforms": ["x"]})]},
+        {"proposals": [None, 3, "x"]},
+    ],
+)
+def test_no_turn_input_commits_a_row_that_cannot_be_loaded(db, turn):
+    application = create_application(db)
+
+    try:
+        save_turn(db, application.id, 0, **turn)
+    except (TypeError, ValidationError):
+        pass
+
+    stored = load_application(db, application.id)
+    assert stored.snapshot.id == application.id
