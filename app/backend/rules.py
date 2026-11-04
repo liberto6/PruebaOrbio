@@ -15,6 +15,17 @@ T = TypeVar("T")
 NonBlank = Annotated[str, StringConstraints(pattern=r"\S")]
 Duration = Annotated[float, Field(ge=0, allow_inf_nan=False)]
 Outcome = Literal["incomplete", "qualified", "disqualified", "pending_review"]
+FieldName = Literal[
+    "full_name",
+    "driving_license",
+    "work_locations",
+    "availability",
+    "preferred_schedule",
+    "delivery_experience",
+    "start_timing",
+]
+Language = Literal["es", "en"]
+QuestionKind = Literal["initial", "clarification"]
 MAX_CLARIFICATIONS = 2
 
 
@@ -130,18 +141,15 @@ class CandidateSnapshot(StrictModel):
     recruiter_decision: Literal["unreviewed", "advance", "rejected"]
     revision: int
     stop_requested: bool
+    # Defaults let snapshots stored before these keys existed keep loading.
+    language: Language = "es"
+    last_question_field: FieldName | None = None
+    last_question_kind: QuestionKind | None = None
+    reminder_sent: bool = False
 
 
 class Proposal(StrictModel):
-    field: Literal[
-        "full_name",
-        "driving_license",
-        "work_locations",
-        "availability",
-        "preferred_schedule",
-        "delivery_experience",
-        "start_timing",
-    ]
+    field: FieldName
     status: Literal["resolved", "unresolved"]
     value: Any
     raw: NonBlank | None
