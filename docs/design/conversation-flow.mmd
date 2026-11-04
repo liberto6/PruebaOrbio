@@ -1,0 +1,33 @@
+---
+title: Grupo Sazón · Screening de repartidores
+---
+flowchart LR
+    A(["<b>Bienvenida</b><br/>Pedir nombre completo"]) ==> B{"¿Tiene permiso<br/>de conducir?"}
+    B == "Sí o duda" ==> C{"¿Zona cubierta<br/>según catálogo?"}
+    C == "Alguna sí o duda" ==> D["<b>Perfil restante</b><br/>Disponibilidad · Horario<br/>Experiencia · Incorporación"]
+    D ==> E{"¿Los 7 campos<br/>resueltos?"}
+    E == "Sí" ==> OK["<b>Screening superado</b><br/>Cerrado · agradecer y<br/>dejar al equipo"]
+    E -- "No" --> REV["<b>Pendiente de revisión</b><br/>Cerrado · registrar la duda<br/>y avisar de la revisión"]
+
+    B -- "No inequívoco" --> REJ["<b>Descalificado</b><br/>Cerrado · explicar el motivo"]
+    C -- "Todas fuera" --> REJ
+
+    A -. "En cualquier etapa: silencio<br/>(un recordatorio a los 10 min<br/>si el chat sigue abierto)<br/>o pide terminar" .-> INC["<b>Incompleto</b><br/>Sin cerrar · se reanuda<br/>sin repetir datos"]
+
+    OK ==> REC[["<b>Recruiter</b><br/>Decisión: sin revisar ·<br/>avanza · descartado"]]
+    REV --> REC
+    REJ --> REC
+    INC --> REC
+
+    classDef step fill:#e8f4fb,stroke:#2b6c94,color:#10283a,stroke-width:1.5px
+    classDef bad fill:#fdecec,stroke:#b3261e,color:#5c120e,stroke-width:2px
+    classDef good fill:#e6f6ec,stroke:#1e7a46,color:#0f3f24,stroke-width:2.5px
+    classDef warn fill:#fff4d6,stroke:#a86a00,color:#573800,stroke-width:2px
+    classDef idle fill:#eef1f5,stroke:#4a5a6a,color:#25313d,stroke-width:2px,stroke-dasharray:6 4
+    classDef team fill:#ffffff,stroke:#25343c,color:#14222a,stroke-width:2px
+    class A,B,C,D,E step
+    class REJ bad
+    class OK good
+    class REV warn
+    class INC idle
+    class REC team

@@ -1,0 +1,15 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #312c26;
+  background: #f5f1e9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 720px; margin: 12vh auto; padding: 32px 24px; }
+.brand { color: #8a3a23; font-weight: 700; letter-spacing: .04em; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.15; }
+p { font-size: 1.1rem; line-height: 1.7; }
+.note { margin-top: 32px; border-top: 1px solid #d8cdbd; padding-top: 20px; }

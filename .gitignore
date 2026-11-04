@@ -1,0 +1,15 @@
+.venv/
+.tmp/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+pytest-cache-files-*/
+node_modules/
+.npm-cache/
+app/frontend/dist/
+*.db
+*.sqlite
+*.sqlite3
+.env
+.env.*
+!.env.example
