@@ -2,11 +2,13 @@
 
 import re
 import unicodedata
+from datetime import datetime, timezone
 
 from pydantic import ValidationError
 
-from backend.llm import Action, Interpretation
+from backend.llm import Action, Interpretation, ScreeningLLM, TurnContext
 from backend.rules import (
+    COVERAGE_CATALOG,
     MAX_CLARIFICATIONS,
     CandidateFields,
     CandidateSnapshot,
@@ -17,7 +19,17 @@ from backend.rules import (
     evaluate,
     evaluate_coverage,
 )
-from backend.storage import InvalidExtraction, create_application
+from backend.storage import (
+    InvalidExtraction,
+    StoredApplication,
+    close_application,
+    commit_interpretation,
+    complete_turn,
+    create_application,
+    load_application,
+    load_turn,
+    receive_turn,
+)
 
 GREETING = (
     "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves "
@@ -52,6 +64,9 @@ LOCALITY_ALIASES = {
 }
 COUNTRY_ID = re.compile(r"[A-Z]{2}")
 LOCALITY_ID = re.compile(r"[a-z0-9_]+")
+
+STOP_REQUESTED = {"stop": True, "resume": False, None: None}
+QUESTION_KINDS = {"ask": "initial", "clarify": "clarification"}
 
 
 class CoordinationError(Exception):
@@ -133,6 +148,104 @@ def _folded(text: str) -> str:
     decomposed = unicodedata.normalize("NFKD", text)
     without_accents = "".join(char for char in decomposed if not unicodedata.combining(char))
     return " ".join(without_accents.casefold().split())
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def handle_message(
+    db_path, application_id: str, request_id: str, text: str, llm: ScreeningLLM, now=_utc_now
+) -> StoredApplication:
+    """Saves the candidate message once and advances its turn as far as it can go."""
+    receive_turn(db_path, application_id, request_id, text)
+    return _drive(db_path, application_id, request_id, llm, now)
+
+
+def resume_turn(
+    db_path, application_id: str, request_id: str, llm: ScreeningLLM, now=_utc_now
+) -> StoredApplication:
+    """Continues a saved turn from its persisted phase."""
+    return _drive(db_path, application_id, request_id, llm, now)
+
+
+def _drive(db_path, application_id, request_id, llm, now) -> StoredApplication:
+    while True:
+        # The turn goes first: a completed turn then always reads its committed history.
+        phase = load_turn(db_path, application_id, request_id).phase
+        stored = load_application(db_path, application_id)
+        if phase == "completed":
+            return stored
+        if phase == "received":
+            _interpret(db_path, application_id, request_id, stored, llm, now)
+        else:
+            _finish(db_path, application_id, request_id, stored, llm, now)
+
+
+def _interpret(db_path, application_id, request_id, stored, llm, now) -> None:
+    interpretation = guard_interpretation(llm.interpret(_context(stored, now)))
+    commit_interpretation(
+        db_path,
+        application_id,
+        request_id,
+        stored.snapshot.revision,
+        proposals=interpretation.proposals,
+        pending_questions=interpretation.job_questions,
+        language=interpretation.language,
+        stop_requested=STOP_REQUESTED[interpretation.stop_intent],
+    )
+
+
+def _finish(db_path, application_id, request_id, stored, llm, now) -> None:
+    snapshot = stored.snapshot
+    action = next_action(snapshot)
+    if action.kind == "close":
+        evaluation = evaluate(snapshot.fields)
+        context = _context(stored, now).model_copy(
+            update={
+                "outcome": evaluation.outcome,
+                "outcome_reasons": evaluation.outcome_reasons,
+            }
+        )
+        final_message = llm.write_reply(context, action)
+        summary = llm.write_summary(context)
+        close_application(
+            db_path,
+            application_id,
+            snapshot.revision,
+            final_message,
+            summary,
+            request_id=request_id,
+        )
+        return
+    reply = llm.write_reply(_context(stored, now), action)
+    complete_turn(
+        db_path,
+        application_id,
+        request_id,
+        snapshot.revision,
+        reply=reply,
+        question_field=action.field,
+        question_kind=QUESTION_KINDS.get(action.kind),
+    )
+
+
+def _context(stored: StoredApplication, now) -> TurnContext:
+    """Saved state only, never the summary: a retry has nothing else in memory."""
+    snapshot = stored.snapshot
+    return TurnContext(
+        messages=stored.messages,
+        fields=snapshot.fields,
+        pending_questions=snapshot.pending_questions,
+        language=snapshot.language,
+        last_question_field=snapshot.last_question_field,
+        last_question_kind=snapshot.last_question_kind,
+        catalog=[
+            Location(country=country, locality=locality)
+            for country, locality in sorted(COVERAGE_CATALOG)
+        ],
+        now=now(),
+    )
 
 
 def start_application(db_path) -> CandidateSnapshot:

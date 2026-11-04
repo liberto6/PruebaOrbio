@@ -7,7 +7,9 @@ from backend.conversation import (
     GREETING,
     CoordinationError,
     guard_interpretation,
+    handle_message,
     next_action,
+    resume_turn,
     start_application,
     technical_error_text,
 )
@@ -23,9 +25,10 @@ from backend.rules import (
     new_snapshot,
     record_clarifications,
 )
-from backend.storage import InvalidExtraction, init_db, load_application
+from backend.storage import InvalidExtraction, init_db, load_application, load_turn
 
 NOW = datetime(2026, 11, 5, 10, 30, tzinfo=timezone.utc)
+NAMES = tuple(CandidateFields.model_fields)
 
 
 def resolved(field, value, raw="evidence"):
@@ -396,3 +399,260 @@ def test_technical_error_text_follows_the_language():
     spanish, english = technical_error_text("es"), technical_error_text("en")
     assert "problema técnico" in spanish
     assert "technical problem" in english
+
+
+class FakeLLM:
+    """Scripted model. Entries are consumed in order; an exception entry is raised."""
+
+    def __init__(self, interpretations=(), replies=(), summaries=()):
+        self.interpretations = list(interpretations)
+        self.replies = list(replies)
+        self.summaries = list(summaries)
+        self.calls = []
+        self.replied = 0
+        self.before_call = None  # Runs at the start of every call, given the call's name.
+
+    def _next(self, script, default):
+        entry = script.pop(0) if script else default
+        if isinstance(entry, Exception):
+            raise entry
+        return entry
+
+    def _start(self, name, context, action=None):
+        self.calls.append((name, context, action))
+        if self.before_call is not None:
+            self.before_call(name)
+
+    def interpret(self, context):
+        self._start("interpret", context)
+        return self._next(self.interpretations, interpretation())
+
+    def write_reply(self, context, action):
+        self._start("write_reply", context, action)
+        self.replied += 1
+        return self._next(self.replies, f"reply {self.replied}")
+
+    def write_summary(self, context):
+        self._start("write_summary", context)
+        return self._next(self.summaries, "INTERNAL SUMMARY")
+
+    @property
+    def actions(self):
+        return [action for name, _, action in self.calls if name == "write_reply"]
+
+    def contexts(self, name):
+        return [context for call, context, _ in self.calls if call == name]
+
+
+def clock():
+    return NOW
+
+
+@pytest.fixture
+def db(tmp_path):
+    path = tmp_path / "test.db"
+    init_db(path)
+    return path
+
+
+@pytest.fixture
+def app_id(db):
+    return start_application(db).id
+
+
+class Chat:
+    """Sends numbered candidate messages through one scripted model."""
+
+    def __init__(self, db, app_id, llm):
+        self.db, self.app_id, self.llm = db, app_id, llm
+        self.sent = 0
+
+    def send(self, text="mensaje", *script):
+        self.llm.interpretations.extend(script)
+        self.sent += 1
+        return handle_message(
+            self.db, self.app_id, f"request-{self.sent}", text, self.llm, now=clock
+        )
+
+    def resume(self):
+        return resume_turn(self.db, self.app_id, f"request-{self.sent}", self.llm, now=clock)
+
+    def repeat(self, text="mensaje"):
+        return handle_message(
+            self.db, self.app_id, f"request-{self.sent}", text, self.llm, now=clock
+        )
+
+
+@pytest.fixture
+def chat(db, app_id):
+    return Chat(db, app_id, FakeLLM())
+
+
+def texts(stored):
+    return [(message.role, message.text) for message in stored.messages]
+
+
+def test_qualified_path_with_early_information_and_a_correction(chat, db, app_id):
+    chat.send("Soy Ana Ruiz, tengo carné y quiero Madrid", interpretation(NAME, LICENSE, MADRID))
+    assert chat.llm.actions == [ASK("availability")]
+
+    barcelona = resolved("work_locations", places(("ES", "Barcelona")))
+    chat.send("Mejor Barcelona. Jornada completa", interpretation(barcelona, AVAILABILITY))
+    assert chat.llm.actions[-1] == ASK("preferred_schedule")
+    chat.send("Mañanas", interpretation(SCHEDULE))
+    assert chat.llm.actions[-1] == ASK("delivery_experience")
+    chat.send("Ninguna", interpretation(EXPERIENCE))
+    assert chat.llm.actions[-1] == ASK("start_timing")
+    stored = chat.send("No lo sé", interpretation(START))
+
+    assert chat.llm.actions[-1] == CLOSE
+    snapshot = stored.snapshot
+    assert snapshot.outcome == "qualified"
+    assert snapshot.outcome_reasons == ["screening_passed"]
+    assert snapshot.closed_at is not None
+    assert snapshot.summary == "INTERNAL SUMMARY"
+    assert snapshot.fields.work_locations.normalized.identified[0].locality == "barcelona"
+    assert all(getattr(snapshot.fields, name).clarifications_asked == 0 for name in NAMES)
+    # Greeting + 5 candidate messages + 4 questions + the closing message.
+    assert len(stored.messages) == 11
+    assert stored.messages[-1].text == "reply 5"
+    turn = load_turn(db, app_id, "request-5")
+    assert (turn.phase, turn.reply_sequence) == ("completed", 11)
+
+
+def test_no_license_closes_early_keeping_null_fields(chat):
+    chat.send("Soy Ana Ruiz", interpretation(NAME))
+    stored = chat.send("No tengo carné", interpretation(NO_LICENSE))
+
+    assert chat.llm.actions[-1] == CLOSE
+    assert stored.snapshot.outcome == "disqualified"
+    assert stored.snapshot.outcome_reasons == ["no_driving_license"]
+    assert stored.snapshot.summary == "INTERNAL SUMMARY"
+    dumped = stored.snapshot.model_dump()["fields"]
+    assert tuple(dumped) == NAMES
+    assert dumped["work_locations"]["normalized"] is None
+    assert dumped["work_locations"]["status"] == "missing"
+    context = chat.llm.contexts("write_summary")[-1]
+    assert (context.outcome, context.outcome_reasons) == ("disqualified", ["no_driving_license"])
+
+
+@pytest.mark.parametrize(
+    "answer, expected_action, outcome",
+    [
+        (resolved("driving_license", True), ASK("work_locations"), "incomplete"),
+        (resolved("driving_license", False), CLOSE, "disqualified"),
+    ],
+)
+def test_getting_a_license_needs_clarifying_and_then_goes_either_way(
+    chat, answer, expected_action, outcome
+):
+    chat.send("Ana Ruiz", interpretation(NAME))
+    stored = chat.send(
+        "Me lo estoy sacando",
+        interpretation(unresolved("driving_license", reason="license_in_progress")),
+    )
+    assert chat.llm.actions[-1] == CLARIFY("driving_license", 1)
+    assert stored.snapshot.last_question_kind == "clarification"
+    assert stored.snapshot.fields.driving_license.normalized is None
+
+    stored = chat.send("Respuesta clara", interpretation(answer))
+    assert chat.llm.actions[-1] == expected_action
+    assert stored.snapshot.outcome == outcome
+    assert stored.snapshot.fields.driving_license.clarifications_asked == 1
+
+
+def test_repeated_ambiguity_reaches_review_after_exactly_two_clarifications(chat):
+    doubt = interpretation(unresolved("availability", raw="depende"))
+    chat.send("Todo", interpretation(NAME, LICENSE, MADRID))
+    chat.send("depende", doubt)
+    chat.send("depende", doubt)
+    stored = chat.send("depende", doubt)
+
+    assert chat.llm.actions == [
+        ASK("availability"),
+        CLARIFY("availability", 1),
+        CLARIFY("availability", 2),
+        ASK("preferred_schedule"),
+    ]
+    assert stored.snapshot.fields.availability.clarifications_asked == 2
+
+    chat.send("Mañanas", interpretation(SCHEDULE))
+    chat.send("Ninguna", interpretation(EXPERIENCE))
+    stored = chat.send("No lo sé", interpretation(START))
+    assert stored.snapshot.outcome == "pending_review"
+    assert stored.snapshot.outcome_reasons == ["availability_unresolved"]
+    assert stored.snapshot.fields.availability.clarifications_asked == 2
+
+
+def test_stop_then_resume_keeps_the_budget_and_the_question_context(chat):
+    chat.send("Ana Ruiz", interpretation(NAME))
+    chat.send("ya veremos", interpretation(unresolved("driving_license")))
+    assert chat.llm.actions[-1] == CLARIFY("driving_license", 1)
+
+    stored = chat.send("Déjalo", interpretation(stop_intent="stop"))
+    assert chat.llm.actions[-1] == STOP
+    assert stored.snapshot.stop_requested is True
+    assert stored.snapshot.outcome == "incomplete"
+    assert stored.snapshot.summary is None
+    assert stored.snapshot.last_question_field == "driving_license"
+    assert stored.snapshot.last_question_kind == "clarification"
+
+    stored = chat.send("Sigamos", interpretation(stop_intent="resume"))
+    assert stored.snapshot.stop_requested is False
+    assert chat.llm.actions[-1] == CLARIFY("driving_license", 2)
+    assert stored.snapshot.fields.driving_license.clarifications_asked == 2
+
+
+def test_unrelated_message_while_stopped_stays_stopped(chat):
+    chat.send("Ana Ruiz", interpretation(NAME))
+    chat.send("Déjalo", interpretation(stop_intent="stop"))
+    stored = chat.send("¿Qué tiempo hace?", interpretation())
+
+    assert chat.llm.actions[-2:] == [STOP, STOP]
+    assert stored.snapshot.stop_requested is True
+    assert stored.snapshot.closed_at is None
+
+
+def test_stop_with_a_disqualifying_fact_closes_only_after_resuming(chat):
+    chat.send("Déjalo, no tengo carné", interpretation(NO_LICENSE, stop_intent="stop"))
+    assert chat.llm.actions[-1] == STOP
+    stored = chat.send("Vale, sigamos", interpretation(stop_intent="resume"))
+    assert chat.llm.actions[-1] == CLOSE
+    assert stored.snapshot.outcome == "disqualified"
+
+
+def test_job_questions_are_stored_without_affecting_eligibility(chat):
+    question = "¿Cuánto se paga?"
+    stored = chat.send(
+        question, interpretation(NAME, LICENSE, MADRID, AVAILABILITY, questions=[question])
+    )
+    assert stored.snapshot.pending_questions == [question]
+    assert chat.llm.actions[-1] == ASK("preferred_schedule")
+
+    chat.send("Mañanas", interpretation(SCHEDULE))
+    chat.send("Ninguna", interpretation(EXPERIENCE))
+    stored = chat.send("No lo sé", interpretation(START))
+    assert stored.snapshot.outcome == "qualified"
+    assert stored.snapshot.pending_questions == [question]
+
+
+def test_language_preference_is_kept_until_changed(chat):
+    stored = chat.send("Hi, I am Ana Ruiz", interpretation(NAME, language="en"))
+    assert stored.snapshot.language == "en"
+    stored = chat.send("Yes", interpretation(LICENSE))
+    assert stored.snapshot.language == "en"
+    assert chat.llm.contexts("write_reply")[-1].language == "en"
+
+
+def test_contexts_hold_saved_state_and_the_injected_clock(chat):
+    chat.send("Soy Ana Ruiz", interpretation(NAME))
+
+    interpret, reply = chat.llm.contexts("interpret")[0], chat.llm.contexts("write_reply")[0]
+    assert texts(interpret)[-1] == ("candidate", "Soy Ana Ruiz")
+    assert interpret.fields.full_name.status == "missing"
+    assert (interpret.last_question_field, interpret.last_question_kind) == ("full_name", "initial")
+    assert {(place.country, place.locality) for place in interpret.catalog} == set(COVERAGE_CATALOG)
+    assert interpret.now == NOW
+    assert reply.fields.full_name.status == "resolved"
+    assert reply.now == NOW
+    assert reply.outcome is None
