@@ -22,9 +22,10 @@ queues, generic provider platform or additional agents are needed for this scope
   provider. Prefer an economical model that meets the quality criteria below;
   a flagship may be a reference, not an assumed default. Verify current model IDs,
   prices, schema support and SDK options against official documentation at that time.
-  Agreed 2026-11-05: providers Anthropic and OpenAI; candidates Haiku and "luna"
-  (exact OpenAI model to be confirmed at E3.2 start); spending cap 5 USD for the
-  whole stage, stopping to ask before exceeding it.
+  Agreed 2026-11-05: providers OpenAI and Google (Anthropic dropped: paid only);
+  candidates a Luna model and a Gemini Flash model, exact IDs and free-tier quota
+  to be confirmed at E3.2 start; spending cap 5 USD for the whole stage, stopping
+  to ask before exceeding it.
 - Use provider-supported structured output, reuse E2 value models where compatible,
   and validate locally. A valid schema does not guarantee a correct interpretation.
   Pin only SDKs actually used and check compatibility with Python dependencies.
