@@ -33,13 +33,13 @@ Order is linear. E4 may start alongside E3 with sample data once E2 is done.
 
 ## Current state — 2026-11-04
 
-**E1 is complete; E2 has not started.** Setup in a fresh Python virtual environment,
+**E1 is complete; E2 is planned, not implemented.** Setup in a fresh Python virtual environment,
 2 backend tests, npm ci/build, HTTP serving and Chrome rendering were verified.
 The npm lockfile is included; Vite is pinned to 7.3.7 after resolving audit findings.
 Shared instructions, README and the initial Git commit capture the foundation.
 See [E1 evidence](e1-foundations.md) and [README](../../README.md).
 
-Next: define E2's data model, field rules, outcomes and SQLite persistence.
+Next: implement the [E2 plan](e2-rules-and-persistence.md).
 The Python tests pass with one upstream Starlette/HTTPX deprecation warning.
 
 ## If time runs short
