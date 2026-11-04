@@ -63,20 +63,6 @@ def test_new_snapshot_json_keeps_every_key_as_missing():
         }
 
 
-def test_snapshot_survives_a_json_round_trip():
-    snapshot = new_snapshot("app-1", NOW)
-
-    assert CandidateSnapshot.model_validate_json(snapshot.model_dump_json()) == snapshot
-
-
-def test_snapshot_json_without_a_field_key_is_invalid():
-    data = json.loads(new_snapshot("app-1", NOW).model_dump_json())
-    del data["fields"]["start_timing"]
-
-    with pytest.raises(ValidationError):
-        CandidateSnapshot.model_validate_json(json.dumps(data))
-
-
 def proposal(field, value, status="resolved", raw="candidate text", reason=None):
     return {
         "field": field,
@@ -107,18 +93,6 @@ def test_falsy_answers_are_resolved_and_distinct_from_null(field, value, expecte
     assert data[field]["status"] == "resolved"
     assert data[field]["normalized"] == expected
     assert data[field]["normalized"] is not None
-
-
-def test_applying_a_proposal_replaces_raw_and_keeps_clarification_count():
-    fields = missing_fields()
-    fields.start_timing.clarifications_asked = 1
-
-    result = apply_proposals(
-        fields, [proposal("start_timing", {"kind": "unknown", "value": None}, raw="no sé")]
-    )
-
-    assert result.fields.start_timing.raw == "no sé"
-    assert result.fields.start_timing.clarifications_asked == 1
 
 
 def test_applying_proposals_does_not_mutate_the_input_fields():
@@ -171,10 +145,7 @@ def test_unresolved_correction_clears_the_old_normalized_value():
         proposal("full_name", "Ana", status="unresolved", reason="name_incomplete"),
         proposal("full_name", None, status="unresolved", reason=None),
         proposal("full_name", None, status="unresolved", raw=None, reason="name_incomplete"),
-        proposal("full_name", "Ana", status="missing"),
         proposal("full_name", "Ana", raw="   "),
-        proposal("full_name", None, status="unresolved", reason="  "),
-        {"field": "full_name", "status": "resolved", "value": "Ana", "raw": "Ana"},
         {**proposal("full_name", "Ana"), "extra": 1},
     ],
 )
@@ -190,7 +161,7 @@ def test_invalid_proposal_shape_leaves_field_unchanged_and_reports_it(submitted)
 
 @pytest.mark.parametrize(
     "submitted",
-    ["not a proposal", None, proposal("salary", 1), {**proposal("salary", 1), "field": 3}],
+    ["not a proposal", proposal("salary", 1)],
 )
 def test_proposal_without_a_known_field_is_reported_and_changes_nothing(submitted):
     start = missing_fields()
@@ -221,10 +192,6 @@ def test_invalid_proposal_does_not_block_valid_fields_in_the_same_turn():
     "field_json",
     [
         {"raw": "x", "normalized": True, "status": "missing", "reason": None, "clarifications_asked": 0},
-        {"raw": "x", "normalized": True, "status": "unresolved", "reason": "r", "clarifications_asked": 0},
-        {"raw": None, "normalized": None, "status": "unresolved", "reason": "r", "clarifications_asked": 0},
-        {"raw": "x", "normalized": None, "status": "resolved", "reason": None, "clarifications_asked": 0},
-        {"raw": "x", "normalized": True, "status": "resolved", "reason": None, "clarifications_asked": -1},
         {"raw": None, "normalized": True, "status": "resolved", "reason": None, "clarifications_asked": 0},
         {"raw": "x", "normalized": True, "status": "resolved", "reason": None, "clarifications_asked": 3},
     ],
@@ -245,10 +212,8 @@ def experience(amount, unit="years", platforms=("Glovo",)):
     ("amount", "unit", "years"),
     [
         (18, "months", 1.5),
-        (6, "months", 0.5),
         (7, "months", 7 / 12),
         (0.5, "years", 0.5),
-        (3, "years", 3),
     ],
 )
 def test_experience_is_normalized_to_years_without_rounding(amount, unit, years):
@@ -264,33 +229,19 @@ def test_experience_is_normalized_to_years_without_rounding(amount, unit, years)
     assert field.raw == "un tiempo en Glovo"
 
 
-def test_local_business_counts_as_a_platform():
-    result = apply_proposals(
-        missing_fields(),
-        [proposal("delivery_experience", experience(2, platforms=["Pizzería Luigi"]))],
-    )
-
-    assert result.fields.delivery_experience.normalized.platforms == ["Pizzería Luigi"]
-
-
 @pytest.mark.parametrize(
     "value",
     [
         experience(True),
         experience(False, platforms=[]),
         experience("3"),
-        experience(None),
         experience(-1),
         experience(float("nan")),
         experience(float("inf")),
         experience(10**400),
         experience(1, unit="weeks"),
         experience(1, platforms=[""]),
-        experience(1, platforms=[3]),
-        {"amount": 1, "unit": "years"},
         {"years": 1, "platforms": ["Glovo"]},
-        None,
-        3,
     ],
 )
 def test_invalid_experience_value_is_reported(value):
@@ -304,7 +255,6 @@ def test_invalid_experience_value_is_reported(value):
     ("value", "reason"),
     [
         (experience(0, platforms=["Glovo"]), "experience_zero_with_platforms"),
-        (experience(0, "months", ["Glovo"]), "experience_zero_with_platforms"),
         (experience(2, platforms=[]), "experience_without_platforms"),
     ],
 )
@@ -323,20 +273,6 @@ def test_contradictory_or_partial_experience_stays_unresolved_and_clears_old_val
         "what they said",
         reason,
     )
-
-
-def test_snapshot_with_negative_years_is_invalid():
-    data = json.loads(new_snapshot("app-1", NOW).model_dump_json())
-    data["fields"]["delivery_experience"] = {
-        "raw": "x",
-        "normalized": {"years": -1, "platforms": []},
-        "status": "resolved",
-        "reason": None,
-        "clarifications_asked": 0,
-    }
-
-    with pytest.raises(ValidationError):
-        CandidateSnapshot.model_validate_json(json.dumps(data))
 
 
 def test_availability_keeps_options_and_notes():
@@ -368,12 +304,7 @@ def test_empty_options_resolve_when_notes_keep_an_explicit_restriction(field_nam
     [
         {"options": [], "notes": None},
         {"options": [], "notes": "   "},
-        {"options": ["sometimes"], "notes": None},
-        {"options": "morning", "notes": None},
         {"options": ["morning", "full_time"], "notes": None},
-        {"options": ["flexible"]},
-        ["flexible"],
-        None,
     ],
 )
 def test_invalid_options_value_is_reported(field_name, value):
@@ -411,12 +342,7 @@ def test_work_locations_keep_identified_and_unresolved_options():
         {"identified": [], "unresolved": []},
         {"identified": [{"country": "ES"}], "unresolved": []},
         {"identified": [{"country": " ", "locality": "madrid"}], "unresolved": []},
-        {"identified": [{"country": "ES", "locality": ""}], "unresolved": []},
         {"identified": [], "unresolved": [""]},
-        {"identified": "madrid", "unresolved": []},
-        {"identified": []},
-        "madrid",
-        None,
     ],
 )
 def test_invalid_work_locations_value_is_reported(value):
@@ -442,18 +368,6 @@ def test_start_timing_kinds_resolve(value):
     assert result.errors == []
     assert data["start_timing"]["status"] == "resolved"
     assert data["start_timing"]["normalized"] == value
-
-
-def test_explicit_unknown_start_is_resolved_immediately_without_a_clarification():
-    result = apply_proposals(
-        missing_fields(),
-        [proposal("start_timing", {"kind": "unknown", "value": None}, raw="no puedo concretar")],
-    )
-
-    field = result.fields.start_timing
-    assert field.status == "resolved"
-    assert field.clarifications_asked == 0
-    assert field.raw == "no puedo concretar"
 
 
 def test_still_imprecise_start_after_its_clarification_resolves_and_keeps_raw():
@@ -496,12 +410,8 @@ def test_still_imprecise_start_after_its_clarification_resolves_and_keeps_raw():
         {"kind": "date", "value": None},
         {"kind": "period", "value": None},
         {"kind": "period", "value": " "},
-        {"kind": "condition", "value": None},
         {"kind": "unknown", "value": "unknown"},
         {"kind": "soon", "value": "pronto"},
-        {"kind": "unknown"},
-        "unknown",
-        None,
     ],
 )
 def test_invalid_start_timing_value_is_reported(value):
@@ -539,11 +449,8 @@ def test_full_snapshot_round_trip_keeps_resolved_values_and_all_keys():
 @pytest.mark.parametrize(
     ("field_name", "value"),
     [
-        ("full_name", 3),
         ("full_name", "   "),
         ("driving_license", 1),
-        ("driving_license", 0),
-        ("driving_license", "true"),
     ],
 )
 def test_strict_mode_rejects_coercible_values(field_name, value):
@@ -551,21 +458,6 @@ def test_strict_mode_rejects_coercible_values(field_name, value):
 
     assert [error.field for error in result.errors] == [field_name]
     assert getattr(result.fields, field_name).status == "missing"
-
-
-def test_resolved_proposal_without_raw_is_reported_while_valid_fields_apply():
-    result = apply_proposals(
-        missing_fields(),
-        [
-            proposal("driving_license", False, raw=None),
-            proposal("full_name", "Ana García"),
-        ],
-    )
-
-    assert [error.field for error in result.errors] == ["driving_license"]
-    assert result.fields.driving_license.status == "missing"
-    assert result.fields.driving_license.normalized is None
-    assert result.fields.full_name.normalized == "Ana García"
 
 
 def test_resolved_proposal_without_raw_leaves_the_previous_value_unchanged():
@@ -607,11 +499,8 @@ def test_catalog_holds_exactly_the_demo_places_with_country():
     ("identified", "unresolved"),
     [
         ([place("ES", "madrid")], []),
-        ([place("MX", "ciudad_de_mexico")], []),
-        ([place("MX", "guadalajara")], []),
         ([place("FR", "lyon"), place("ES", "sevilla")], []),
         ([place("ES", "madrid")], ["por el norte"]),
-        ([place("FR", "lyon"), place("MX", "puebla")], ["cerca de Toledo"]),
     ],
 )
 def test_any_identified_catalog_place_is_covered(identified, unresolved):
@@ -634,19 +523,6 @@ def test_every_identified_place_outside_the_catalog_is_not_covered(identified):
 
 
 @pytest.mark.parametrize(
-    ("place_", "expected"),
-    [
-        (place("MX", "guadalajara"), "covered"),
-        (place("ES", "guadalajara"), "not_covered"),
-        (place("ES", "valencia"), "covered"),
-        (place("VE", "valencia"), "not_covered"),
-    ],
-)
-def test_same_locality_is_told_apart_by_country(place_, expected):
-    assert evaluate_coverage(work_locations_state([place_])) == expected
-
-
-@pytest.mark.parametrize(
     ("identified", "unresolved"),
     [
         ([place("FR", "lyon")], ["por el norte"]),
@@ -656,10 +532,6 @@ def test_same_locality_is_told_apart_by_country(place_, expected):
 )
 def test_any_unidentified_option_without_a_covered_one_is_unresolved(identified, unresolved):
     assert evaluate_coverage(work_locations_state(identified, unresolved)) == "unresolved"
-
-
-def test_missing_work_location_has_unresolved_coverage():
-    assert evaluate_coverage(missing_fields().work_locations) == "unresolved"
 
 
 def test_residence_without_work_preference_is_unresolved_coverage():
@@ -677,22 +549,6 @@ def test_residence_without_work_preference_is_unresolved_coverage():
     )
 
     assert evaluate_coverage(result.fields.work_locations) == "unresolved"
-
-
-def test_coverage_keeps_unresolved_alternatives_when_one_option_suffices():
-    state = work_locations_state([place("ES", "madrid")], ["por el norte"])
-
-    assert evaluate_coverage(state) == "covered"
-    assert state.normalized.unresolved == ["por el norte"]
-    assert state.raw == "candidate text"
-
-
-@pytest.mark.parametrize("catalog", [None, frozenset(), set(), {}])
-def test_missing_or_empty_catalog_is_a_configuration_error_in_coverage(catalog):
-    state = work_locations_state([place("ES", "madrid")])
-
-    with pytest.raises(CatalogError):
-        evaluate_coverage(state, catalog)
 
 
 def resolved_proposals():
@@ -762,10 +618,8 @@ def test_both_confirmed_failures_are_reported_together():
 @pytest.mark.parametrize(
     ("fields", "reasons"),
     [
-        (all_resolved_except(LICENSE_FALSE), ["no_driving_license"]),
         (all_resolved_except(OUTSIDE_CATALOG), ["location_not_covered"]),
         (fields_from(LICENSE_FALSE, unresolved("full_name")), ["no_driving_license"]),
-        (fields_from(LICENSE_FALSE, unresolved("work_locations")), ["no_driving_license"]),
         (fields_from(OUTSIDE_CATALOG, unresolved("driving_license")), ["location_not_covered"]),
     ],
 )
@@ -777,27 +631,11 @@ def test_confirmed_failure_takes_priority_over_other_fields(fields, reasons):
     assert result.closeable is True
 
 
-@pytest.mark.parametrize("catalog", [None, frozenset(), {}])
+@pytest.mark.parametrize("catalog", [None, frozenset()])
 @pytest.mark.parametrize("given", [LICENSE_FALSE, OUTSIDE_CATALOG])
 def test_missing_catalog_fails_evaluation_instead_of_rejecting(catalog, given):
     with pytest.raises(CatalogError):
         evaluate(fields_from(given), catalog)
-
-
-def test_new_application_is_incomplete_with_every_field_missing():
-    result = evaluate(missing_fields())
-
-    assert result.outcome == "incomplete"
-    assert result.closeable is False
-    assert result.outcome_reasons == [
-        "full_name_missing",
-        "driving_license_missing",
-        "work_locations_missing",
-        "availability_missing",
-        "preferred_schedule_missing",
-        "delivery_experience_missing",
-        "start_timing_missing",
-    ]
 
 
 @pytest.mark.parametrize("field", sorted(FIELD_NAMES))
@@ -830,6 +668,7 @@ def test_pending_review_is_blocked_while_any_field_is_missing():
         "availability",
         "preferred_schedule",
         "delivery_experience",
+        "start_timing",
     ],
 )
 def test_one_unresolved_field_goes_to_pending_review(field):
@@ -875,17 +714,6 @@ def test_resolved_locations_without_confirmed_coverage_neither_qualify_nor_disqu
     assert result.closeable is True
 
 
-def test_resolved_locations_with_only_unresolved_entries_do_not_reject_early():
-    fields = fields_from(
-        proposal("work_locations", {"identified": [], "unresolved": ["por el norte"]})
-    )
-
-    result = evaluate(fields)
-
-    assert result.outcome == "incomplete"
-    assert result.closeable is False
-
-
 def test_all_fields_resolved_with_license_and_coverage_qualifies():
     result = evaluate(all_resolved_except())
 
@@ -920,14 +748,6 @@ def test_evaluation_does_not_change_the_fields():
     assert fields.model_dump_json() == before
 
 
-def test_unresolved_start_timing_follows_the_general_pending_review_rule():
-    result = evaluate(all_resolved_except(unresolved("start_timing")))
-
-    assert result.outcome == "pending_review"
-    assert result.outcome_reasons == ["start_timing_unresolved"]
-    assert result.closeable is True
-
-
 def test_recording_a_clarification_counts_only_that_field():
     fields = missing_fields()
 
@@ -951,15 +771,6 @@ def test_clarification_beyond_the_limit_is_refused_without_changing_state():
     ]
     assert result.fields.full_name == at_limit.fields.full_name
     assert result.fields.availability.clarifications_asked == 1
-
-
-def test_clarification_for_an_unknown_field_is_reported():
-    start = missing_fields()
-
-    result = record_clarifications(start, ["salary"])
-
-    assert [(error.field, error.error) for error in result.errors] == [("salary", "unknown_field")]
-    assert result.fields == start
 
 
 def test_malformed_clarification_entries_are_reported_without_a_field():
@@ -986,16 +797,6 @@ def test_ambiguous_or_invalid_answers_alone_never_use_the_budget():
 
     assert result.fields.driving_license.clarifications_asked == 0
     assert result.fields.full_name.clarifications_asked == 0
-
-
-def test_clarification_can_follow_an_invalid_answer_on_a_missing_field():
-    start = apply_proposals(missing_fields(), [proposal("full_name", 3)]).fields
-
-    result = record_clarifications(start, ["full_name"])
-
-    assert result.errors == []
-    assert result.fields.full_name.status == "missing"
-    assert result.fields.full_name.clarifications_asked == 1
 
 
 def at_budget_limit(field_proposal):

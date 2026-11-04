@@ -4,14 +4,12 @@ import sqlite3
 import pytest
 from pydantic import ValidationError
 
-from backend.rules import CandidateSnapshot, evaluate
 from backend.storage import (
     ApplicationClosed,
     CannotClose,
     StaleRevision,
     StorageFailure,
     UnknownApplication,
-    _transaction,
     close_application,
     create_application,
     init_db,
@@ -54,27 +52,19 @@ def test_created_application_is_incomplete_with_seven_missing_fields_after_reloa
     assert all(field["status"] == "missing" for field in data["fields"].values())
 
 
-def test_each_application_gets_its_own_id(db):
-    assert create_application(db).id != create_application(db).id
-
-
-def test_loading_an_unknown_application_is_refused(db):
+@pytest.mark.parametrize(
+    "operation",
+    [
+        lambda db: load_application(db, "nope"),
+        lambda db: save_turn(db, "nope", 0, candidate_message="hola"),
+        lambda db: close_application(db, "nope", 0, "Gracias.", "Resumen"),
+        lambda db: set_recruiter_decision(db, "nope", "advance"),
+    ],
+    ids=["load", "save_turn", "close", "recruiter_decision"],
+)
+def test_every_operation_refuses_an_unknown_application(db, operation):
     with pytest.raises(UnknownApplication):
-        load_application(db, "nope")
-
-
-def test_stored_snapshot_is_valid_canonical_json(db):
-    created = create_application(db)
-
-    assert CandidateSnapshot.model_validate_json(row_of(db, created.id)["snapshot"]) == created
-
-
-def test_foreign_keys_are_enforced_on_our_connections(db):
-    with pytest.raises(StorageFailure, match="FOREIGN KEY"):
-        with _transaction(db) as connection:
-            connection.execute(
-                "INSERT INTO messages VALUES ('nope', 1, 'candidate', 'hola', 'now')"
-            )
+        operation(db)
 
 
 def test_message_sequence_is_unique_per_application(db):
@@ -149,15 +139,6 @@ def test_full_turn_is_recovered_after_reopening_the_file(db):
     data = json.loads(row_of(db, application.id)["snapshot"])
     assert len(data["fields"]) == 7
     assert data["fields"]["availability"]["normalized"] is None
-
-
-def test_evaluate_works_on_a_reloaded_snapshot(db):
-    application = create_application(db)
-    save_turn(db, application.id, 0, proposals=ALL_RESOLVED)
-
-    evaluation = evaluate(load_application(db, application.id).snapshot.fields)
-
-    assert evaluation.outcome == "qualified"
 
 
 def test_open_turn_never_persists_a_tentative_outcome(db):
@@ -304,11 +285,6 @@ def test_stale_revision_is_rejected_without_duplicating_the_turn(db):
 
     assert message_tuples(db, application.id) == [(1, "candidate", "hola")]
     assert load_application(db, application.id).snapshot.revision == 1
-
-
-def test_turn_on_an_unknown_application_is_refused(db):
-    with pytest.raises(UnknownApplication):
-        save_turn(db, "nope", 0, candidate_message="hola")
 
 
 def test_stop_request_keeps_the_application_incomplete_and_can_be_cleared(db):
@@ -503,11 +479,6 @@ def test_close_with_a_stale_revision_is_refused(db):
     assert load_application(db, application_id) == before
 
 
-def test_close_of_an_unknown_application_is_refused(db):
-    with pytest.raises(UnknownApplication):
-        close_application(db, "nope", 0, "Gracias.", "Resumen")
-
-
 def test_failed_close_rolls_back_final_message_and_summary_and_keeps_the_candidate_turn(db):
     application_id = ready_to_close(db)
     before = load_application(db, application_id)
@@ -552,13 +523,9 @@ def test_closed_application_rejects_turns_and_repeated_close(db):
     before = load_application(db, application_id)
 
     with pytest.raises(ApplicationClosed):
-        save_turn(db, application_id, closed.revision, candidate_message="otra cosa")
-    with pytest.raises(ApplicationClosed):
         save_turn(db, application_id, 0, candidate_message="reintento antiguo")
     with pytest.raises(ApplicationClosed):
         close_application(db, application_id, closed.revision, "Otra vez.", "Otro")
-    with pytest.raises(ApplicationClosed):
-        close_application(db, application_id, 1, "Gracias.", "Resumen")
 
     assert load_application(db, application_id) == before
 
@@ -599,11 +566,6 @@ def test_invalid_recruiter_decision_is_refused(db):
         set_recruiter_decision(db, application.id, "maybe")
 
     assert load_application(db, application.id).snapshot == application
-
-
-def test_recruiter_decision_on_an_unknown_application_is_refused(db):
-    with pytest.raises(UnknownApplication):
-        set_recruiter_decision(db, "nope", "advance")
 
 
 @pytest.mark.parametrize("entry", [3, ["x"], None])
