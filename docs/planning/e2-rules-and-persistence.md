@@ -79,7 +79,9 @@ resolved. No additional eligibility thresholds or schedule matching are added.
 An imprecise start answer needs one clarification; a clear explicit inability to
 specify timing is accepted immediately. After that one clarification, a still
 imprecise answer resolves as `period`, `condition` or `unknown` with its raw text
-retained, so start timing alone never blocks closure or causes review. The caller
+retained, so an imprecise start answer does not cause review once clarified. If
+start timing is ever left unresolved at closure, it follows the general rule and
+goes to `pending_review`. The caller
 marks these semantic cases; code cannot establish them by scanning text. An invalid
 proposal leaves that field unchanged and is returned in a per-field `errors` result;
 the rest of the turn still commits so E3 can re-ask. A valid explicit unresolved correction
