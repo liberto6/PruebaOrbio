@@ -33,7 +33,7 @@ Order is linear. E4 may start alongside E3 with sample data once E2 is done.
 
 ## Current state — 2026-11-04
 
-**E1 and E2 are complete; E3 has not started.** Field validation, coverage, the four outcomes, the
+**E1 and E2 are complete; E3 is planned, not implemented.** Field validation, coverage, the four outcomes, the
 clarification limit and SQLite persistence exist in `app/backend/`, but are not yet
 connected to the application. No conversation, LLM or recruiter tool exists yet.
 `python -m pytest` reports 192 passed, with one upstream Starlette/HTTPX deprecation
@@ -43,18 +43,20 @@ warning. See [E2 evidence and E3 requirements](e2-rules-and-persistence.md),
 The roadmap's "every Phase 1 rule" covers E2's deterministic rules only; E3 must
 prove the conversational behaviour through its scenarios.
 
-Next: detail E3, starting from the E2 plan's requirements for it.
+Next: implement E3.1 from the [revised E3 plan](e3-conversational-agent.md).
+E3 proceeds through coordination, real-LLM comparison, web chat and final validation.
+The provider/model is not selected; E3.2 records the quality, cost and latency evidence.
 
 ## If time runs short
 
 Cut in this order:
-1. Extra bonus features and the model comparison.
+1. Extra bonus features and additional model-comparison runs beyond the initial shortlist.
 2. Recruiter tool visual polish.
 3. Eval breadth, keeping critical scenarios.
 4. Same-sentence code-switching.
 5. The reminder, declared as a deviation from Phase 1.
 
-Never cut: core requirements, fidelity to Phase 1, the two expected products, the deliverables, or the live demo.
+Never cut: core requirements, fidelity to Phase 1, the two expected products, the deliverables, the live demo, or critical model checks and the recorded rationale for the chosen model.
 
 ## Risks
 
