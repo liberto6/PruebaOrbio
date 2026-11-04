@@ -3,16 +3,27 @@ from datetime import datetime, timezone
 import pytest
 
 from backend import conversation
-from backend.conversation import CoordinationError, next_action
-from backend.llm import Action
+from backend.conversation import (
+    GREETING,
+    CoordinationError,
+    guard_interpretation,
+    next_action,
+    start_application,
+    technical_error_text,
+)
+from backend.llm import Action, Interpretation
 from backend.rules import (
+    COVERAGE_CATALOG,
     CandidateFields,
     Evaluation,
+    FieldError,
     Proposal,
     apply_proposals,
+    evaluate_coverage,
     new_snapshot,
     record_clarifications,
 )
+from backend.storage import InvalidExtraction, init_db, load_application
 
 NOW = datetime(2026, 11, 5, 10, 30, tzinfo=timezone.utc)
 
@@ -235,3 +246,153 @@ def test_next_action_never_invents_a_close_for_an_unexpected_state(monkeypatch):
     monkeypatch.setattr(conversation, "evaluate", lambda fields: not_closeable)
     with pytest.raises(CoordinationError):
         next_action(snapshot_with(ALL_RESOLVED))
+
+
+def interpretation(*proposals, questions=(), language=None, stop_intent=None):
+    return Interpretation(
+        proposals=list(proposals),
+        job_questions=list(questions),
+        language=language,
+        stop_intent=stop_intent,
+    )
+
+
+def guarded_location(country, locality):
+    result = guard_interpretation(
+        interpretation(resolved("work_locations", places((country, locality))))
+    )
+    return result.proposals[0].value["identified"][0]
+
+
+@pytest.mark.parametrize(
+    "country, locality, expected, coverage",
+    [
+        ("ES", "madrid", "madrid", "covered"),
+        ("ES", "Madrid", "madrid", "covered"),
+        ("ES", "  MÁDRID\n", "madrid", "covered"),
+        ("ES", "Sevilla", "sevilla", "covered"),
+        ("ES", "Seville", "sevilla", "covered"),
+        ("ES", "Barcelona", "barcelona", "covered"),
+        ("ES", "Valencia", "valencia", "covered"),
+        ("MX", "Ciudad de México", "ciudad_de_mexico", "covered"),
+        ("MX", "ciudad  de mexico", "ciudad_de_mexico", "covered"),
+        ("MX", "CDMX", "ciudad_de_mexico", "covered"),
+        ("MX", "Mexico City", "ciudad_de_mexico", "covered"),
+        ("MX", "ciudad_de_mexico", "ciudad_de_mexico", "covered"),
+        ("MX", "Guadalajara", "guadalajara", "covered"),
+        ("MX", "Monterrey", "monterrey", "covered"),
+        ("MX", "Puebla", "puebla", "covered"),
+        # Well-formed places outside the catalog stay legitimate and not covered.
+        ("ES", "bilbao", "bilbao", "not_covered"),
+        ("ES", "guadalajara", "guadalajara", "not_covered"),
+        ("MX", "valencia", "valencia", "not_covered"),
+    ],
+)
+def test_catalog_guard_normalizes_known_spellings_per_country(
+    country, locality, expected, coverage
+):
+    place = guarded_location(country, locality)
+    assert place == {"country": country, "locality": expected}
+    snapshot = snapshot_with([resolved("work_locations", places((country, expected)))])
+    assert evaluate_coverage(snapshot.fields.work_locations) == coverage
+
+
+@pytest.mark.parametrize(
+    "country, locality",
+    [
+        ("España", "madrid"),
+        ("es", "madrid"),
+        ("ES\n", "madrid"),
+        ("ESP", "madrid"),
+        ("ES", "Bilbao"),
+        ("ES", "bilbao\n"),
+        ("ES", "san sebastián"),
+        ("ES", "Guadalajara"),  # Aliases are per country: Guadalajara alias belongs to MX.
+        ("MX", "Madrid"),
+        ("ES", "Mexico City"),
+        ("ES", "Madriz"),  # No fuzzy matching.
+    ],
+)
+def test_catalog_guard_rejects_malformed_identifiers_as_technical_failures(country, locality):
+    with pytest.raises(InvalidExtraction):
+        guarded_location(country, locality)
+
+
+def test_catalog_guard_checks_every_location_and_keeps_unresolved_options():
+    mixed = resolved(
+        "work_locations", places(("ES", "Madrid"), ("ES", "bilbao"), unresolved=["por el centro"])
+    )
+    assert guard_interpretation(interpretation(mixed)).proposals[0].value == places(
+        ("ES", "madrid"), ("ES", "bilbao"), unresolved=["por el centro"]
+    )
+    with pytest.raises(InvalidExtraction):
+        guard_interpretation(
+            interpretation(resolved("work_locations", places(("ES", "madrid"), ("ES", "Bilbao"))))
+        )
+
+
+def test_catalog_aliases_only_point_at_catalog_entries():
+    aliases = conversation.LOCALITY_ALIASES
+    for country, spellings in aliases.items():
+        for target in spellings.values():
+            assert (country, target) in COVERAGE_CATALOG
+    assert {(c, t) for c, s in aliases.items() for t in s.values()} == set(COVERAGE_CATALOG)
+
+
+@pytest.mark.parametrize(
+    "bad_value",
+    ["Madrid", {"identified": [{"country": "ES"}], "unresolved": []}, {"identified": []}, None],
+)
+def test_guard_rejects_resolved_locations_with_a_bad_shape(bad_value):
+    bad = Proposal(field="work_locations", status="resolved", value=bad_value, raw="x", reason=None)
+    with pytest.raises(InvalidExtraction):
+        guard_interpretation(interpretation(bad))
+
+
+@pytest.mark.parametrize(
+    "not_an_interpretation",
+    [None, "texto", {"proposals": []}, [], Action(kind="close")],
+)
+def test_guard_rejects_anything_that_is_not_an_interpretation(not_an_interpretation):
+    with pytest.raises(InvalidExtraction):
+        guard_interpretation(not_an_interpretation)
+
+
+def test_guard_rejects_duplicate_proposals_for_a_field():
+    with pytest.raises(InvalidExtraction) as caught:
+        guard_interpretation(interpretation(NAME, LICENSE, resolved("full_name", "Ana Gil")))
+    assert caught.value.errors == [FieldError(field="full_name", error="duplicate_proposal")]
+
+
+def test_guard_passes_everything_else_through_unchanged():
+    original = interpretation(
+        NAME,
+        unresolved("work_locations", raw="Madrid o algo así"),
+        questions=["¿Cuánto se paga?"],
+        language="en",
+        stop_intent="resume",
+    )
+    assert guard_interpretation(original) == original
+
+
+def test_start_application_stores_the_fixed_greeting_once(tmp_path):
+    db = tmp_path / "test.db"
+    init_db(db)
+    snapshot = start_application(db)
+    stored = load_application(db, snapshot.id)
+    assert [(m.role, m.text) for m in stored.messages] == [("assistant", GREETING)]
+    assert stored.snapshot.last_question_field == "full_name"
+    assert stored.snapshot.last_question_kind == "initial"
+    assert stored.snapshot.fields.full_name.clarifications_asked == 0
+    assert len(load_application(db, snapshot.id).messages) == 1
+
+
+def test_greeting_identifies_the_virtual_assistant_and_asks_the_full_name():
+    assert "asistente virtual de Grupo Sazón" in GREETING
+    assert GREETING.endswith("¿Cuál es tu nombre completo?")
+
+
+def test_technical_error_text_follows_the_language():
+    spanish, english = technical_error_text("es"), technical_error_text("en")
+    assert "problema técnico" in spanish
+    assert "technical problem" in english
