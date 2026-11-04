@@ -1,5 +1,6 @@
 import json
 import sqlite3
+import threading
 
 import pytest
 
@@ -1034,3 +1035,98 @@ def test_exception_outside_sqlite_rolls_back_receive(db, monkeypatch):
     monkeypatch.undo()
 
     assert everything(db, application.id) == before
+
+
+RACERS = 8
+
+
+def race(calls):
+    """Run each call in its own thread, released together; each opens its own connection."""
+    barrier = threading.Barrier(len(calls))
+    outcomes = [None] * len(calls)
+
+    def run(index, call):
+        barrier.wait()
+        try:
+            outcomes[index] = call()
+        except Exception as exc:
+            outcomes[index] = exc
+
+    threads = [threading.Thread(target=run, args=item) for item in enumerate(calls)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    return outcomes
+
+
+def test_racing_the_same_new_request_appends_one_message(db):
+    application = create_application(db)
+
+    outcomes = race(
+        [lambda: receive_turn(db, application.id, "r1", "Soy Ana") for _ in range(RACERS)]
+    )
+
+    assert not [outcome for outcome in outcomes if isinstance(outcome, Exception)]
+    assert sorted(outcome.created for outcome in outcomes) == [False] * (RACERS - 1) + [True]
+    assert {outcome.turn.candidate_sequence for outcome in outcomes} == {1}
+    assert message_texts(db, application.id) == ["Soy Ana"]
+    assert load_application(db, application.id).snapshot.revision == 1
+
+
+def test_racing_different_requests_leaves_one_unfinished_turn(db):
+    application = create_application(db)
+
+    outcomes = race(
+        [
+            lambda number=number: receive_turn(db, application.id, f"r{number}", f"texto {number}")
+            for number in range(RACERS)
+        ]
+    )
+
+    winners = [outcome for outcome in outcomes if not isinstance(outcome, Exception)]
+    losers = [outcome for outcome in outcomes if isinstance(outcome, Exception)]
+    assert len(winners) == 1
+    assert winners[0].created is True
+    assert all(isinstance(loser, TurnPending) for loser in losers)
+    assert {loser.request_id for loser in losers} == {winners[0].turn.request_id}
+    assert load_unfinished_turn(db, application.id) == winners[0].turn
+    assert len(message_texts(db, application.id)) == 1
+    assert execute(db, "SELECT COUNT(*) FROM turns") == [(1,)]
+    assert load_application(db, application.id).snapshot.revision == 1
+
+
+def test_racing_commits_of_one_interpretation_apply_it_once(db):
+    application_id, revision = received(db)
+
+    outcomes = race(
+        [
+            lambda: commit_interpretation(
+                db, application_id, "r1", revision, proposals=[], pending_questions=["¿Cuánto?"]
+            )
+            for _ in range(RACERS)
+        ]
+    )
+
+    assert sum(isinstance(outcome, WrongTurnPhase) for outcome in outcomes) == RACERS - 1
+    stored = load_application(db, application_id).snapshot
+    assert stored.pending_questions == ["¿Cuánto?"]
+    assert stored.revision == revision + 1
+
+
+@pytest.mark.parametrize(
+    "finish",
+    [
+        lambda db, app, rev: complete_turn(db, app, "r1", rev, reply="Fin"),
+        lambda db, app, rev: close_application(db, app, rev, "Fin", "Resumen", request_id="r1"),
+    ],
+    ids=["complete", "close"],
+)
+def test_racing_finishes_of_one_turn_append_one_reply(db, finish):
+    application_id, revision = interpreted(db, proposals=ALL_RESOLVED)
+
+    outcomes = race([lambda: finish(db, application_id, revision) for _ in range(RACERS)])
+
+    assert sum(isinstance(outcome, WrongTurnPhase) for outcome in outcomes) == RACERS - 1
+    assert message_texts(db, application_id) == ["Soy Ana", "Fin"]
+    assert load_application(db, application_id).snapshot.revision == revision + 1
