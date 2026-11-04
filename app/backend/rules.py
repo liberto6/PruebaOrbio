@@ -14,6 +14,7 @@ T = TypeVar("T")
 
 NonBlank = Annotated[str, StringConstraints(pattern=r"\S")]
 Duration = Annotated[float, Field(ge=0, allow_inf_nan=False)]
+Outcome = Literal["incomplete", "qualified", "disqualified", "pending_review"]
 
 
 def _is_iso_date(text: str) -> bool:
@@ -120,7 +121,7 @@ class CandidateSnapshot(StrictModel):
     created_at: datetime
     updated_at: datetime
     closed_at: datetime | None
-    outcome: Literal["incomplete", "qualified", "disqualified", "pending_review"]
+    outcome: Outcome
     outcome_reasons: list[str]
     fields: CandidateFields
     pending_questions: list[str]
@@ -248,3 +249,70 @@ def _describe(exc: ValidationError) -> str:
         location = ".".join(str(part) for part in error["loc"])
         parts.append(f"{location}: {error['msg']}" if location else error["msg"])
     return "; ".join(parts)
+
+
+COVERAGE_CATALOG = frozenset(
+    {
+        ("ES", "madrid"),
+        ("ES", "barcelona"),
+        ("ES", "valencia"),
+        ("ES", "sevilla"),
+        ("MX", "ciudad_de_mexico"),
+        ("MX", "guadalajara"),
+        ("MX", "monterrey"),
+        ("MX", "puebla"),
+    }
+)
+
+
+class CatalogError(Exception):
+    pass
+
+
+class Evaluation(StrictModel):
+    outcome: Outcome
+    outcome_reasons: list[str]
+    closeable: bool
+
+
+def evaluate_coverage(work_locations: FieldState, catalog=COVERAGE_CATALOG) -> str:
+    if not catalog:
+        raise CatalogError("the coverage catalog is missing or empty")
+    locations = work_locations.normalized
+    if locations is None:
+        return "unresolved"
+    if any((place.country, place.locality) in catalog for place in locations.identified):
+        return "covered"
+    if locations.unresolved:
+        return "unresolved"
+    return "not_covered"
+
+
+def evaluate(fields: CandidateFields, catalog=COVERAGE_CATALOG) -> Evaluation:
+    coverage = evaluate_coverage(fields.work_locations, catalog)
+
+    failures = []
+    if fields.driving_license.normalized is False:
+        failures.append("no_driving_license")
+    if coverage == "not_covered":
+        failures.append("location_not_covered")
+    if failures:
+        return Evaluation(outcome="disqualified", outcome_reasons=failures, closeable=True)
+
+    missing = _fields_with_status(fields, "missing")
+    if missing:
+        reasons = [f"{name}_missing" for name in missing]
+        return Evaluation(outcome="incomplete", outcome_reasons=reasons, closeable=False)
+
+    reasons = [f"{name}_unresolved" for name in _fields_with_status(fields, "unresolved")]
+    if coverage == "unresolved" and fields.work_locations.status == "resolved":
+        reasons.append("coverage_unresolved")
+    if reasons:
+        return Evaluation(outcome="pending_review", outcome_reasons=reasons, closeable=True)
+
+    # Here every field is resolved, the license is true and coverage is confirmed.
+    return Evaluation(outcome="qualified", outcome_reasons=["screening_passed"], closeable=True)
+
+
+def _fields_with_status(fields: CandidateFields, status: str) -> list[str]:
+    return [name for name in CandidateFields.model_fields if getattr(fields, name).status == status]

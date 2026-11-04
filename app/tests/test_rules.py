@@ -4,7 +4,15 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from backend.rules import CandidateSnapshot, apply_proposals, new_snapshot
+from backend.rules import (
+    COVERAGE_CATALOG,
+    CandidateSnapshot,
+    CatalogError,
+    apply_proposals,
+    evaluate,
+    evaluate_coverage,
+    new_snapshot,
+)
 
 NOW = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
 FIELD_NAMES = {
@@ -567,3 +575,344 @@ def test_resolved_proposal_without_raw_leaves_the_previous_value_unchanged():
 
     assert result.fields == start
     assert [error.field for error in result.errors] == ["driving_license"]
+
+
+def place(country, locality):
+    return {"country": country, "locality": locality}
+
+
+def work_locations_state(identified=(), unresolved=()):
+    value = {"identified": list(identified), "unresolved": list(unresolved)}
+    result = apply_proposals(missing_fields(), [proposal("work_locations", value)])
+    assert result.errors == []
+    return result.fields.work_locations
+
+
+def test_catalog_holds_exactly_the_demo_places_with_country():
+    assert COVERAGE_CATALOG == {
+        ("ES", "madrid"),
+        ("ES", "barcelona"),
+        ("ES", "valencia"),
+        ("ES", "sevilla"),
+        ("MX", "ciudad_de_mexico"),
+        ("MX", "guadalajara"),
+        ("MX", "monterrey"),
+        ("MX", "puebla"),
+    }
+
+
+@pytest.mark.parametrize(
+    ("identified", "unresolved"),
+    [
+        ([place("ES", "madrid")], []),
+        ([place("MX", "ciudad_de_mexico")], []),
+        ([place("MX", "guadalajara")], []),
+        ([place("FR", "lyon"), place("ES", "sevilla")], []),
+        ([place("ES", "madrid")], ["por el norte"]),
+        ([place("FR", "lyon"), place("MX", "puebla")], ["cerca de Toledo"]),
+    ],
+)
+def test_any_identified_catalog_place_is_covered(identified, unresolved):
+    assert evaluate_coverage(work_locations_state(identified, unresolved)) == "covered"
+
+
+@pytest.mark.parametrize(
+    "identified",
+    [
+        [place("FR", "lyon")],
+        [place("FR", "lyon"), place("ES", "toledo")],
+        [place("ES", "guadalajara")],
+        [place("VE", "valencia")],
+        [place("MX", "madrid")],
+        [place("ES", "Madrid")],
+    ],
+)
+def test_every_identified_place_outside_the_catalog_is_not_covered(identified):
+    assert evaluate_coverage(work_locations_state(identified)) == "not_covered"
+
+
+@pytest.mark.parametrize(
+    ("place_", "expected"),
+    [
+        (place("MX", "guadalajara"), "covered"),
+        (place("ES", "guadalajara"), "not_covered"),
+        (place("ES", "valencia"), "covered"),
+        (place("VE", "valencia"), "not_covered"),
+    ],
+)
+def test_same_locality_is_told_apart_by_country(place_, expected):
+    assert evaluate_coverage(work_locations_state([place_])) == expected
+
+
+@pytest.mark.parametrize(
+    ("identified", "unresolved"),
+    [
+        ([place("FR", "lyon")], ["por el norte"]),
+        ([], ["México"]),
+        ([], ["cerca de Madrid", "por el centro"]),
+    ],
+)
+def test_any_unidentified_option_without_a_covered_one_is_unresolved(identified, unresolved):
+    assert evaluate_coverage(work_locations_state(identified, unresolved)) == "unresolved"
+
+
+def test_missing_work_location_has_unresolved_coverage():
+    assert evaluate_coverage(missing_fields().work_locations) == "unresolved"
+
+
+def test_residence_without_work_preference_is_unresolved_coverage():
+    result = apply_proposals(
+        missing_fields(),
+        [
+            proposal(
+                "work_locations",
+                None,
+                status="unresolved",
+                raw="vivo en Toledo",
+                reason="residence_without_work_preference",
+            )
+        ],
+    )
+
+    assert evaluate_coverage(result.fields.work_locations) == "unresolved"
+
+
+def test_coverage_keeps_unresolved_alternatives_when_one_option_suffices():
+    state = work_locations_state([place("ES", "madrid")], ["por el norte"])
+
+    assert evaluate_coverage(state) == "covered"
+    assert state.normalized.unresolved == ["por el norte"]
+    assert state.raw == "candidate text"
+
+
+@pytest.mark.parametrize("catalog", [None, frozenset(), set(), {}])
+def test_missing_or_empty_catalog_is_a_configuration_error_in_coverage(catalog):
+    state = work_locations_state([place("ES", "madrid")])
+
+    with pytest.raises(CatalogError):
+        evaluate_coverage(state, catalog)
+
+
+def resolved_proposals():
+    return {
+        "full_name": proposal("full_name", "Ana García"),
+        "driving_license": proposal("driving_license", True),
+        "work_locations": proposal(
+            "work_locations", {"identified": [place("ES", "madrid")], "unresolved": []}
+        ),
+        "availability": proposal("availability", {"options": ["full_time"], "notes": None}),
+        "preferred_schedule": proposal("preferred_schedule", {"options": ["morning"], "notes": None}),
+        "delivery_experience": proposal("delivery_experience", experience(2)),
+        "start_timing": proposal("start_timing", {"kind": "date", "value": "2026-12-01"}),
+    }
+
+
+def fields_from(*proposals):
+    result = apply_proposals(missing_fields(), list(proposals))
+    assert result.errors == []
+    return result.fields
+
+
+def all_resolved_except(*replacements):
+    proposals = resolved_proposals()
+    for replacement in replacements:
+        proposals[replacement["field"]] = replacement
+    return fields_from(*proposals.values())
+
+
+def unresolved(field):
+    return proposal(field, None, status="unresolved", raw="no sé", reason="ambiguous")
+
+
+LICENSE_FALSE = proposal("driving_license", False)
+OUTSIDE_CATALOG = proposal(
+    "work_locations", {"identified": [place("FR", "lyon")], "unresolved": []}
+)
+
+
+def test_license_false_disqualifies_early_with_null_fields():
+    fields = fields_from(LICENSE_FALSE)
+
+    result = evaluate(fields)
+
+    assert result.outcome == "disqualified"
+    assert result.outcome_reasons == ["no_driving_license"]
+    assert result.closeable is True
+    data = json.loads(fields.model_dump_json())
+    assert set(data) == FIELD_NAMES
+    assert data["full_name"]["normalized"] is None
+
+
+def test_not_covered_disqualifies_early_with_null_fields():
+    result = evaluate(fields_from(OUTSIDE_CATALOG))
+
+    assert result.outcome == "disqualified"
+    assert result.outcome_reasons == ["location_not_covered"]
+    assert result.closeable is True
+
+
+def test_both_confirmed_failures_are_reported_together():
+    result = evaluate(fields_from(LICENSE_FALSE, OUTSIDE_CATALOG))
+
+    assert result.outcome_reasons == ["no_driving_license", "location_not_covered"]
+
+
+@pytest.mark.parametrize(
+    ("fields", "reasons"),
+    [
+        (all_resolved_except(LICENSE_FALSE), ["no_driving_license"]),
+        (all_resolved_except(OUTSIDE_CATALOG), ["location_not_covered"]),
+        (fields_from(LICENSE_FALSE, unresolved("full_name")), ["no_driving_license"]),
+        (fields_from(LICENSE_FALSE, unresolved("work_locations")), ["no_driving_license"]),
+        (fields_from(OUTSIDE_CATALOG, unresolved("driving_license")), ["location_not_covered"]),
+    ],
+)
+def test_confirmed_failure_takes_priority_over_other_fields(fields, reasons):
+    result = evaluate(fields)
+
+    assert result.outcome == "disqualified"
+    assert result.outcome_reasons == reasons
+    assert result.closeable is True
+
+
+@pytest.mark.parametrize("catalog", [None, frozenset(), {}])
+@pytest.mark.parametrize("given", [LICENSE_FALSE, OUTSIDE_CATALOG])
+def test_missing_catalog_fails_evaluation_instead_of_rejecting(catalog, given):
+    with pytest.raises(CatalogError):
+        evaluate(fields_from(given), catalog)
+
+
+def test_new_application_is_incomplete_with_every_field_missing():
+    result = evaluate(missing_fields())
+
+    assert result.outcome == "incomplete"
+    assert result.closeable is False
+    assert result.outcome_reasons == [
+        "full_name_missing",
+        "driving_license_missing",
+        "work_locations_missing",
+        "availability_missing",
+        "preferred_schedule_missing",
+        "delivery_experience_missing",
+        "start_timing_missing",
+    ]
+
+
+@pytest.mark.parametrize("field", sorted(FIELD_NAMES))
+def test_one_missing_field_keeps_the_application_open(field):
+    proposals = resolved_proposals()
+    del proposals[field]
+
+    result = evaluate(fields_from(*proposals.values()))
+
+    assert result.outcome == "incomplete"
+    assert result.outcome_reasons == [f"{field}_missing"]
+    assert result.closeable is False
+
+
+def test_pending_review_is_blocked_while_any_field_is_missing():
+    result = evaluate(fields_from(unresolved("driving_license"), unresolved("work_locations")))
+
+    assert result.outcome == "incomplete"
+    assert result.closeable is False
+    assert "driving_license_missing" not in result.outcome_reasons
+    assert "full_name_missing" in result.outcome_reasons
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "full_name",
+        "driving_license",
+        "work_locations",
+        "availability",
+        "preferred_schedule",
+        "delivery_experience",
+    ],
+)
+def test_one_unresolved_field_goes_to_pending_review(field):
+    result = evaluate(all_resolved_except(unresolved(field)))
+
+    assert result.outcome == "pending_review"
+    assert result.outcome_reasons == [f"{field}_unresolved"]
+    assert result.closeable is True
+
+
+def test_every_unresolved_field_is_listed_and_ambiguity_never_rejects():
+    names = [name for name in resolved_proposals() if name != "start_timing"]
+    fields = all_resolved_except(*[unresolved(name) for name in names])
+
+    result = evaluate(fields)
+
+    assert result.outcome == "pending_review"
+    assert result.outcome_reasons == [
+        "full_name_unresolved",
+        "driving_license_unresolved",
+        "work_locations_unresolved",
+        "availability_unresolved",
+        "preferred_schedule_unresolved",
+        "delivery_experience_unresolved",
+    ]
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        {"identified": [], "unresolved": ["por el norte"]},
+        {"identified": [place("FR", "lyon")], "unresolved": ["por el norte"]},
+    ],
+)
+def test_resolved_locations_without_confirmed_coverage_neither_qualify_nor_disqualify(value):
+    fields = all_resolved_except(proposal("work_locations", value))
+
+    result = evaluate(fields)
+
+    assert fields.work_locations.status == "resolved"
+    assert result.outcome == "pending_review"
+    assert result.outcome_reasons == ["coverage_unresolved"]
+    assert result.closeable is True
+
+
+def test_resolved_locations_with_only_unresolved_entries_do_not_reject_early():
+    fields = fields_from(
+        proposal("work_locations", {"identified": [], "unresolved": ["por el norte"]})
+    )
+
+    result = evaluate(fields)
+
+    assert result.outcome == "incomplete"
+    assert result.closeable is False
+
+
+def test_all_fields_resolved_with_license_and_coverage_qualifies():
+    result = evaluate(all_resolved_except())
+
+    assert result.outcome == "qualified"
+    assert result.outcome_reasons == ["screening_passed"]
+    assert result.closeable is True
+
+
+@pytest.mark.parametrize(
+    "replacement",
+    [
+        proposal("delivery_experience", experience(0, platforms=[])),
+        proposal("start_timing", {"kind": "unknown", "value": None}),
+        proposal("start_timing", {"kind": "period", "value": "pronto"}),
+        proposal("availability", {"options": [], "notes": "solo martes"}),
+        proposal(
+            "work_locations",
+            {"identified": [place("ES", "madrid"), place("FR", "lyon")], "unresolved": ["por el norte"]},
+        ),
+    ],
+)
+def test_admitted_answers_do_not_prevent_qualification(replacement):
+    assert evaluate(all_resolved_except(replacement)).outcome == "qualified"
+
+
+def test_evaluation_does_not_change_the_fields():
+    fields = all_resolved_except()
+    before = fields.model_dump_json()
+
+    evaluate(fields)
+
+    assert fields.model_dump_json() == before
