@@ -6,7 +6,14 @@ from datetime import datetime, timezone
 
 from pydantic import ValidationError
 
-from backend.llm import Action, Interpretation, ScreeningLLM, TurnContext
+from backend.llm import (
+    Action,
+    Interpretation,
+    LLMFailure,
+    ScreeningLLM,
+    TransientLLMFailure,
+    TurnContext,
+)
 from backend.rules import (
     COVERAGE_CATALOG,
     MAX_CLARIFICATIONS,
@@ -20,8 +27,14 @@ from backend.rules import (
     evaluate_coverage,
 )
 from backend.storage import (
+    CannotClose,
+    ClarificationRefused,
     InvalidExtraction,
+    InvalidReply,
+    StaleRevision,
+    StorageFailure,
     StoredApplication,
+    WrongTurnPhase,
     close_application,
     commit_interpretation,
     complete_turn,
@@ -67,10 +80,20 @@ LOCALITY_ID = re.compile(r"[a-z0-9_]+")
 
 STOP_REQUESTED = {"stop": True, "resume": False, None: None}
 QUESTION_KINDS = {"ask": "initial", "clarify": "clarification"}
+MAX_RELOADS = 3  # Times one call may discard its work because the state moved.
 
 
 class CoordinationError(Exception):
     """The saved state allows neither another question nor a close."""
+
+
+class TurnFailed(Exception):
+    """Technical failure, retryable from the persisted phase. Holds no internal detail."""
+
+    def __init__(self, phase: str | None, code: str):
+        super().__init__(code)
+        self.phase = phase  # None when no turn could be read or saved.
+        self.code = code
 
 
 def next_action(snapshot: CandidateSnapshot) -> Action:
@@ -158,7 +181,10 @@ def handle_message(
     db_path, application_id: str, request_id: str, text: str, llm: ScreeningLLM, now=_utc_now
 ) -> StoredApplication:
     """Saves the candidate message once and advances its turn as far as it can go."""
-    receive_turn(db_path, application_id, request_id, text)
+    try:
+        receive_turn(db_path, application_id, request_id, text)
+    except StorageFailure as exc:
+        raise TurnFailed(None, "storage_failure") from exc
     return _drive(db_path, application_id, request_id, llm, now)
 
 
@@ -170,16 +196,34 @@ def resume_turn(
 
 
 def _drive(db_path, application_id, request_id, llm, now) -> StoredApplication:
-    while True:
-        # The turn goes first: a completed turn then always reads its committed history.
-        phase = load_turn(db_path, application_id, request_id).phase
-        stored = load_application(db_path, application_id)
-        if phase == "completed":
-            return stored
-        if phase == "received":
-            _interpret(db_path, application_id, request_id, stored, llm, now)
-        else:
-            _finish(db_path, application_id, request_id, stored, llm, now)
+    phase = None
+    reloads = 0
+    try:
+        while reloads <= MAX_RELOADS:
+            # The turn goes first: a completed turn then always reads its committed history.
+            phase = load_turn(db_path, application_id, request_id).phase
+            stored = load_application(db_path, application_id)
+            if phase == "completed":
+                return stored
+            step = _interpret if phase == "received" else _finish
+            try:
+                step(db_path, application_id, request_id, stored, llm, now)
+            except (StaleRevision, WrongTurnPhase, ClarificationRefused, CannotClose):
+                # The state moved under this work: discard it and decide again.
+                reloads += 1
+    except TransientLLMFailure as exc:
+        raise TurnFailed(phase, "llm_transient") from exc
+    except LLMFailure as exc:
+        raise TurnFailed(phase, "llm_permanent") from exc
+    except InvalidExtraction as exc:
+        raise TurnFailed(phase, "invalid_interpretation") from exc
+    except InvalidReply as exc:
+        raise TurnFailed(phase, "invalid_reply") from exc
+    except StorageFailure as exc:
+        raise TurnFailed(phase, "storage_failure") from exc
+    except CoordinationError as exc:
+        raise TurnFailed(phase, "coordination_error") from exc
+    raise TurnFailed(phase, "state_changed")
 
 
 def _interpret(db_path, application_id, request_id, stored, llm, now) -> None:
@@ -207,8 +251,8 @@ def _finish(db_path, application_id, request_id, stored, llm, now) -> None:
                 "outcome_reasons": evaluation.outcome_reasons,
             }
         )
-        final_message = llm.write_reply(context, action)
-        summary = llm.write_summary(context)
+        final_message = _checked_text(llm.write_reply(context, action))
+        summary = _checked_text(llm.write_summary(context))
         close_application(
             db_path,
             application_id,
@@ -218,7 +262,7 @@ def _finish(db_path, application_id, request_id, stored, llm, now) -> None:
             request_id=request_id,
         )
         return
-    reply = llm.write_reply(_context(stored, now), action)
+    reply = _checked_text(llm.write_reply(_context(stored, now), action))
     complete_turn(
         db_path,
         application_id,
@@ -228,6 +272,12 @@ def _finish(db_path, application_id, request_id, stored, llm, now) -> None:
         question_field=action.field,
         question_kind=QUESTION_KINDS.get(action.kind),
     )
+
+
+def _checked_text(text) -> str:
+    if not isinstance(text, str) or not text.strip():
+        raise InvalidReply("unusable_text")
+    return text
 
 
 def _context(stored: StoredApplication, now) -> TurnContext:
