@@ -22,6 +22,9 @@ queues, generic provider platform or additional agents are needed for this scope
   provider. Prefer an economical model that meets the quality criteria below;
   a flagship may be a reference, not an assumed default. Verify current model IDs,
   prices, schema support and SDK options against official documentation at that time.
+  Agreed 2026-11-05: providers Anthropic and OpenAI; candidates Haiku and "luna"
+  (exact OpenAI model to be confirmed at E3.2 start); spending cap 5 USD for the
+  whole stage, stopping to ask before exceeding it.
 - Use provider-supported structured output, reuse E2 value models where compatible,
   and validate locally. A valid schema does not guarantee a correct interpretation.
   Pin only SDKs actually used and check compatibility with Python dependencies.
@@ -151,6 +154,9 @@ alone do not affect eligibility. Do not expose the internal summary to the candi
   the greeting. The chat restores messages and any unfinished request after reload,
   shows sending/retry status, and disables new messages while a turn is pending or
   after closure. An unknown stored id offers a fresh conversation instead of crashing.
+- A visible UI action starts a new application as another candidate/attempt. It never
+  reopens or changes earlier records, which stay in the database. If the current
+  application is open it asks for confirmation first, and that one stays `incomplete`.
 - Return an explicit candidate-facing projection: visible messages, closure and
   operational state needed by the UI. Do not serialize the full E2 snapshot, summary,
   recruiter decision or internal diagnostics into candidate responses.
