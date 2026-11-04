@@ -957,10 +957,17 @@ BAD_TEXTS = [None, 42, b"bytes", ["lista"], "", "   \n"]
 
 
 @pytest.mark.parametrize("bad_text", BAD_TEXTS)
-def test_bad_reply_text_saves_nothing_and_keeps_the_budget(chat, db, app_id, bad_text):
+def test_bad_reply_text_saves_nothing_and_keeps_the_budget(
+    chat, db, app_id, monkeypatch, bad_text
+):
+    def must_not_reach_storage(*args, **kwargs):
+        raise AssertionError("checked before storage")
+
     chat.llm.replies.append(bad_text)
-    with pytest.raises(TurnFailed) as raises:
-        chat.send("mensaje", DOUBT_AND_QUESTION)
+    with monkeypatch.context() as patch:
+        patch.setattr(conversation, "complete_turn", must_not_reach_storage)
+        with pytest.raises(TurnFailed) as raises:
+            chat.send("mensaje", DOUBT_AND_QUESTION)
     assert_failed(raises, "interpreted", "invalid_reply")
 
     stored = load_application(db, app_id)
@@ -980,6 +987,12 @@ def test_bad_closing_text_does_not_close(chat, db, app_id, script, bad_text):
     assert load_application(db, app_id).snapshot.closed_at is None
 
     assert chat.resume().snapshot.outcome == "disqualified"
+
+
+def test_surrogate_in_a_request_id_still_completes_the_turn(db, app_id):
+    stored = handle_message(db, app_id, "id\ud800", "hola", FakeLLM(), now=clock)
+    assert history_counts(stored) == (1, 2)
+    assert load_turn(db, app_id, "id\ud800").phase == "completed"
 
 
 def test_surrogates_in_generated_text_are_saved_through_storage(chat, db, app_id):
@@ -1135,6 +1148,28 @@ def test_concurrent_retry_wins_and_the_slower_one_returns_its_committed_work(
     assert stored.snapshot.summary == "resumen"
     assert stored.snapshot.pending_questions == ["¿Cuánto pagan?"]
     assert history_counts(stored) == (1, 2)
+    assert load_application(db, app_id) == stored
+
+
+def test_a_turn_completed_between_the_two_reads_returns_its_committed_history(
+    db, app_id, monkeypatch
+):
+    real = conversation.load_application
+    with pytest.raises(TurnFailed):
+        handle_message(
+            db, app_id, "request", "hola", FakeLLM([TransientLLMFailure(SECRET)]), now=clock
+        )
+
+    def read_then_another_request_finishes(*args):
+        stored = real(*args)
+        monkeypatch.setattr(conversation, "load_application", real)
+        resume_turn(db, app_id, "request", FakeLLM(replies=["texto ganador"]), now=clock)
+        return stored
+
+    monkeypatch.setattr(conversation, "load_application", read_then_another_request_finishes)
+    stored = resume_turn(db, app_id, "request", FakeLLM(), now=clock)
+
+    assert stored.messages[-1].text == "texto ganador"
     assert load_application(db, app_id) == stored
 
 
