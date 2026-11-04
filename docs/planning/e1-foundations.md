@@ -1,7 +1,6 @@
 # E1 — Foundations
 
-**Status: In progress — partially verified (2026-11-04).** Implementation exists;
-environment restrictions prevent closing E1. Follow the [assignment](../assignment.html),
+**Status: Complete (2026-11-04).** See the closure evidence below. Follow the [assignment](../assignment.html),
 [process design](../design/process-design.md) and [build roadmap](build-roadmap.md) in that order.
 
 ## Goal and decisions
@@ -69,9 +68,8 @@ Keep the backend flat initially. Add rule and storage modules during E2 as behav
 
 ### Closure evidence
 
-- `AGENTS.md` is supplied as active project guidance in this session; local links
-  resolve. `CLAUDE.md` points to it without duplicate rules. Claude Code was not
-  used: check instruction loading when first using that tool.
+- Local links resolve. `CLAUDE.md` points to `AGENTS.md` without duplicate rules.
+  Claude Code loaded `CLAUDE.md` on first use and reached `AGENTS.md` through it.
 - Python 3.13.7, Node 22.17.0, npm 10.9.2 and Git 2.50.0.windows.2.
 - Created a fresh `app/.venv` and installed the development requirements.
   `python -m pip check` passed; `python -m pytest` passed both tests.
@@ -93,9 +91,7 @@ Keep the backend flat initially. Add rule and storage modules during E2 as behav
   The README documents commands and responsibilities for the developer to review.
 
 **Next step:** start E2 by defining its data model and rules within the existing
-roadmap. Claude Code verification waits until that tool is used; it is not a
-prerequisite for developing with the active tool. Presentation rehearsal remains
-in E5.
+roadmap. Presentation rehearsal remains in E5.
 
 ## Decisions left to later stages
 

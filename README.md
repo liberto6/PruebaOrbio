@@ -72,8 +72,6 @@ This is a local demo without authentication or deployment infrastructure.
 The test run emits a Starlette deprecation warning about its HTTPX test adapter;
 it does not fail tests. Direct Python dependencies are pinned; transitive Python
 versions are resolved by pip and are not a full environment lock.
-`AGENTS.md` is active in this session. Claude Code has not been used, so its
-instruction loading is explicitly unverified and should be checked on first use.
 
 ## Next work
 

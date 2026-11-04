@@ -40,8 +40,7 @@ Shared instructions, README and the initial Git commit capture the foundation.
 See [E1 evidence](e1-foundations.md) and [README](../../README.md).
 
 Next: define E2's data model, field rules, outcomes and SQLite persistence.
-Claude Code instruction loading remains unverified until first use. The Python
-tests pass with one upstream Starlette/HTTPX deprecation warning.
+The Python tests pass with one upstream Starlette/HTTPX deprecation warning.
 
 ## If time runs short
 
