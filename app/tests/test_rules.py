@@ -215,7 +215,8 @@ def test_invalid_proposal_does_not_block_valid_fields_in_the_same_turn():
         {"raw": "x", "normalized": True, "status": "unresolved", "reason": "r", "clarifications_asked": 0},
         {"raw": None, "normalized": None, "status": "unresolved", "reason": "r", "clarifications_asked": 0},
         {"raw": "x", "normalized": None, "status": "resolved", "reason": None, "clarifications_asked": 0},
-        {"raw": None, "normalized": True, "status": "resolved", "reason": None, "clarifications_asked": -1},
+        {"raw": "x", "normalized": True, "status": "resolved", "reason": None, "clarifications_asked": -1},
+        {"raw": None, "normalized": True, "status": "resolved", "reason": None, "clarifications_asked": 0},
     ],
 )
 def test_snapshot_with_an_inconsistent_field_state_is_invalid(field_json):
@@ -540,3 +541,29 @@ def test_strict_mode_rejects_coercible_values(field_name, value):
 
     assert [error.field for error in result.errors] == [field_name]
     assert getattr(result.fields, field_name).status == "missing"
+
+
+def test_resolved_proposal_without_raw_is_reported_while_valid_fields_apply():
+    result = apply_proposals(
+        missing_fields(),
+        [
+            proposal("driving_license", False, raw=None),
+            proposal("full_name", "Ana García"),
+        ],
+    )
+
+    assert [error.field for error in result.errors] == ["driving_license"]
+    assert result.fields.driving_license.status == "missing"
+    assert result.fields.driving_license.normalized is None
+    assert result.fields.full_name.normalized == "Ana García"
+
+
+def test_resolved_proposal_without_raw_leaves_the_previous_value_unchanged():
+    start = apply_proposals(
+        missing_fields(), [proposal("driving_license", True, raw="sí")]
+    ).fields
+
+    result = apply_proposals(start, [proposal("driving_license", False, raw=None)])
+
+    assert result.fields == start
+    assert [error.field for error in result.errors] == ["driving_license"]

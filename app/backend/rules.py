@@ -100,8 +100,8 @@ class FieldState(StrictModel, Generic[T]):
         elif self.status == "unresolved":
             if self.normalized is not None or self.raw is None or self.reason is None:
                 raise ValueError("an unresolved field has raw, a reason and null normalized")
-        elif self.normalized is None:
-            raise ValueError("a resolved field has a normalized value")
+        elif self.normalized is None or self.raw is None:
+            raise ValueError("a resolved field has raw and a normalized value")
         return self
 
 
