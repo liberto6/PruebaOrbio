@@ -1,11 +1,12 @@
 # Grupo Sazón
 
-Local candidate screening and recruiter tool, currently at **E1 foundations complete**.
-The Spanish placeholder does not accept applications. Screening, candidate storage,
-LLM integration and recruiter workflows are not implemented.
+Local candidate screening and recruiter tool. **E2 rules and persistence are implemented
+but not connected to the application.** The Spanish placeholder does not accept
+applications. The conversation, LLM integration and recruiter tool are not implemented.
 
 Read the [assignment](docs/assignment.html), [process design](docs/design/process-design.md),
-[roadmap](docs/planning/build-roadmap.md) and [E1 checklist](docs/planning/e1-foundations.md).
+[roadmap](docs/planning/build-roadmap.md), [E1 checklist](docs/planning/e1-foundations.md)
+and [E2 plan](docs/planning/e2-rules-and-persistence.md).
 
 ## Windows setup (PowerShell)
 
@@ -51,15 +52,22 @@ Without a build, startup logs the build commands and `/` returns an actionable
 JSON 503 while the API stays available.
 
 The frontend uses React, Vite, plain JavaScript and CSS. There is no separate
-frontend development server or CORS setup. SQLite is the future local persistence
-choice; E1 creates no database. In later stages Python validates and determines
-outcomes while the LLM interprets and writes. No LLM/provider is selected yet.
+frontend development server or CORS setup.
+
+`app/backend/rules.py` holds the strict Pydantic candidate model, field validation,
+coverage catalog, clarification limit and outcome evaluation. `app/backend/storage.py`
+persists applications and messages in SQLite through standard-library `sqlite3`, with
+each operation in one transaction. Neither is used by `main.py` yet, and the caller
+supplies the database path, so running the application creates no database. Python
+validates and determines outcomes while the LLM will interpret and write. No
+LLM/provider is selected yet.
 This is a local demo without authentication or deployment infrastructure.
 
 ## Verification recorded on 2026-11-04
 
 - Created `app/.venv` and installed `requirements-dev.txt` successfully.
-- `python -m pytest` inside that environment: 2 passed.
+- `python -m pytest` after E2: 192 passed, with temporary SQLite files and no network
+  or LLM calls. The environment was not recreated after adding the `pydantic` pin.
 - `python -m pip check`: no broken requirements.
 - `npm ci` and `npm run build`: passed; the npm lockfile is included.
 - `npm audit`: no reported vulnerabilities after updating Vite to 7.3.7 and
@@ -75,6 +83,5 @@ versions are resolved by pip and are not a full environment lock.
 
 ## Next work
 
-E2 will define field rules, outcomes and SQLite persistence. E3 adds conversation
-and LLM integration; E4 adds the recruiter tool; E5 completes delivery. Review the
-architecture and commands before starting E2. No E2 functionality is implemented.
+E3 adds conversation and LLM integration; E4 adds the recruiter tool; E5 completes
+delivery.

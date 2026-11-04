@@ -33,14 +33,17 @@ Order is linear. E4 may start alongside E3 with sample data once E2 is done.
 
 ## Current state — 2026-11-04
 
-**E1 is complete; E2 is planned, not implemented.** Setup in a fresh Python virtual environment,
-2 backend tests, npm ci/build, HTTP serving and Chrome rendering were verified.
-The npm lockfile is included; Vite is pinned to 7.3.7 after resolving audit findings.
-Shared instructions, README and the initial Git commit capture the foundation.
-See [E1 evidence](e1-foundations.md) and [README](../../README.md).
+**E1 and E2 are complete; E3 has not started.** Field validation, coverage, the four outcomes, the
+clarification limit and SQLite persistence exist in `app/backend/`, but are not yet
+connected to the application. No conversation, LLM or recruiter tool exists yet.
+`python -m pytest` reports 192 passed, with one upstream Starlette/HTTPX deprecation
+warning. See [E2 evidence and E3 requirements](e2-rules-and-persistence.md),
+[E1 evidence](e1-foundations.md) and [README](../../README.md).
 
-Next: implement the [E2 plan](e2-rules-and-persistence.md).
-The Python tests pass with one upstream Starlette/HTTPX deprecation warning.
+The roadmap's "every Phase 1 rule" covers E2's deterministic rules only; E3 must
+prove the conversational behaviour through its scenarios.
+
+Next: detail E3, starting from the E2 plan's requirements for it.
 
 ## If time runs short
 

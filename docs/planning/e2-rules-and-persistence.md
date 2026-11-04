@@ -1,10 +1,9 @@
 # E2 — Rules and persistence
 
-**Status: Planned (2026-11-04).** This document proposes E2; no implementation or
-verification is claimed. Read the [assignment](../assignment.html),
+**Status: Complete (2026-11-04).** See the closure
+evidence at the end. Read the [assignment](../assignment.html),
 [process design](../design/process-design.md), [roadmap](build-roadmap.md) and
-[E1 evidence](e1-foundations.md). Local inspection found only the FastAPI/static
-shell and two HTTP tests. Existing uncommitted documentation changes are retained.
+[E1 evidence](e1-foundations.md).
 
 ## Scope and source reconciliation
 
@@ -222,11 +221,61 @@ SQLite files; no network, model or frontend is necessary.
 
 Close E2 only when these contracts are implemented, saved JSON retains all keys,
 existing HTTP checks still pass and `python -m pytest` passes from `app/` using
-README commands. During implementation update this checklist and the roadmap
-with actual evidence and remaining E3 scenarios; this planning-only task changes
-neither the roadmap nor README. No claim of end-to-end screening before E3.
+README commands. No claim of end-to-end screening before E3.
 
-- [ ] Field model, catalog and deterministic rules verified through TDD.
-- [ ] Clarification/correction and outcome contracts verified without an LLM.
-- [ ] SQLite recovery, atomicity and closure invariants verified.
-- [ ] Relevant checks recorded; E3 interpretation/orchestration boundary retained.
+- [x] Field model, catalog and deterministic rules verified through TDD.
+- [x] Clarification/correction and outcome contracts verified without an LLM.
+- [x] SQLite recovery, atomicity and closure invariants verified.
+- [x] Relevant checks recorded; E3 interpretation/orchestration boundary retained.
+
+### Closure evidence
+
+- Code was committed from `4d7f8ce` to `e9c59ff`:
+  `app/backend/rules.py` (340 lines) and `app/backend/storage.py` (296 lines), not
+  yet connected to the FastAPI application or the chat.
+- `python -m pytest` from `app/`: 192 passed, with the known Starlette/HTTPX
+  deprecation warning, including the two HTTP tests. `pip check` reports no broken
+  requirements. No database file is tracked. Tests use temporary SQLite files and
+  make no network or LLM calls.
+- An independent read-only review tried to break the code and found four defects,
+  all fixed in `0d6476d` with regression tests: values that made a row unreadable,
+  a lone surrogate losing a message, a refused clarification still storing the
+  question, and malformed clarification entries rejecting the turn.
+- `e9c59ff` removed tests the review judged redundant, checked by 72 hand-written
+  mutations during the review. After trimming, breaking the `foreign_keys` pragma,
+  month normalization, rejection priority and the clarification limit each made the
+  suite fail. Test code is still about 1,570 lines, because the defect tests offset
+  the removals.
+- TDD limits: not every test was seen failing on its own behaviour. Some passed when
+  written because strict Pydantic or earlier code already covered the rule, and 26
+  in the first increment first failed only on a missing function.
+
+Known limits: a lone surrogate in a stored message becomes `?`, the one exception
+to exact text. Two simultaneous writers, reopening from another process and a fresh
+install with the new `pydantic` pin were not tested. Only one test indirectly guards
+the `foreign_keys` pragma, and none checks that loading JSON with a missing field key
+is rejected, although the code rejects it.
+
+### What E3 must respect
+
+- **Catalog identifiers:** matching is exact, so `Madrid` instead of `madrid` counts
+  as an uncovered place and rejects a valid candidate. Give the LLM the closed list
+  of identifiers and cover this in evals.
+- **Clarifications:** check `clarifications_asked` before generating a question and
+  record only real clarifications, never initial questions. Code does not enforce
+  the single clarification for start timing. A refused clarification drops the
+  assistant message, so generate a different reply.
+- **Closing:** save the candidate turn, evaluate, generate the summary outside any
+  transaction, then close. Closing is refused while `stop_requested` is true, so
+  pass `stop_requested=False` when the candidate resumes.
+- **Startup:** choose the database path, call `init_db` and check the catalog before
+  processing candidates; today the check runs only at evaluation.
+- **Reminder:** storage cannot tell whether the single reminder was sent, so E3 needs
+  to record it. Measure inactivity from the last message, because a recruiter
+  decision also changes `updated_at`.
+- **Surrogates:** one in the summary raises a serialization error on close, which
+  rolls back but fails again on retry. One in an unknown clarification name can reach
+  the returned `errors`. Clean this text before using it.
+- **Scenarios still to prove:** extraction, residence versus work preference, natural
+  dates, wording, field order, language changes, summaries, reminders and browser
+  resume.
