@@ -46,8 +46,8 @@ The roadmap's "every Phase 1 rule" covers E2's deterministic rules only; E3 must
 prove the conversational behaviour through its scenarios.
 
 Next: E3.3 web chat from the [E3 plan](e3-conversational-agent.md), on the user's
-go-ahead, then E3.4 final validation. Most E3.2 product decisions recorded there are
-still pending user validation.
+go-ahead, then E3.4 final validation. The E3.2 product decisions recorded there are
+validated by the user.
 
 ## If time runs short
 

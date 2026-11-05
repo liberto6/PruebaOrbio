@@ -309,14 +309,14 @@ Product decisions from E3.2:
 
 | # | Candidate says or case | Behaviour | Status |
 |---|---|---|---|
-| 1 | "Me lo quitaron, lo recupero en enero" | Rejects at once: not held today | Pending user validation |
-| 2 | "Lo tengo caducado" | Clarifies; still not valid rejects | Pending user validation |
-| 3 | Motorbike or foreign licence held now | Counts as holding a licence | Pending user validation |
+| 1 | "Me lo quitaron, lo recupero en enero" | Rejects at once: not held today | Validated by the user |
+| 2 | "Lo tengo caducado" | Clarifies; still not valid rejects | Validated by the user |
+| 3 | Motorbike or foreign licence held now | Counts as holding a licence | Validated by the user |
 | 4 | "Sí, tengo coche" or another vehicle after a yes | Counts as holding a licence | **Decided by the user** |
-| 5a | "En Vallecas" (district, no city) | Asks which city | Pending user validation |
-| 5b | "En Getafe" (town near a catalog city) | Rejects: not in the catalog | Pending user validation |
-| 6 | Naming covered cities | Only on the second clarification, and all of them | Pending user validation |
-| 7 | Recruiter summary language | Always Spanish | Pending user validation |
+| 5a | "En Vallecas" (district, no city) | Asks which city | Validated by the user |
+| 5b | "En Getafe" (town near a catalog city) | Rejects: not in the catalog | Validated by the user |
+| 6 | Naming covered cities | Only on the second clarification, and all of them | Validated by the user |
+| 7 | Recruiter summary language | Always Spanish | Validated by the user |
 
 Decision 4 can produce a false qualification: a candidate with a car and no licence who
 answers this way passes that check. The user accepted the behaviour knowingly.
