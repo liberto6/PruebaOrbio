@@ -61,6 +61,7 @@ NEW_SNAPSHOT_KEYS = (
     "last_question_kind",
     "reminder_sent",
     "location_alternatives_offered",
+    "questions_this_turn",
 )
 
 

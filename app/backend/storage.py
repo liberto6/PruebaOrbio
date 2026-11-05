@@ -535,6 +535,7 @@ def _interpreted_snapshot(
             now,
             fields=fields,
             pending_questions=[*snapshot.pending_questions, *questions],
+            questions_this_turn=questions,
             language=snapshot.language if language is None else language,
             stop_requested=snapshot.stop_requested if stop_requested is None else stop_requested,
         )

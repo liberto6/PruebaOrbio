@@ -355,7 +355,7 @@ def test_reply_returns_stripped_text_with_its_effort_and_action():
     assert "text" not in request
 
 
-def test_reply_receives_every_saved_field_state_and_the_pending_questions():
+def test_reply_receives_every_saved_field_state_and_only_this_turns_questions():
     states = new_snapshot("app", NOW).fields.model_dump()
     states["full_name"].update(raw="Pedro Sanz Molina", normalized="Pedro Sanz Molina", status="resolved")
     states["driving_license"].update(raw="No tengo carnet", normalized=False, status="resolved")
@@ -365,7 +365,8 @@ def test_reply_receives_every_saved_field_state_and_the_pending_questions():
         context(
             messages=("Pedro Sanz", "Perdona, soy Pedro Sanz Molina"),
             fields=CandidateFields.model_validate(states),
-            pending_questions=["¿Cuánto pagan?"],
+            pending_questions=["¿Hay moto?", "¿Cuánto pagan?"],
+            questions_this_turn=["¿Cuánto pagan?"],
         ),
         Action(kind="clarify", field="work_locations", attempt=1),
     )
@@ -377,6 +378,7 @@ def test_reply_receives_every_saved_field_state_and_the_pending_questions():
         "work_locations": {"status": "unresolved", "normalized": None},
     }
     assert sent["pending_questions"] == ["¿Cuánto pagan?"]
+    assert "¿Hay moto?" not in client.requests[0]["input"]
 
 
 def test_summary_receives_saved_facts_but_not_the_conversation():
@@ -384,7 +386,8 @@ def test_summary_receives_saved_facts_but_not_the_conversation():
     summary = OpenAILLM(client, "m").write_summary(
         context(
             messages=("texto del candidato",),
-            pending_questions=["¿Cuánto pagan?"],
+            pending_questions=["¿Hay moto?", "¿Cuánto pagan?"],
+            questions_this_turn=["¿Cuánto pagan?"],
             outcome="disqualified",
             outcome_reasons=["no_driving_license"],
         )
@@ -392,6 +395,7 @@ def test_summary_receives_saved_facts_but_not_the_conversation():
     assert summary == "Resumen"
     prompt = client.requests[0]["input"]
     assert "no_driving_license" in prompt and "¿Cuánto pagan?" in prompt
+    assert "¿Hay moto?" in prompt
     assert "texto del candidato" not in prompt
 
 

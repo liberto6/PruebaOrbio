@@ -308,6 +308,13 @@ SCENARIOS = [
         fields={"work_locations": places("ES/getafe")},
     ),
     Scenario(
+        name="insult_is_not_an_answer_and_the_screening_continues",
+        messages=[*UNTIL_LOCATION, "Eres un inútil, vaya mierda de preguntas", "En Madrid"],
+        fields={"work_locations": MADRID},
+        clarifications={"work_locations": 1},
+        next_field="availability",
+    ),
+    Scenario(
         name="alternatives_chosen_city_qualifies",
         messages=[*UNTIL_LOCATION, "Estoy viviendo en España ahora, me gustaría trabajar en Málaga", "Vale, en Sevilla", *TAIL],
         outcome="qualified",

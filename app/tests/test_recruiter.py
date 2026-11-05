@@ -16,6 +16,7 @@ from backend.storage import (
     set_recruiter_decision,
 )
 from test_app import (  # noqa: F401 - client and isolated are fixtures used by this module.
+    ALL_ANSWERS,
     ALL_RESOLVED,
     NAME,
     NO_LICENSE,
@@ -558,7 +559,7 @@ def test_recruiter_path_serves_the_same_page_as_the_root_and_creates_nothing(cli
 def test_a_completed_screening_reaches_the_recruiter_and_its_decision_lasts(client):
     application_id = create(client)["id"]
     model = use_model(FakeLLM(understood(*ALL_RESOLVED)))
-    assert send(client, application_id).json()["closed"] is True
+    assert send(client, application_id, text=ALL_ANSWERS).json()["closed"] is True
     app.dependency_overrides[get_llm] = lambda: pytest.fail("the recruiter must not use the model")
 
     items = client.get(LIST_PATH, params={"outcome": "qualified"}).json()["items"]

@@ -174,6 +174,7 @@ def understood(*proposals, language=None, stop_intent=None):
 
 NAME = resolved("full_name", "Ana Ruiz")
 NO_LICENSE = resolved("driving_license", False)
+ALL_ANSWERS = "Soy Ana Ruiz y quiero Madrid"  # A catalog city must be in the candidate's words.
 ALL_RESOLVED = [
     NAME,
     resolved("driving_license", True),
@@ -323,11 +324,11 @@ def test_provider_failures_map_to_a_public_code_and_keep_the_message(client, fai
 def test_a_failed_summary_keeps_the_turn_and_a_retry_closes_once(client):
     application_id = create(client)["id"]
     use_model(FakeLLM(understood(*ALL_RESOLVED), write_summary=UnusableOutput("no_text")))
-    assert send(client, application_id).status_code == 503
+    assert send(client, application_id, text=ALL_ANSWERS).status_code == 503
     assert client.get(f"/api/applications/{application_id}").json()["closed"] is False
 
     use_model(FakeLLM())
-    retried = send(client, application_id)
+    retried = send(client, application_id, text=ALL_ANSWERS)
 
     assert retried.status_code == 200
     assert retried.json()["closed"] is True
@@ -388,11 +389,11 @@ def test_missing_credentials_save_the_message_and_keep_the_turn_for_a_retry(clie
 def test_a_lost_closing_response_is_recovered_without_credentials_or_a_model_call(client):
     application_id = create(client)["id"]
     use_model(FakeLLM(understood(*ALL_RESOLVED)))
-    closed = send(client, application_id)
+    closed = send(client, application_id, text=ALL_ANSWERS)
     assert closed.json()["closed"] is True
 
     app.dependency_overrides.clear()  # The real dependency, with no OPENAI_API_KEY.
-    recovered = send(client, application_id)
+    recovered = send(client, application_id, text=ALL_ANSWERS)
 
     assert recovered.status_code == 200
     assert recovered.json() == closed.json()
@@ -433,7 +434,7 @@ def test_responses_never_contain_the_summary_or_internal_data(client):
     use_model(FakeLLM(understood(*ALL_RESOLVED)))
 
     responses = [
-        send(client, application_id, text="Mi mensaje"),
+        send(client, application_id, text="Quiero Madrid"),
         client.get(f"/api/applications/{application_id}"),
     ]
 

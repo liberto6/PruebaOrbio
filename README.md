@@ -11,7 +11,7 @@ and [E4 plan](docs/planning/e4-recruiter-tool.md).
 [E4.5 — Agent tone](docs/planning/e4-5-agent-tone.md) is closed by user decision with
 known limits. [E4.6 — ATS integration design](docs/planning/e4-6-ats-integration-design.md)
 is delivered as a proposal only: the [OpenAPI contract](docs/design/ats-api.yaml) and its
-[explanation](docs/design/ats-integration.md). Next is E5.
+[explanation](docs/design/ats-integration.md). Active stage: [E5 — Delivery](docs/planning/e5-delivery.md).
 
 ## Windows setup (PowerShell)
 
@@ -103,7 +103,7 @@ Without a key the app still starts and saves messages; the chat says the service
 **Each chat message costs money**, because it calls the real model.
 
 From `app/`, these commands run scripted conversations against the real model. **Each run
-costs money** (a full battery was about 0.09 USD) and saves its results in `docs/evals/`:
+costs money** (a full battery was about 0.11 USD) and saves its results in `docs/evals/`:
 
 ```powershell
 python -m evals.run
@@ -111,12 +111,17 @@ python -m evals.run --held-out --repeat 3
 python -m evals.run --only guadalajara,no_license --repeat 3
 ```
 
-Latest results, the rationale for the model and the known limits are in the
-[E3 plan](docs/planning/e3-conversational-agent.md). Real transcripts are in the
+The rationale for the model is in the [E3 plan](docs/planning/e3-conversational-agent.md). Latest
+results on the delivered prompts and their known limits are in the
+[final batteries](docs/planning/e4-5-agent-tone.md#final-batteries-before-e5). Real transcripts are in the
 [sample conversations](docs/evals/sample-conversations.md).
 
 ## Verification recorded on 2026-11-05
 
+- `python -m pytest`: 802 passed. Final batteries on the delivered prompts: 109/110 tuned and 70/74
+  held-out, with no false rejection, false qualification or unnecessary review counted. Known limits,
+  including a reply occasionally doubled in one message, are in the
+  [evidence](docs/planning/e4-5-agent-tone.md#final-batteries-before-e5).
 - ATS design, documentation only: Spectral 6.17.0 reports 0 errors and 4 reviewed warnings on the
   [proposed contract](docs/design/ats-api.yaml), and its examples load through the real models. Not
   implemented and not tested against any ATS. See the
@@ -176,7 +181,7 @@ with a brief acknowledgement, but a correction can go unacknowledged and a job q
 up when not asked. [E4.6 — ATS integration design](docs/planning/e4-6-ats-integration-design.md)
 is delivered: a [proposed API contract](docs/design/ats-api.yaml) and
 [integration explanation](docs/design/ats-integration.md), with no connector and no change to the
-running application. Next is E5, which completes delivery; its plan is not written yet.
+running application. The active stage is [E5 — Delivery](docs/planning/e5-delivery.md).
 
 A [scoped location-question change](docs/planning/e4-5-agent-tone.md#scoped-follow-up-work-location-question)
 now instructs the agent to mention delivery areas in Spain and Mexico and ask for the

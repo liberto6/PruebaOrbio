@@ -2,8 +2,8 @@
 
 Build the local Grupo Sazón screening agent and recruiter tool. Read sources in
 order: [assignment](docs/assignment.html), [process design](docs/design/process-design.md),
-[roadmap](docs/planning/build-roadmap.md), then the active stage plan. The next stage
-is E5 (Delivery), whose plan is not written yet. E4 is complete.
+[roadmap](docs/planning/build-roadmap.md), then the active stage plan:
+[E5 — Delivery](docs/planning/e5-delivery.md). E4 is complete.
 [E4.6 — ATS integration design](docs/planning/e4-6-ats-integration-design.md) is delivered,
 design only. E4.5 is closed by user decision with known limits: do not change the agent
 further or spend on model runs without a new request.

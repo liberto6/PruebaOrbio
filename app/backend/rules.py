@@ -148,6 +148,7 @@ class CandidateSnapshot(StrictModel):
     last_question_kind: QuestionKind | None = None
     reminder_sent: bool = False
     location_alternatives_offered: bool = False
+    questions_this_turn: list[str] = []  # Replaced by each interpretation, never accumulated.
 
 
 class Proposal(StrictModel):

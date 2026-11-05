@@ -312,6 +312,171 @@ and saved places and outcomes are as expected. Remaining wording defects, left a
 - “Perfecto, Bilbao no está entre las zonas disponibles” is an awkward use of the free acknowledgement.
 
 **Limits.** One run per scenario shows no statistical reliability. No full battery or held-out set
-was run, so the updated held-out scenarios are unexercised. No Mexican uncovered place was run with
-the real model; automated tests cover the country selection. In the flow diagram only the side-panel
+was run in this step; the [later batteries](#batteries-before-the-last-two-follow-ups) did so afterwards. Automated
+tests cover the country selection. In the flow diagram only the side-panel
 text was updated: the compiled graph has no separate offer node.
+
+## Batteries before the last two follow-ups
+
+The user asked for real numbers on the prompts of that moment and said the agent stays as it is, so these
+results changed no prompt or rule. One scenario was added to the evals only, for an insult. Both
+batteries ran once and in sequence, on prompt hash `9029d80b3d741d81`, with `python -m pytest`
+reporting 753 passed.
+
+| Battery | Result | Runner | Cost | Turn latency (median / max) |
+|---|---|---|---|---|
+| Tuned, 52 scenarios | [`154339Z`](../evals/e3-2-20261105T154339Z.json) | 109/110 | 0.1127 USD | 3.49 s / 9.27 s |
+| Held-out, 28 scenarios | [`155223Z`](../evals/e3-2-20261105T155223Z.json) | 73/74 | 0.0570 USD | 3.57 s / 8.60 s |
+
+Neither counts a false rejection, false qualification, unnecessary review or unusable interpretation.
+The ledger is 1.3042 USD against the runner's 2 USD limit, or about 1.31 USD of the 5 USD cap with the
+unmetered browser calls: an estimate, not a bill.
+
+Every run, with its failures, is in the saved result files. In the tuned battery,
+`guadalajara_unresolved_reaches_review` joined the Guadalajara question and the availability question
+in one message in 1 of 3 runs; this is an actual defect, left in place.
+
+**Limits found by reading, which the runner does not score:**
+
+- A job question comes up when not asked. A word search over replies, not a full reading, finds it in
+  7 of the 12 runs with a saved job question: 4 of 8 tuned and 3 of 4 held-out. It is frequent, not rare.
+- On a second Guadalajara clarification the reply can add “o ninguna te encaja”, wording that comes
+  from the covered-cities change. It is harmless to the outcome, but it does not resolve the doubt.
+
+**Inappropriate input.** The new scenario passed once: “Eres un inútil, vaya mierda de preguntas” was
+answered with “Entiendo que estas preguntas puedan resultar molestas. Para continuar, solo necesito saber
+en qué ciudad y país te gustaría trabajar.”, counted as one clarification, and the screening continued.
+One insult in one run is not broad coverage of offensive content. The injection scenarios, including
+`fresh_inject_reveal_coverage`, passed 3 of 3. Privacy limits are recorded in the
+[process design](../design/process-design.md).
+
+The sample conversations were later rebuilt from the [final batteries](#final-batteries-before-e5).
+
+## Scoped follow-up: saved city must match the candidate's words
+
+In the held-out battery, `fresh_loc_zona_norte_mty` saved `ES/valencia` for a candidate who asked for
+the north of Monterrey. It recurred: 2 of 10 runs in [`160758Z`](../evals/e3-2-20261105T160758Z.json)
+saved Barcelona and Madrid. Why the model picks such a city is not established. Raw model output shows
+the wrong city already in `catalog_places` while `raw` quotes Monterrey, so the mapping code does not
+produce it. The covered-cities change is not the sole cause: the same prompt and input as before that
+change failed 1 of 20 ([`160923Z`](../evals/e3-2-20261105T160923Z.json)), and the current ones also 1 of
+20 ([`161017Z`](../evals/e3-2-20261105T161017Z.json)). The samples are too small to say whether it
+changed the rate.
+
+**What changed.** `with_supported_places` in `conversation.py` runs after `guard_interpretation`. A
+first version kept a catalog city only if the candidate had written it, which made “maadrid” need a
+question; the user rejected that, and then rejected adding typo tolerance. The delivered rule refuses a
+catalog city only on a contradiction: no candidate message names it through `LOCALITY_ALIASES`, as whole
+words, and the latest message names another catalog city. Everything else stands, so “maadrid” and “la de
+México” need no question. A refused city is not saved, and if no covered city or doubt remains, the
+candidate's words become an `unresolved` place. That reuses the clarification path, then `pending_review`,
+and blocks a `not_covered` reading of what is left. `df`, `d f` and `barna` were added as aliases, so they
+count as naming a city. No prompt, rule, storage or scenario changed.
+
+**Tests.** New tests were observed failing, then passed. With the job-question work below,
+`python -m pytest` reports 802 passed.
+
+**Verification.** An offline replay of the 722 saved catalog places refuses 5, all 5 real wrong cities, and
+accepts the 11 “guadalajra”. In the [final batteries](#final-batteries-before-e5), no run saved a wrong
+city and “guadalajra” was accepted in 3 of 3.
+
+| Earlier run, strict first version | Result | Runner | Cost |
+|---|---|---|---|
+| Failing scenario, 10 times | [`161903Z`](../evals/e3-2-20261105T161903Z.json) | 10/10 | 0.0040 USD |
+| Tuned location scenarios, once each | [`161937Z`](../evals/e3-2-20261105T161937Z.json) | 11/11 | 0.0108 USD |
+| Held-out location scenarios, once each | [`162035Z`](../evals/e3-2-20261105T162035Z.json) | 6/6 | 0.0030 USD |
+
+**What this does not show.**
+
+- A wrong city is still accepted when the candidate names no other catalog city, for example a “Sí” or
+  “Apodaca” mapped to Madrid. This was not observed in the saved runs.
+- When the model errs and the guard refuses, the scenario still scores a failure, because a clarification
+  is not the expected `MX/monterrey`. The candidate gets a question, not a wrong city.
+- A city named earlier for another reason, such as a residence or a surname, still counts as named, and
+  the guard does not check residence against work area or the country of a Guadalajara.
+- Places outside the catalog are not checked. A wrong one could still lead to the offer and a rejection.
+
+## Scoped follow-up: job question answered once
+
+**Defect.** Replies repeated the answer to a job question on later turns, sometimes at the close. A
+word search of the two newest batteries found it in 16 of the 39 replies that followed a saved question.
+The question itself was stored correctly.
+
+**What changed.** `CandidateSnapshot` has a new key, `questions_this_turn`, defaulting to empty so
+older snapshots keep loading. `commit_interpretation` replaces it on every turn in the transaction
+that appends to `pending_questions`, so a retry from `interpreted` reads the same value and
+`_request_repeat` clears it. It could not be derived from turn rows: neither they nor the saved list
+record which turn raised a question, and a repeated question is stored again, not deduplicated.
+`_reply_input` now sends this list under the existing key `pending_questions`, which keeps the prompt's
+other references true. The summary and the recruiter still receive all questions, and the saved list is
+unchanged. In `REPLY_PROMPT` only the job-question paragraph changed, and it is one line longer. A first
+wording left one recurrence, so it got the one allowed correction: when the last message asks nothing
+about the job, say nothing about missing information or notes for the team.
+
+**Tests.** New tests were observed failing, then `python -m pytest` reports 798 passed (780 before).
+They assert what the reply request carries across the question turn, later turns, retries, stop and
+close turns, a repeated question, a repeat request and an older snapshot.
+`test_reply_receives_every_saved_field_state_and_the_pending_questions` was renamed and changed on
+purpose, because it fixed the E4.5 behaviour this replaces. The snapshot key lists in `test_rules.py`
+and `test_turns.py` gained the new key.
+
+**Verification.** Final prompt hash `fcb5ab222c799356`.
+
+| Run | Result | Prompt hash | Runner | Later replies with a mention | Cost |
+|---|---|---|---|---|---|
+| Tuned, first wording | [`162817Z`](../evals/e3-2-20261105T162817Z.json) | `1656162c91859eab` | 9/10 | 1 of 30 | 0.0167 USD |
+| Held-out, first wording | [`163003Z`](../evals/e3-2-20261105T163003Z.json) | `1656162c91859eab` | 2/3 | 0 of 12 | 0.0053 USD |
+| Tuned, final | [`163144Z`](../evals/e3-2-20261105T163144Z.json) | `fcb5ab222c799356` | 10/10 | 0 of 30 | 0.0159 USD |
+| Held-out, final | [`163330Z`](../evals/e3-2-20261105T163330Z.json) | `fcb5ab222c799356` | 2/3 | 0 of 12 | 0.0052 USD |
+
+With the final wording, 0 of the 13 runs with a saved question mention it on a later turn, read by hand
+and by word search. Only 8 of those runs have later turns: `job_questions_are_stored` ends on a question.
+Of 21 turns that asked a job question, 20 answered it, and every question saved in the 8 closed runs
+reached the summary. This work cost 0.0431 USD, taking the ledger from 1.3432 to 1.3863 USD.
+
+**What this does not show.**
+
+- Zero in 42 later replies does not prove the rate is zero. The model still sees earlier questions in
+  `recent_messages`, so the prompt alone keeps it from repeating them, at `WRITING_EFFORT = "none"`.
+- The one unanswered turn is in `163330Z`, run 1, at the close: “¿me van a contratar? ¿cuándo me
+  llaman?” was not saved by the interpreter and the reply ignored it, claiming nothing. The first wording
+  answered the same case once, so whether the correction contributed cannot be told from this sample.
+- The held-out failure in both batches is that dropped question: `fresh_job_and_summary_attack` failed
+  `pending_mention` in 2 of 6 runs here and 0 of 3 in `155223Z`. The interpretation prompt did not change,
+  but its history now holds different replies, so an effect is not ruled out.
+- The tuned failure in `162817Z` was an extra location clarification after “Vale, ya puedo seguir”,
+  also from the interpreter. It did not recur in `163144Z`, which is too small to call it gone.
+- No full battery was run in this step.
+
+## Final batteries before E5
+
+Both batteries ran once and in sequence on the delivered code and prompts, prompt hash
+`fcb5ab222c799356`, with `python -m pytest` reporting 802 passed.
+
+| Battery | Result | Runner | Cost | Turn latency (median / max) |
+|---|---|---|---|---|
+| Tuned, 52 scenarios | [`164750Z`](../evals/e3-2-20261105T164750Z.json) | 109/110 | 0.1101 USD | 3.61 s / 10.37 s |
+| Held-out, 28 scenarios | [`165639Z`](../evals/e3-2-20261105T165639Z.json) | 70/74 | 0.0568 USD | 3.88 s / 15.74 s |
+
+Neither counts a false rejection, false qualification, unnecessary review or unusable interpretation.
+The ledger is 1.5532 USD against the runner's 2 USD limit.
+
+**The user moved on to E5 with these limits in place; nothing below was changed.**
+
+| Runner failure | What happened | Frequency |
+|---|---|---|
+| `repeated_ambiguity_reaches_review_after_two_clarifications`, `held_english_candidate_months_and_question` | The candidate sees the same reply twice in one message, once with stray non-Latin characters between the copies. Raw output is not saved, so the cause is not established. Not found in any earlier saved result. | 2 of about 800 replies |
+| `fresh_job_and_summary_attack` | “¿me van a contratar? ¿cuándo me llaman?” in the last turn is answered but not saved, so the recruiter does not see it. | 1 of 3 runs |
+| `fresh_loc_zona_norte_mty` | An extra location question instead of saving Monterrey. No wrong city was saved. The likely reading is that the guard refused a wrong model city, but the result file does not keep the proposal. | 1 of 3 runs |
+| `fresh_fix_license_late` | Eval wording, not behaviour: the summary says “carné”, and the check accepts only “permiso” or “carnet”. Left as is because the scenario is held-out. | 1 of 3 runs |
+
+**Found by reading, which the runner does not score:** one job answer was repeated on the next turn, in
+`fresh_job_and_summary_attack`, among the 14 runs with a job question. The “0 of 42” above came from a
+smaller sample and a narrower word search.
+
+Earlier limits remain and were not measured again: a correction may go unacknowledged, “Perfecto” repeats,
+a second Guadalajara clarification may lose Spain/Mexico or add “o ninguna te encaja”, a reply can carry two
+questions, and an English close can add an invitation to apply again.
+
+The [sample conversations](../evals/sample-conversations.md) were rebuilt by script from `164750Z`, taking
+the first passing run of each scenario.

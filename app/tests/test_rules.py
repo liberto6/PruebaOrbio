@@ -48,6 +48,7 @@ def test_new_snapshot_json_keeps_every_key_as_missing():
         "last_question_kind",
         "reminder_sent",
         "location_alternatives_offered",
+        "questions_this_turn",
     }
     assert data["closed_at"] is None
     assert data["outcome"] == "incomplete"

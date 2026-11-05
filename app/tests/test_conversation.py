@@ -1,3 +1,4 @@
+import json
 import sqlite3
 import threading
 from datetime import datetime, timedelta, timezone
@@ -26,6 +27,8 @@ from backend.llm import (
     TurnContext,
     UnusableOutput,
     _interpretation_input,
+    _reply_input,
+    _summary_input,
 )
 from backend.rules import (
     COVERAGE_CATALOG,
@@ -686,7 +689,7 @@ def test_getting_a_license_needs_clarifying_and_then_goes_either_way(
 
 def test_repeated_ambiguity_reaches_review_after_exactly_two_clarifications(chat):
     doubt = interpretation(unresolved("availability", raw="depende"))
-    chat.send("Todo", interpretation(NAME, LICENSE, MADRID))
+    chat.send("Todo, en Madrid", interpretation(NAME, LICENSE, MADRID))
     chat.send("depende", doubt)
     chat.send("depende", doubt)
     stored = chat.send("depende", doubt)
@@ -747,7 +750,8 @@ def test_stop_with_a_disqualifying_fact_closes_only_after_resuming(chat):
 def test_job_questions_are_stored_without_affecting_eligibility(chat):
     question = "¿Cuánto se paga?"
     stored = chat.send(
-        question, interpretation(NAME, LICENSE, MADRID, AVAILABILITY, questions=[question])
+        f"En Madrid. {question}",
+        interpretation(NAME, LICENSE, MADRID, AVAILABILITY, questions=[question]),
     )
     assert stored.snapshot.pending_questions == [question]
     assert chat.llm.actions[-1] == ASK("preferred_schedule")
@@ -1102,11 +1106,16 @@ def test_malformed_catalog_identifier_never_disqualifies_and_keeps_earlier_facts
 
 
 @pytest.mark.parametrize(
-    "place", [("MX", "mexico_city"), ("MX", "ciudad_mexico"), ("ES", "madrid_capital")]
+    "text, place",
+    [
+        ("Mexico City", ("MX", "mexico_city")),
+        ("Ciudad México", ("MX", "ciudad_mexico")),
+        ("Madrid capital", ("ES", "madrid_capital")),
+    ],
 )
-def test_well_formed_alias_slugs_do_not_reject_end_to_end(chat, place):
+def test_well_formed_alias_slugs_do_not_reject_end_to_end(chat, text, place):
     chat.send("Ana Ruiz, con carné", interpretation(NAME, LICENSE))
-    stored = chat.send("mensaje", interpretation(resolved("work_locations", places(place))))
+    stored = chat.send(text, interpretation(resolved("work_locations", places(place))))
     assert stored.snapshot.closed_at is None
     assert chat.llm.actions[-1] == ASK("availability")
 
@@ -1474,7 +1483,7 @@ def test_coordination_error_is_a_retryable_failure_that_invents_nothing(
     not_closeable = Evaluation(outcome="incomplete", outcome_reasons=[], closeable=False)
     monkeypatch.setattr(conversation, "evaluate", lambda fields: not_closeable)
     with pytest.raises(TurnFailed) as raises:
-        chat.send("todo", interpretation(*ALL_RESOLVED))
+        chat.send("todo, en Madrid", interpretation(*ALL_RESOLVED))
     assert_failed(raises, "interpreted", "coordination_error")
     assert load_application(db, app_id).snapshot.closed_at is None
     assert chat.llm.actions == []
@@ -1746,3 +1755,326 @@ def test_a_failed_offer_saves_nothing_and_retries_once(chat):
     assert stored.snapshot.location_alternatives_offered is True
     assert evaluate(stored.snapshot.fields).outcome == "incomplete"
     assert history_counts(stored) == (2, 3)
+
+
+APODACA = "yo vivo en Apodaca pero lo que busco es por la zona norte de Monterrey"
+GUADALAJARA_DOUBT = resolved("work_locations", places(unresolved=["Guadalajara"]))
+VALENCIA = resolved("work_locations", places(("ES", "valencia")), raw=APODACA)
+
+
+def at_location(chat):
+    chat.send("Ana Ruiz, con carné", interpretation(NAME, LICENSE))
+
+
+def test_a_catalog_city_the_candidate_never_named_is_a_doubt_and_is_not_saved(chat):
+    at_location(chat)
+    stored = chat.send(APODACA, interpretation(VALENCIA))
+    state = stored.snapshot.fields.work_locations
+    assert state.normalized.identified == []
+    assert state.normalized.unresolved == [APODACA]
+    assert evaluate_coverage(state) == "unresolved"
+    assert chat.llm.actions[-1] == CLARIFY("work_locations", 1)
+
+
+def test_an_unnamed_city_written_as_another_spelling_is_also_refused(chat):
+    at_location(chat)
+    stored = chat.send(
+        APODACA, interpretation(resolved("work_locations", places(("ES", "Valencia")), raw=APODACA))
+    )
+    assert stored.snapshot.fields.work_locations.normalized.identified == []
+
+
+def test_an_unnamed_city_leaves_the_doubts_the_model_did_report(chat):
+    at_location(chat)
+    both = places(("ES", "madrid"), unresolved=["zona norte de Monterrey"])
+    stored = chat.send(APODACA, interpretation(resolved("work_locations", both)))
+    assert stored.snapshot.fields.work_locations.normalized.model_dump() == places(
+        unresolved=["zona norte de Monterrey"]
+    )
+    assert chat.llm.actions[-1] == CLARIFY("work_locations", 1)
+
+
+def test_an_unnamed_city_beside_a_named_covered_one_is_simply_dropped(chat):
+    at_location(chat)
+    both = places(("ES", "madrid"), ("MX", "monterrey"))
+    stored = chat.send("En Monterrey", interpretation(resolved("work_locations", both)))
+    assert stored.snapshot.fields.work_locations.normalized.model_dump() == places(
+        ("MX", "monterrey")
+    )
+    assert chat.llm.actions[-1] == ASK("availability")
+
+
+def test_a_contradicted_city_beside_an_uncovered_place_cannot_lead_to_a_rejection(chat):
+    at_location(chat)
+    text = "En Toledo o en Monterrey"
+    both = places(("ES", "madrid"), ("ES", "toledo"))
+    stored = chat.send(text, interpretation(resolved("work_locations", both, raw=text)))
+    state = stored.snapshot.fields.work_locations
+    assert state.normalized.model_dump() == places(("ES", "toledo"), unresolved=[text])
+    assert evaluate_coverage(state) == "unresolved"
+    assert chat.llm.actions[-1] == CLARIFY("work_locations", 1)
+    assert stored.snapshot.location_alternatives_offered is False
+
+
+def test_a_repeated_unnamed_city_ends_in_review_never_in_a_decision(chat):
+    at_location(chat)
+    chat.send(APODACA, interpretation(VALENCIA))
+    chat.send(APODACA, interpretation(VALENCIA))
+    stored = chat.send(
+        APODACA, interpretation(VALENCIA, AVAILABILITY, SCHEDULE, EXPERIENCE, START)
+    )
+    assert stored.snapshot.outcome == "pending_review"
+    assert stored.snapshot.outcome_reasons == ["coverage_unresolved"]
+
+
+@pytest.mark.parametrize(
+    "text, place",
+    [
+        ("En maadrid", ("ES", "madrid")),
+        ("sevila", ("ES", "sevilla")),
+        ("madird por favor", ("ES", "madrid")),
+        ("guadalajra, la de Mexico", ("MX", "guadalajara")),
+        ("Monterey", ("MX", "monterrey")),
+    ],
+)
+def test_a_misspelt_city_with_no_other_city_named_needs_no_question(chat, text, place):
+    at_location(chat)
+    stored = chat.send(text, interpretation(resolved("work_locations", places(place))))
+    assert stored.snapshot.fields.work_locations.normalized.model_dump() == places(place)
+    assert chat.llm.actions[-1] == ASK("availability")
+
+
+def test_a_misspelt_correction_is_not_contradicted_by_a_city_from_an_earlier_message(chat):
+    at_location(chat)
+    chat.send("En Madrid", interpretation(MADRID))
+    seville = resolved("work_locations", places(("ES", "sevilla")))
+    stored = chat.send("mejor seviila", interpretation(seville))
+    assert stored.snapshot.fields.work_locations.normalized.model_dump() == places(("ES", "sevilla"))
+
+
+def test_a_city_only_the_assistant_said_does_not_contradict_the_candidate(chat):
+    at_location(chat)
+    chat.llm.replies.append("No llegamos a Bilbao. ¿Te interesa Madrid, Sevilla o Valencia?")
+    chat.send("Bilbao", interpretation(BILBAO))
+    stored = chat.send("La de la tercera opción", interpretation(MADRID))
+    assert stored.snapshot.fields.work_locations.normalized.model_dump() == places(("ES", "madrid"))
+
+
+@pytest.mark.parametrize(
+    "text, place",
+    [
+        ("En CDMX", ("MX", "ciudad_de_mexico")),
+        ("Por el DF", ("MX", "ciudad_de_mexico")),
+        ("en el D.F., por favor", ("MX", "ciudad_de_mexico")),
+        ("México DF", ("MX", "ciudad_de_mexico")),
+        ("Ciudad de Mexico", ("MX", "ciudad_de_mexico")),
+        ("Seville", ("ES", "sevilla")),
+        ("SEVILLA", ("ES", "sevilla")),
+        ("en Sevílla", ("ES", "sevilla")),
+        ("Sevilla Este", ("ES", "sevilla")),
+        ("centro de Madrid", ("ES", "madrid")),
+        ("Madrid capital", ("ES", "madrid")),
+        ("el sur de Madrid", ("ES", "madrid")),
+        ("en barna, por gracia", ("ES", "barcelona")),
+        ("zona norte de Monterrey, por ahí", ("MX", "monterrey")),
+    ],
+)
+def test_the_candidates_own_spelling_supports_the_catalog_city(chat, text, place):
+    at_location(chat)
+    stored = chat.send(text, interpretation(resolved("work_locations", places(place))))
+    assert stored.snapshot.fields.work_locations.normalized.model_dump() == places(place)
+    assert chat.llm.actions[-1] == ASK("availability")
+
+
+def test_a_city_named_earlier_stays_when_the_latest_message_adds_another(chat):
+    at_location(chat)
+    chat.send("En Sevilla", interpretation(resolved("work_locations", places(("ES", "sevilla")))))
+    both = places(("ES", "sevilla"), ("ES", "madrid"))
+    stored = chat.send("Y también Madrid", interpretation(resolved("work_locations", both)))
+    assert stored.snapshot.fields.work_locations.normalized.model_dump() == both
+
+
+def test_an_answer_settling_a_city_named_earlier_is_supported(chat):
+    at_location(chat)
+    chat.send("En Guadalajara", interpretation(GUADALAJARA_DOUBT))
+    settled = resolved("work_locations", places(("MX", "guadalajara")))
+    stored = chat.send("La de México", interpretation(settled))
+    assert stored.snapshot.fields.work_locations.normalized.model_dump() == places(
+        ("MX", "guadalajara")
+    )
+    assert chat.llm.actions[-1] == ASK("availability")
+
+
+def test_refusing_the_offer_restores_the_earlier_place_without_naming_it(chat):
+    offered(chat)
+    stored = chat.send("No, ninguna", interpretation(BILBAO))
+    assert stored.snapshot.fields.work_locations.normalized.model_dump() == places(
+        ("ES", "bilbao")
+    )
+    assert stored.snapshot.outcome == "disqualified"
+    assert stored.snapshot.outcome_reasons == ["location_not_covered"]
+
+
+def test_a_place_outside_the_catalog_is_not_checked_against_the_words(chat):
+    at_location(chat)
+    chat.send(
+        "En la capital de Portugal",
+        interpretation(resolved("work_locations", places(("PT", "lisboa")))),
+    )
+    assert chat.llm.actions[-1].kind == "offer_alternatives"
+
+
+# What the reply request carries about job questions. Only this turn's, so that a later reply has
+# no earlier question to bring up; the saved list and the summary keep them all.
+ASKED = "¿Cuánto se paga al mes?"
+ASKED_LATER = "¿El contrato es indefinido?"
+
+
+def reply_requests(llm):
+    return [
+        json.loads(_reply_input(context, action))
+        for name, context, action in llm.calls
+        if name == "write_reply"
+    ]
+
+
+def questions_in_replies(llm):
+    return [request["pending_questions"] for request in reply_requests(llm)]
+
+
+def summary_questions(llm):
+    return json.loads(_summary_input(llm.contexts("write_summary")[-1]))["pending_questions"]
+
+
+def test_only_the_turn_that_raised_a_job_question_replies_with_it(chat):
+    chat.send("Ana Ruiz", interpretation(NAME))
+    chat.send(ASKED, interpretation(questions=[ASKED]))
+    chat.send("Sí, tengo carné", interpretation(LICENSE))
+    stored = chat.send("En Madrid", interpretation(MADRID))
+
+    assert questions_in_replies(chat.llm) == [[], [ASKED], [], []]
+    assert stored.snapshot.pending_questions == [ASKED]
+
+
+def test_a_job_question_next_to_a_real_answer_is_in_that_reply_only(chat):
+    chat.send("Ana Ruiz. ¿Cuánto se paga al mes?", interpretation(NAME, questions=[ASKED]))
+    chat.send("Sí, tengo carné", interpretation(LICENSE))
+
+    assert questions_in_replies(chat.llm) == [[ASKED], []]
+
+
+def test_a_new_question_replies_with_itself_and_not_the_earlier_one(chat):
+    chat.send(ASKED, interpretation(questions=[ASKED]))
+    stored = chat.send(ASKED_LATER, interpretation(questions=[ASKED_LATER]))
+
+    assert questions_in_replies(chat.llm) == [[ASKED], [ASKED_LATER]]
+    assert stored.snapshot.pending_questions == [ASKED, ASKED_LATER]
+
+
+def test_asking_the_same_question_again_is_answered_again_and_saved_again(chat):
+    chat.send(ASKED, interpretation(questions=[ASKED]))
+    chat.send("Ana Ruiz", interpretation(NAME))
+    stored = chat.send(ASKED, interpretation(questions=[ASKED]))
+
+    assert questions_in_replies(chat.llm) == [[ASKED], [], [ASKED]]
+    assert stored.snapshot.pending_questions == [ASKED, ASKED]
+
+
+def test_a_stop_turn_replies_with_its_own_question_and_later_stopped_turns_do_not(chat):
+    chat.send("Lo dejo. ¿Cuánto pagan?", interpretation(questions=[ASKED], stop_intent="stop"))
+    chat.send("hola", interpretation())
+    chat.send(ASKED_LATER, interpretation(questions=[ASKED_LATER]))
+    chat.send("Vale, ya puedo seguir", interpretation(stop_intent="resume"))
+
+    assert [action.kind for action in chat.llm.actions[:3]] == ["acknowledge_stop"] * 3
+    assert chat.llm.actions[3].kind == "ask"
+    assert questions_in_replies(chat.llm) == [[ASKED], [], [ASKED_LATER], []]
+
+
+def test_a_close_on_a_later_turn_has_no_question_but_the_summary_has_them_all(chat):
+    chat.send(ASKED, interpretation(questions=[ASKED]))
+    chat.send("No tengo carné", interpretation(NO_LICENSE))
+
+    assert chat.llm.actions[-1].kind == "close"
+    assert questions_in_replies(chat.llm) == [[ASKED], []]
+    assert summary_questions(chat.llm) == [ASKED]
+
+
+def test_a_question_on_the_closing_turn_is_in_the_reply_and_the_summary(chat):
+    chat.send(ASKED, interpretation(questions=[ASKED]))
+    chat.send("No tengo carné. ¿Y el contrato?", interpretation(NO_LICENSE, questions=[ASKED_LATER]))
+
+    assert chat.llm.actions[-1].kind == "close"
+    assert questions_in_replies(chat.llm) == [[ASKED], [ASKED_LATER]]
+    assert summary_questions(chat.llm) == [ASKED, ASKED_LATER]
+
+
+def test_a_retry_after_a_failed_reply_carries_the_same_question_and_only_that_turn(chat, retry):
+    chat.llm.replies.append(TransientLLMFailure(SECRET))
+    with pytest.raises(TurnFailed):
+        chat.send(ASKED, interpretation(questions=[ASKED]))
+    stored = retry()
+    chat.send("Ana Ruiz", interpretation(NAME))
+
+    assert questions_in_replies(chat.llm) == [[ASKED], [ASKED], []]
+    assert stored.snapshot.pending_questions == [ASKED]
+
+
+def test_a_retry_of_a_turn_without_a_question_stays_without_one(chat, retry):
+    chat.send(ASKED, interpretation(questions=[ASKED]))
+    chat.llm.replies.append(TransientLLMFailure(SECRET))
+    with pytest.raises(TurnFailed):
+        chat.send("Ana Ruiz", interpretation(NAME))
+    retry()
+
+    assert questions_in_replies(chat.llm) == [[ASKED], [], []]
+
+
+@pytest.mark.parametrize("script", ["replies", "summaries"])
+def test_a_retry_of_a_close_carries_the_closing_question_again(chat, retry, script):
+    chat.send(ASKED, interpretation(questions=[ASKED]))
+    getattr(chat.llm, script).append(PermanentLLMFailure(SECRET))
+    with pytest.raises(TurnFailed):
+        chat.send("No tengo carné. ¿Y el contrato?", interpretation(NO_LICENSE, questions=[ASKED_LATER]))
+    retry()
+
+    assert questions_in_replies(chat.llm)[-1] == [ASKED_LATER]
+    assert all(questions == [ASKED_LATER] for questions in questions_in_replies(chat.llm)[1:])
+    assert summary_questions(chat.llm) == [ASKED, ASKED_LATER]
+
+
+def test_a_repeat_request_drops_the_earlier_question_from_the_following_reply(chat):
+    chat.send(ASKED, interpretation(questions=[ASKED]))
+    stored = chat.send("???", UnusableOutput("schema_mismatch"))
+    assert stored.messages[-1].text == REPEAT_REQUEST_TEXTS["es"]
+    assert stored.snapshot.questions_this_turn == []
+
+    stored = chat.send("Ana Ruiz", interpretation(NAME))
+    assert questions_in_replies(chat.llm) == [[ASKED], []]
+    assert stored.snapshot.pending_questions == [ASKED]
+
+
+def test_a_rejected_question_is_neither_saved_nor_kept_for_the_reply(chat):
+    chat.send(ASKED, interpretation(questions=[ASKED]))
+    stored = chat.send("mensaje", interpretation(questions=["   "]))
+
+    assert stored.messages[-1].text == REPEAT_REQUEST_TEXTS["es"]
+    assert stored.snapshot.questions_this_turn == []
+    assert stored.snapshot.pending_questions == [ASKED]
+
+
+def test_a_turn_interpreted_before_this_key_existed_finishes_without_claiming_a_question(chat, db):
+    chat.llm.replies.append(TransientLLMFailure(SECRET))
+    with pytest.raises(TurnFailed):
+        chat.send(ASKED, interpretation(questions=[ASKED]))
+    connection = sqlite3.connect(db)
+    data = json.loads(connection.execute("SELECT snapshot FROM applications").fetchone()[0])
+    del data["questions_this_turn"]
+    with connection:
+        connection.execute("UPDATE applications SET snapshot = ?", (json.dumps(data),))
+    connection.close()
+
+    stored = chat.resume()
+
+    assert questions_in_replies(chat.llm)[-1] == []
+    assert stored.snapshot.pending_questions == [ASKED]

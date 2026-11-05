@@ -74,6 +74,7 @@ LOCALITY_ALIASES = {
         "sevilla": "sevilla",
         "seville": "sevilla",
         "madrid capital": "madrid",
+        "barna": "barcelona",
     },
     "MX": {
         "ciudad de mexico": "ciudad_de_mexico",
@@ -82,6 +83,8 @@ LOCALITY_ALIASES = {
         "cdmx": "ciudad_de_mexico",
         "mexico city": "ciudad_de_mexico",
         "mexico df": "ciudad_de_mexico",
+        "df": "ciudad_de_mexico",
+        "d f": "ciudad_de_mexico",
         "distrito federal": "ciudad_de_mexico",
         "guadalajara": "guadalajara",
         "monterrey": "monterrey",
@@ -216,6 +219,58 @@ def _canonical_place(place: Location) -> Location:
     return place.model_copy(update={"locality": locality})
 
 
+def with_supported_places(interpretation: Interpretation, messages) -> Interpretation:
+    """Refuses a catalog city the candidate's words contradict.
+
+    The closed schema makes every catalog city a valid model answer, right or wrong, and a wrong
+    one would decide coverage. A city is contradicted when no candidate message names it and the
+    latest one names another. Otherwise it stands, so "maadrid" and "la de México" need no question.
+    """
+    said = [_place_words(message.text) for message in messages if message.role == "candidate"]
+    proposals = [
+        _without_contradicted_places(proposal, said)
+        if proposal.field == "work_locations" and proposal.status == "resolved"
+        else proposal
+        for proposal in interpretation.proposals
+    ]
+    return interpretation.model_copy(update={"proposals": proposals})
+
+
+def _without_contradicted_places(proposal: Proposal, said: list[str]) -> Proposal:
+    locations = WorkLocations.model_validate(proposal.value)
+    kept = [place for place in locations.identified if not _is_contradicted(place, said)]
+    if len(kept) == len(locations.identified):
+        return proposal
+    unresolved = list(locations.unresolved)
+    # Without a doubt, what is left could read as not covered and reject the candidate.
+    if not (unresolved or any(_is_catalog_place(place) for place in kept)):
+        unresolved.append(proposal.raw)
+    value = {"identified": [p.model_dump() for p in kept], "unresolved": unresolved}
+    return proposal.model_copy(update={"value": value})
+
+
+def _is_catalog_place(place: Location) -> bool:
+    return (place.country, place.locality) in COVERAGE_CATALOG
+
+
+def _is_contradicted(place: Location, said: list[str]) -> bool:
+    if not _is_catalog_place(place):
+        return False
+    spellings = [
+        _place_words(spelling)
+        for spelling, locality in LOCALITY_ALIASES[place.country].items()
+        if locality == place.locality
+    ]
+    if any(spelling in words for spelling in spellings for words in said):
+        return False
+    return any(_place_words(spelling) in said[-1] for spelling in CATALOG_SPELLINGS)
+
+
+def _place_words(text: str) -> str:
+    """Whole words only: "Valenciana" must not count as Valencia."""
+    return f" {re.sub(r'[^a-z0-9]+', ' ', folded(text)).strip()} "
+
+
 def _utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -273,7 +328,9 @@ def _drive(db_path, application_id, request_id, llm, now) -> StoredApplication:
 def _interpret(db_path, application_id, request_id, stored, llm, now) -> None:
     revision = stored.snapshot.revision
     try:
-        interpretation = guard_interpretation(llm.interpret(_context(stored, now)))
+        interpretation = with_supported_places(
+            guard_interpretation(llm.interpret(_context(stored, now))), stored.messages
+        )
     except UnusableOutput:
         _request_repeat(db_path, application_id, request_id, revision, "model_output_unusable")
         return
@@ -364,6 +421,7 @@ def _context(stored: StoredApplication, now) -> TurnContext:
         messages=stored.messages,
         fields=snapshot.fields,
         pending_questions=snapshot.pending_questions,
+        questions_this_turn=snapshot.questions_this_turn,
         language=snapshot.language,
         last_question_field=snapshot.last_question_field,
         last_question_kind=snapshot.last_question_kind,
