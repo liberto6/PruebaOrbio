@@ -56,16 +56,16 @@ class ScreeningLLM(Protocol):
 
 
 class LLMFailure(Exception):
-    """The model gave no usable output: refusal, truncation, timeout or provider error."""
-
-    transient = False
+    """A model call gave no result. Adapters raise one of the subclasses below."""
 
 
 class TransientLLMFailure(LLMFailure):
-    """May work if repeated. The adapter applies the one automatic retry, not the coordinator."""
-
-    transient = True
+    """Provider unavailable for now, such as a timeout. The adapter makes the one automatic retry."""
 
 
 class PermanentLLMFailure(LLMFailure):
-    """Repeating it automatically is pointless: invalid credentials, refusal and the like."""
+    """Provider unavailable until someone acts, such as invalid credentials or spent quota."""
+
+
+class UnusableOutput(LLMFailure):
+    """The model answered without usable output: refusal, truncation or schema failure."""

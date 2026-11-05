@@ -1,5 +1,6 @@
 """Which action comes next and how a candidate turn advances through its phases."""
 
+import logging
 import re
 import unicodedata
 from datetime import datetime, timezone
@@ -13,6 +14,7 @@ from backend.llm import (
     ScreeningLLM,
     TransientLLMFailure,
     TurnContext,
+    UnusableOutput,
 )
 from backend.rules import (
     COVERAGE_CATALOG,
@@ -44,6 +46,8 @@ from backend.storage import (
     receive_turn,
 )
 
+logger = logging.getLogger(__name__)
+
 GREETING = (
     "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves "
     "para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
@@ -51,6 +55,10 @@ GREETING = (
 TECHNICAL_ERROR_TEXTS = {
     "es": "Ha habido un problema técnico. Por favor, inténtalo de nuevo.",
     "en": "There was a technical problem. Please try again.",
+}
+REPEAT_REQUEST_TEXTS = {
+    "es": "No he podido procesar tu último mensaje. ¿Puedes repetírmelo?",
+    "en": "I could not process your last message. Could you repeat it?",
 }
 
 # E2 only enforces the general limit, so the shorter start timing limit lives here.
@@ -137,7 +145,7 @@ def guard_interpretation(interpretation) -> Interpretation:
     """A usable interpretation with catalog spellings normalized, or InvalidExtraction.
 
     E2 matches places exactly, so a badly written identifier would count as an uncovered
-    place and reject a valid candidate. A failure here is technical, never evidence.
+    place and reject a valid candidate. A failure here applies no data and is never evidence.
     """
     if not isinstance(interpretation, Interpretation):
         raise InvalidExtraction([FieldError(field=None, error="not_an_interpretation")])
@@ -234,10 +242,10 @@ def _drive(db_path, application_id, request_id, llm, now) -> StoredApplication:
                 reloads += 1
     except TransientLLMFailure as exc:
         raise TurnFailed(phase, "llm_transient") from exc
+    except UnusableOutput as exc:  # Reaches here only from the reply and summary steps.
+        raise TurnFailed(phase, "llm_unusable") from exc
     except LLMFailure as exc:
         raise TurnFailed(phase, "llm_permanent") from exc
-    except InvalidExtraction as exc:
-        raise TurnFailed(phase, "invalid_interpretation") from exc
     except InvalidReply as exc:
         raise TurnFailed(phase, "invalid_reply") from exc
     except StorageFailure as exc:
@@ -248,17 +256,50 @@ def _drive(db_path, application_id, request_id, llm, now) -> StoredApplication:
 
 
 def _interpret(db_path, application_id, request_id, stored, llm, now) -> None:
-    interpretation = guard_interpretation(llm.interpret(_context(stored, now)))
-    commit_interpretation(
-        db_path,
-        application_id,
-        request_id,
-        stored.snapshot.revision,
-        proposals=interpretation.proposals,
-        pending_questions=interpretation.job_questions,
-        language=interpretation.language,
-        stop_requested=STOP_REQUESTED[interpretation.stop_intent],
+    revision = stored.snapshot.revision
+    try:
+        interpretation = guard_interpretation(llm.interpret(_context(stored, now)))
+    except UnusableOutput:
+        _request_repeat(db_path, application_id, request_id, revision, "model_output_unusable")
+        return
+    except InvalidExtraction as exc:  # Only the guard's own stable codes reach this line.
+        _request_repeat(db_path, application_id, request_id, revision, exc.errors[0].error)
+        return
+    try:
+        commit_interpretation(
+            db_path,
+            application_id,
+            request_id,
+            revision,
+            proposals=interpretation.proposals,
+            pending_questions=interpretation.job_questions,
+            language=interpretation.language,
+            stop_requested=STOP_REQUESTED[interpretation.stop_intent],
+        )
+    except InvalidExtraction:  # Storage's errors can quote model output, so they stay out.
+        _request_repeat(db_path, application_id, request_id, revision, "extraction_rejected")
+
+
+def _request_repeat(db_path, application_id, request_id, revision, reason) -> None:
+    """Applies no data and finishes the turn with a fixed text, so nothing blocks the candidate.
+
+    Failing between the two commits is safe: the turn resumes from `interpreted` as usual.
+    """
+    logger.warning("interpretation_unusable reason=%s", reason)
+    interpreted = commit_interpretation(
+        db_path, application_id, request_id, revision, proposals=[]
     )
+    try:
+        complete_turn(
+            db_path,
+            application_id,
+            request_id,
+            interpreted.revision,
+            reply=REPEAT_REQUEST_TEXTS[interpreted.language],
+        )
+    except StorageFailure as exc:
+        # _drive only knows the phase it read before the first of these two commits.
+        raise TurnFailed("interpreted", "storage_failure") from exc
 
 
 def _finish(db_path, application_id, request_id, stored, llm, now) -> None:

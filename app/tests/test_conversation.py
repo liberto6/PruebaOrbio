@@ -6,6 +6,7 @@ import pytest
 from backend import conversation, storage
 from backend.conversation import (
     GREETING,
+    REPEAT_REQUEST_TEXTS,
     CoordinationError,
     TurnFailed,
     guard_interpretation,
@@ -22,6 +23,7 @@ from backend.llm import (
     PermanentLLMFailure,
     TransientLLMFailure,
     TurnContext,
+    UnusableOutput,
 )
 from backend.rules import (
     COVERAGE_CATALOG,
@@ -917,20 +919,22 @@ def test_malformed_extraction_preserves_previous_facts_and_commits_nothing(chat,
     )
     before = load_application(db, app_id).snapshot
 
-    with pytest.raises(TurnFailed) as raises:
-        chat.send("mensaje", malformed)
-    assert_failed(raises, "received", "invalid_interpretation")
+    stored = chat.send("mensaje", malformed)
 
-    stored = load_application(db, app_id)
-    assert stored.messages[-1].text == "mensaje"
+    assert [m.text for m in stored.messages[-2:]] == ["mensaje", REPEAT_REQUEST_TEXTS["es"]]
     assert stored.snapshot.fields == before.fields
     assert stored.snapshot.pending_questions == []
     assert stored.snapshot.language == "es"
     assert stored.snapshot.stop_requested is False
-    assert load_turn(db, app_id, "request-2").phase == "received"
+    assert stored.snapshot.last_question_field == before.last_question_field
+    assert stored.snapshot.last_question_kind == before.last_question_kind
+    turn = load_turn(db, app_id, "request-2")
+    assert (turn.phase, turn.reply_sequence) == ("completed", len(stored.messages))
 
-    chat.llm.interpretations.append(interpretation(resolved("full_name", "Ana Gil")))
-    assert chat.resume().snapshot.fields.full_name.normalized == "Ana Gil"
+    # A lost response is recovered like any other completed turn.
+    calls = len(chat.llm.calls)
+    assert chat.repeat() == stored
+    assert len(chat.llm.calls) == calls
 
 
 def test_genuine_unresolved_correction_clears_the_previous_fact(chat, db, app_id):
@@ -947,45 +951,166 @@ def test_genuine_unresolved_correction_clears_the_previous_fact(chat, db, app_id
 
 
 @pytest.mark.parametrize(
-    "bad_output",
+    "bad_output, reason",
     [
-        None,
-        "texto",
-        {"proposals": []},
-        interpretation(NAME, resolved("full_name", "Ana Gil")),
-        interpretation(questions=["   "]),
-        interpretation(questions=["pregunta \ud800"]),
-        interpretation(resolved("full_name", "Ana \ud800")),
+        (None, "not_an_interpretation"),
+        ("texto", "not_an_interpretation"),
+        ({"proposals": []}, "not_an_interpretation"),
+        (interpretation(NAME, resolved("full_name", "Ana Gil")), "duplicate_proposal"),
+        (interpretation(resolved("work_locations", "Madrid")), "malformed_locations"),
+        (interpretation(resolved("work_locations", places(("ES", "Bilbao")))), "malformed_catalog_id"),
+        (interpretation(questions=["   "]), "extraction_rejected"),
+        (interpretation(questions=["pregunta \ud800"]), "extraction_rejected"),
+        (interpretation(resolved("full_name", "Ana \ud800")), "extraction_rejected"),
+        (interpretation(resolved("driving_license", SECRET)), "extraction_rejected"),
+        (UnusableOutput(SECRET), "model_output_unusable"),
     ],
-    ids=["none", "text", "dict", "duplicate", "blank question", "surrogate question", "surrogate"],
+    ids=[
+        "none",
+        "text",
+        "dict",
+        "duplicate",
+        "locations shape",
+        "catalog id",
+        "blank question",
+        "surrogate question",
+        "surrogate",
+        "invalid value",
+        "adapter",
+    ],
 )
-def test_unusable_interpretations_are_technical_failures(chat, db, app_id, bad_output):
-    with pytest.raises(TurnFailed) as raises:
-        chat.send("mensaje", bad_output)
-    assert_failed(raises, "received", "invalid_interpretation")
+def test_unusable_interpretations_get_a_repeat_request_and_a_stable_log(
+    chat, db, app_id, caplog, bad_output, reason
+):
+    with caplog.at_level("WARNING", logger="backend.conversation"):
+        stored = chat.send("mensaje del candidato", bad_output)
 
-    stored = load_application(db, app_id)
+    assert stored.messages[-1].text == REPEAT_REQUEST_TEXTS["es"]
     assert stored.snapshot.fields.full_name.status == "missing"
     assert stored.snapshot.pending_questions == []
-    assert history_counts(stored) == (1, 1)
+    assert history_counts(stored) == (1, 2)
+    assert chat.llm.actions == []
+    assert load_turn(db, app_id, "request-1").phase == "completed"
+    assert [record.getMessage() for record in caplog.records] == [
+        f"interpretation_unusable reason={reason}"
+    ]
+    assert SECRET not in caplog.text and "mensaje del candidato" not in caplog.text
+
+
+def test_repeat_request_keeps_language_stop_question_context_and_budget(chat):
+    chat.send("Hi, I am Ana Ruiz", interpretation(NAME, unresolved("driving_license"), language="en"))
+    before = chat.send("Stop it", interpretation(stop_intent="stop")).snapshot
+    malformed = interpretation(
+        resolved("driving_license", "yes"), language="es", stop_intent="resume"
+    )
+
+    stored = chat.send("mensaje", malformed)
+
+    assert stored.messages[-1].text == REPEAT_REQUEST_TEXTS["en"]
+    assert stored.snapshot.language == "en"
+    assert stored.snapshot.stop_requested is True
+    assert stored.snapshot.fields == before.fields
+    assert stored.snapshot.fields.driving_license.clarifications_asked == 1
+    assert stored.snapshot.last_question_field == "driving_license"
+    assert stored.snapshot.last_question_kind == "clarification"
+
+
+def test_next_message_after_a_repeat_request_works_and_the_model_sees_the_earlier_one(chat):
+    chat.send("Ana Ruiz, con carné", interpretation(NAME, LICENSE))
+    bad_place = interpretation(resolved("work_locations", places(("España", "madrid"))))
+    chat.send("En Madrid, España", bad_place)
+
+    stored = chat.send("Madrid", interpretation(MADRID))
+
+    seen = [text for _, text in texts(chat.llm.contexts("interpret")[-1])]
+    assert "En Madrid, España" in seen and REPEAT_REQUEST_TEXTS["es"] in seen
+    assert stored.snapshot.fields.work_locations.status == "resolved"
+    assert chat.llm.actions[-1] == ASK("availability")
 
 
 @pytest.mark.parametrize(
     "place", [("ES", "Bilbao"), ("España", "madrid"), ("ES", "Guadalajara"), ("Spain", "Madrid")]
 )
-def test_malformed_catalog_identifier_never_disqualifies(chat, db, app_id, place):
-    chat.send("Ana Ruiz, con carné", interpretation(NAME, LICENSE))
-    with pytest.raises(TurnFailed) as raises:
-        chat.send("mensaje", interpretation(resolved("work_locations", places(place))))
-    assert_failed(raises, "received", "invalid_interpretation")
+def test_malformed_catalog_identifier_never_disqualifies_and_keeps_earlier_facts(chat, place):
+    before = chat.send("Ana Ruiz, con carné", interpretation(NAME, LICENSE)).snapshot
 
-    stored = load_application(db, app_id)
+    stored = chat.send("mensaje", interpretation(resolved("work_locations", places(place))))
+
+    assert stored.messages[-1].text == REPEAT_REQUEST_TEXTS["es"]
     assert stored.snapshot.closed_at is None
     assert stored.snapshot.outcome == "incomplete"
-    assert stored.snapshot.fields.work_locations.status == "missing"
+    assert stored.snapshot.fields == before.fields
 
-    chat.llm.interpretations.append(interpretation(MADRID))
-    assert chat.resume().snapshot.closed_at is None
+
+@pytest.mark.parametrize(
+    "place", [("MX", "mexico_city"), ("MX", "ciudad_mexico"), ("ES", "madrid_capital")]
+)
+def test_well_formed_alias_slugs_do_not_reject_end_to_end(chat, place):
+    chat.send("Ana Ruiz, con carné", interpretation(NAME, LICENSE))
+    stored = chat.send("mensaje", interpretation(resolved("work_locations", places(place))))
+    assert stored.snapshot.closed_at is None
+    assert chat.llm.actions[-1] == ASK("availability")
+
+
+def test_catalog_name_in_a_non_catalog_country_is_clarified_and_at_worst_reviewed(chat):
+    wrong_country = interpretation(resolved("work_locations", places(("XX", "madrid"))))
+    chat.send("Ana Ruiz, con carné", interpretation(NAME, LICENSE))
+    stored = chat.send("Madrid", wrong_country)
+    assert stored.snapshot.closed_at is None
+    assert chat.llm.actions[-1] == CLARIFY("work_locations", 1)
+
+    chat.send("Madrid", wrong_country)
+    assert chat.llm.actions[-1] == CLARIFY("work_locations", 2)
+    stored = chat.send(
+        "Madrid", interpretation(wrong_country.proposals[0], AVAILABILITY, SCHEDULE, EXPERIENCE, START)
+    )
+    assert stored.snapshot.outcome == "pending_review"
+    assert stored.snapshot.outcome_reasons == ["coverage_unresolved"]
+
+
+def test_a_failure_between_the_two_commits_resumes_through_the_normal_path(
+    chat, db, app_id, monkeypatch
+):
+    """Accepted limit: the normal reply that follows may then consume a clarification."""
+    chat.send("Ana", interpretation(NAME, unresolved("driving_license")))
+    assert load_application(db, app_id).snapshot.fields.driving_license.clarifications_asked == 1
+
+    def fail(*args, **kwargs):
+        raise StorageFailure(SECRET)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(conversation, "complete_turn", fail)
+        with pytest.raises(TurnFailed) as raises:
+            chat.send("mensaje", UnusableOutput(SECRET))
+    assert_failed(raises, "interpreted", "storage_failure")
+    assert load_turn(db, app_id, "request-2").phase == "interpreted"
+
+    stored = chat.resume()
+    assert history_counts(stored) == (2, 3)
+    assert REPEAT_REQUEST_TEXTS["es"] not in [m.text for m in stored.messages]
+    assert chat.llm.actions[-1] == CLARIFY("driving_license", 2)
+    assert stored.snapshot.fields.driving_license.clarifications_asked == 2
+    assert len(chat.llm.contexts("interpret")) == 2
+
+
+def test_stale_revision_while_repeating_interprets_again(chat, db, app_id):
+    hook = once(lambda: another_writer(db, app_id, proposals=[LICENSE]))
+    chat.llm.before_call = lambda name: hook(name, "interpret")
+
+    stored = chat.send("Ana Ruiz", UnusableOutput(SECRET), interpretation(NAME))
+
+    assert REPEAT_REQUEST_TEXTS["es"] not in [m.text for m in stored.messages]
+    assert stored.snapshot.fields.full_name.status == "resolved"
+    assert stored.snapshot.fields.driving_license.normalized is True
+
+
+@pytest.mark.parametrize("script", ["replies", "summaries"])
+def test_unusable_output_after_interpretation_is_still_a_retryable_failure(chat, script):
+    getattr(chat.llm, script).append(UnusableOutput(SECRET))
+    with pytest.raises(TurnFailed) as raises:
+        chat.send("No tengo carné", interpretation(NO_LICENSE))
+    assert_failed(raises, "interpreted", "llm_unusable")
+    assert chat.resume().snapshot.outcome == "disqualified"
 
 
 def test_catalog_alias_covers_and_does_not_disqualify(chat):
