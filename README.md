@@ -4,6 +4,8 @@ Grupo Sazón hires delivery drivers: about 1,000 applications a week, 13 recruit
 
 Phase 1 deliverable: **[process design](docs/design/process-design.md)**. Real transcripts: **[sample conversations](docs/evals/sample-conversations.md)**.
 
+**[Watch the demo video](https://drive.google.com/file/d/1hegSkDbeJ-ZmQFlQGbwFQ7s7p3HrP3VV/view?usp=sharing)**. Delivery completed on 2026-11-05; see [delivery evidence](docs/planning/e5-delivery.md).
+
 ## Setup
 
 Prerequisites: Git, Python 3.13, Node.js 22 with npm 10, and an OpenAI API key. Verified on Windows with Python 3.13.7, Node.js 22.17.0, npm 10.9.2 and Git 2.50.0. Direct Python dependencies are pinned; transitive ones are not.

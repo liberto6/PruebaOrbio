@@ -1,6 +1,6 @@
 # E5 — Delivery
 
-**Status: in progress, 2026-11-05. Remaining: the video and a live rehearsal by the user.** Sources: [assignment](../assignment.html),
+**Status: complete, 2026-11-05, as confirmed by the user.** The demo video is linked in the README. Sources: [assignment](../assignment.html),
 [process design](../design/process-design.md) and [roadmap](build-roadmap.md).
 
 ## Goal
@@ -45,13 +45,15 @@ are presented openly.
 - [x] Process design matches the delivered behaviour.
 - [x] Clean clone: install, `python -m pytest`, `npm run build`, one real screening, one decision.
 - [x] No secret in the repository or its history, and `.env` and the database ignored.
-- [x] Demo script run once against the real model by an agent; its cost recorded. The user's own rehearsal is still to do.
-- [ ] Video script and shot list ready; video recorded by the user, 5-10 minutes.
+- [x] Demo script run once against the real model by an agent; its cost recorded. User preparation closed on the user's confirmation that all work is complete.
+- [x] Video script and shot list ready; video recorded by the user. Local final video files are present; duration and contents were not independently reviewed at closure.
 - [x] Presentation script ready, kept out of Git in `docs/delivery/`, with personal answers for the user to adjust.
 - [x] Repository published and its link checked from outside, with the user's approval.
-- [ ] Roadmap, README and `AGENTS.md` match the delivered work.
+- [x] Roadmap, README and `AGENTS.md` match the delivered work.
 
 ## Evidence
+
+- Closure, 2026-11-05: the user confirmed all work complete and requested documentary closure. Local untracked files include `demo-final.mp4`, `demo-final-x1.10.mp4` and `demo-final-sin-pestanas.mp4`. The user supplied the [demo video link](https://drive.google.com/file/d/1hegSkDbeJ-ZmQFlQGbwFQ7s7p3HrP3VV/view?usp=sharing), now in the README. This records user confirmation, not a new independent video review or live rehearsal; external access permissions were not verified. No application code, prompts or evals changed.
 
 - README, 2026-11-05: reorganized around the assignment's list; relative links and anchors resolved by script; PowerShell setup, build, 503, health, `SCREENING_DB`, `python -m pytest` (802 passed) and `python -m evals.run --help` run in a throwaway clone with no key and no chat message or paid eval; macOS/Linux commands not verified; the per-stage log left the README, with its one README-only item moved to the [E4 evidence](e4-recruiter-tool.md#e4-evidence-2026-11-05).
 - Clean clone, 2026-11-05: every PowerShell setup step passed on a new clone of `b2cea18`, with no reused environment, and `python -m pytest` reported 802 passed. macOS/Linux, the evals, the no-build path and blocked activation were not part of this run.

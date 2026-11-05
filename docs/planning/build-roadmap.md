@@ -69,7 +69,7 @@ real-model conversations were reviewed; the known tone limits remain. The
 [final batteries](e4-5-agent-tone.md#final-batteries-before-e5) on the delivered prompts give
 802 tests passed, 109/110 tuned and 70/74 held-out, with no false rejection, false qualification or
 unnecessary review counted. The user moved on to E5 with the listed limits in place.
-The active stage is [E5 — Delivery](e5-delivery.md): the repository is published and the video is what remains. The ATS design is the only newly selected bonus. The
+[E5 — Delivery](e5-delivery.md) is complete on the user's confirmation that all work is finished. The repository is published and the demo video is linked in the README. There is no active implementation stage. The ATS design is the only newly selected bonus. The
 [E4 limits](e4-recruiter-tool.md#e4-evidence-2026-11-05) remain recorded. The user confirmed E3 complete and [decided](e3-conversational-agent.md#product-decision-a-bare-yes-after-the-reminder)
 that a bare "Sí" after the reminder does not count as a licence.
 [E3.4 evidence and limits](e3-conversational-agent.md#e34-evidence-2026-11-05)
