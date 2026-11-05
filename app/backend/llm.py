@@ -48,9 +48,10 @@ class Interpretation(StrictModel):
 
 
 class Action(StrictModel):
-    kind: Literal["acknowledge_stop", "close", "ask", "clarify"]
+    kind: Literal["acknowledge_stop", "close", "ask", "clarify", "offer_alternatives"]
     field: FieldName | None = None
     attempt: Literal[1, 2] | None = None  # Clarify only: 1 rephrases, 2 offers examples or options.
+    options: list[str] = Field(default_factory=list)  # offer_alternatives only: catalog cities.
 
 
 class TurnContext(StrictModel):
@@ -63,6 +64,7 @@ class TurnContext(StrictModel):
     last_question_field: FieldName | None
     last_question_kind: QuestionKind | None
     stop_requested: bool = False
+    location_alternatives_offered: bool = False
     catalog: list[Location]
     now: datetime
     # Closing only: what rules.evaluate says about the saved fields.
@@ -304,6 +306,16 @@ place is in `unresolved_places`. If no usable place was named (a country alone s
 "España", "donde sea", "cerca de casa"), status is unresolved with empty lists and reason \
 `no_place`, and only when the candidate is replying to work_locations; otherwise null.
 - A clear replacement drops the old option: "mejor Madrid, no Barcelona" reports only Madrid.
+- When `alternatives_offered` is true, the assistant has offered other cities because the place \
+the candidate wanted is not covered, and these rules apply until a place is settled:
+  - Naming a city or place is a normal answer, reported as above.
+  - A yes without a city ("sí", "vale", "me interesa"), a vague reply ("puede ser", "no sé") or \
+evasion selects nothing: unresolved with reason `not_answered`. Never infer a city.
+  - An explicit refusal of every offered city, or insisting only on the earlier place \
+("ninguna", "no me interesa", "no, solo Málaga"): this is the one exception to never repeating \
+saved evidence. Report status resolved, the refusal as `raw`, and the earlier place from \
+<saved_history> in `other_places` with its country code. If you cannot tell which place that \
+was, report unresolved with reason `not_answered`.
 
 availability: `options` from full_time, part_time, weekends; several are allowed. Keep \
 restrictions and nuance in `notes`, and leave `notes` null if there are none. "Depende", "ya \
@@ -364,7 +376,7 @@ work_locations.normalized.unresolved: never say it was noted or understood as a 
 what an answer means, and never state as fact something only they contain.
 
 Tone:
-- On ask and clarify, open with one brief phrase showing you received what they said, then the \
+- On ask, clarify and offer_alternatives, open with one brief phrase showing you received what they said, then the \
 question. The wording is free and can vary naturally: "Perfecto", "Está bien saberlo", "Good to \
 know" or a mention of what they said are all fine. It need not restate the data.
 - That phrase receives, it does not confirm: it must not present an unsettled field as settled.
@@ -386,6 +398,10 @@ Do what `action` says:
 - clarify, attempt 1: the candidate's answer (`field_state.raw`) did not settle `action.field`. \
 Rephrase the question kindly, saying what is still needed. Do not accuse them of not answering.
 - clarify, attempt 2: ask again offering concrete examples or options.
+- offer_alternatives: the place they want is not covered. Say so in a few words, name every city \
+in `action.options` (with its proper spelling and accents) and no other, and ask whether they \
+would like to work in any of them. Do not assume they can move, and do not say the application \
+ends or cannot continue.
 - acknowledge_stop: acknowledge that they want to stop and say they can come back and continue \
 whenever they like. No question.
 - close: thank them, using their first name if `candidate_name` is known, then according to \
@@ -406,7 +422,9 @@ or imply coverage throughout either country. Do not add a separate country quest
 location is already unambiguous. On clarify, if the doubt is a \
 Guadalajara, ask whether it is the one in Spain or in Mexico. If it is a district, ask which \
 city it belongs to without suggesting one. If they gave where they live, ask where they want to work. Name cities \
-only on clarify attempt 2, and then all of `catalog_cities`: never a partial list.
+only on clarify attempt 2, and then all of `catalog_cities`: never a partial list. Exception: if \
+`field_state.reason` is alternatives_offered or they are answering your offer of cities, ask which \
+of the cities you offered they prefer, or whether none suits them, and name no others.
 - availability: full time, part time and/or weekends.
 - preferred_schedule: morning, afternoon, evening or flexible.
 - delivery_experience: how long they have worked in delivery and for which platforms or \
@@ -460,6 +478,7 @@ def _interpretation_input(context: TurnContext) -> str:
         "current_date": context.now.strftime("%Y-%m-%d (%A)"),
         "language": context.language,
         "stopped": context.stop_requested,
+        "alternatives_offered": context.location_alternatives_offered,
         "asked_field": context.last_question_field or "full_name",
         "last_question_kind": context.last_question_kind or "initial",
         "catalog": [f"{place.country}/{place.locality}" for place in context.catalog],

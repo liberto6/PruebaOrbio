@@ -55,7 +55,13 @@ CREATE TABLE messages (
     PRIMARY KEY (application_id, sequence)
 );
 """
-NEW_SNAPSHOT_KEYS = ("language", "last_question_field", "last_question_kind", "reminder_sent")
+NEW_SNAPSHOT_KEYS = (
+    "language",
+    "last_question_field",
+    "last_question_kind",
+    "reminder_sent",
+    "location_alternatives_offered",
+)
 
 
 @pytest.fixture

@@ -26,7 +26,7 @@ FieldName = Literal[
     "start_timing",
 ]
 Language = Literal["es", "en"]
-QuestionKind = Literal["initial", "clarification"]
+QuestionKind = Literal["initial", "clarification", "alternatives"]
 MAX_CLARIFICATIONS = 2
 
 
@@ -147,6 +147,7 @@ class CandidateSnapshot(StrictModel):
     last_question_field: FieldName | None = None
     last_question_kind: QuestionKind | None = None
     reminder_sent: bool = False
+    location_alternatives_offered: bool = False
 
 
 class Proposal(StrictModel):
@@ -266,6 +267,17 @@ def record_clarifications(fields: CandidateFields, field_names: list[str]) -> Ap
         )
         updated = updated.model_copy(update={name: counted})
     return ApplyResult(fields=updated, errors=errors)
+
+
+def hold_location_for_alternatives(fields: CandidateFields) -> CandidateFields:
+    """The uncovered place is no longer final while the candidate answers the offer.
+
+    Without this, a reply that says nothing about the place would reject them with it.
+    """
+    held = fields.work_locations.model_copy(
+        update={"normalized": None, "status": "unresolved", "reason": "alternatives_offered"}
+    )
+    return fields.model_copy(update={"work_locations": held})
 
 
 def _submitted_field(submitted: Any) -> str | None:

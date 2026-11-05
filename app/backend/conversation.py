@@ -93,7 +93,11 @@ COUNTRY_ID = re.compile(r"[A-Z]{2}")
 LOCALITY_ID = re.compile(r"[a-z0-9_]+")
 
 STOP_REQUESTED = {"stop": True, "resume": False, None: None}
-QUESTION_KINDS = {"ask": "initial", "clarify": "clarification"}
+QUESTION_KINDS = {
+    "ask": "initial",
+    "clarify": "clarification",
+    "offer_alternatives": "alternatives",
+}
 MAX_RELOADS = 3  # Times one call may discard its work because the state moved.
 
 
@@ -118,6 +122,16 @@ def next_action(snapshot: CandidateSnapshot) -> Action:
     fields = snapshot.fields
     evaluation = evaluate(fields)
     if evaluation.outcome == "disqualified":
+        # Only coverage can be offered around, and only once.
+        if (
+            evaluation.outcome_reasons == ["location_not_covered"]
+            and not snapshot.location_alternatives_offered
+        ):
+            return Action(
+                kind="offer_alternatives",
+                field="work_locations",
+                options=_alternative_cities(fields),
+            )
         return Action(kind="close")
 
     # `closeable` alone is not enough: pending_review is closeable with budget left.
@@ -132,6 +146,13 @@ def next_action(snapshot: CandidateSnapshot) -> Action:
     if evaluation.closeable:
         return Action(kind="close")
     raise CoordinationError(evaluation.outcome)
+
+
+def _alternative_cities(fields: CandidateFields) -> list[str]:
+    """Catalog cities in the countries they want, or the whole catalog if none is covered."""
+    countries = {place.country for place in fields.work_locations.normalized.identified}
+    nearby = [city for country, city in COVERAGE_CATALOG if country in countries]
+    return sorted(nearby or [city for _, city in COVERAGE_CATALOG])
 
 
 def _is_in_doubt(fields: CandidateFields, name: str) -> bool:
@@ -347,6 +368,7 @@ def _context(stored: StoredApplication, now) -> TurnContext:
         last_question_field=snapshot.last_question_field,
         last_question_kind=snapshot.last_question_kind,
         stop_requested=snapshot.stop_requested,
+        location_alternatives_offered=snapshot.location_alternatives_offered,
         catalog=[
             Location(country=country, locality=locality)
             for country, locality in sorted(COVERAGE_CATALOG)

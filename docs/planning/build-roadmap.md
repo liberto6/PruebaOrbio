@@ -61,8 +61,10 @@ correction gets no acknowledgement, and a job question is mentioned when not ask
 seen in E3. [The user decided](e4-5-agent-tone.md#user-decision-closed-with-known-limits) to accept
 these limits and not change the agent further for now. The recruiter detail now shows “Datos
 recogidos” only when an application has no summary. A separately authorized [location-question follow-up](e4-5-agent-tone.md#scoped-follow-up-work-location-question)
-now instructs the reply to introduce Spain/Mexico and ask desired city/country together;
-coverage rules are unchanged and the revised prompt has no new real-model validation.
+now instructs the reply to introduce Spain/Mexico and ask desired city/country together.
+A second authorized [follow-up](e4-5-agent-tone.md#scoped-follow-up-covered-cities-before-a-coverage-rejection)
+offers the covered cities once before a coverage rejection: 753 tests pass and nine focused
+real-model conversations were reviewed; the known tone limits remain.
 E5 follows; its plan is not written yet. The ATS design is the only newly selected bonus. The
 [E4 limits](e4-recruiter-tool.md#e4-evidence-2026-11-05) remain recorded. The user confirmed E3 complete and [decided](e3-conversational-agent.md#product-decision-a-bare-yes-after-the-reminder)
 that a bare "Sí" after the reminder does not count as a licence.

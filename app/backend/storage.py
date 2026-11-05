@@ -15,6 +15,7 @@ from backend.rules import (
     StrictModel,
     apply_proposals,
     evaluate,
+    hold_location_for_alternatives,
     new_snapshot,
     record_clarifications,
 )
@@ -373,6 +374,9 @@ def complete_turn(
             if counted.errors:
                 raise ClarificationRefused(question_field, counted.errors[0].error)
             changes["fields"] = counted.fields
+        if question_kind == "alternatives":
+            changes["fields"] = hold_location_for_alternatives(snapshot.fields)
+            changes["location_alternatives_offered"] = True
         if question_field is not None:
             changes["last_question_field"] = question_field
             changes["last_question_kind"] = question_kind
@@ -501,8 +505,8 @@ def _check_question_context(question_field, question_kind) -> None:
         return
     if not isinstance(question_field, str) or question_field not in CandidateFields.model_fields:
         raise ValueError("question_field must be a screening field")
-    if question_kind not in ("initial", "clarification"):
-        raise ValueError("question_kind must be initial or clarification")
+    if question_kind not in ("initial", "clarification", "alternatives"):
+        raise ValueError("question_kind must be initial, clarification or alternatives")
 
 
 def _interpreted_snapshot(

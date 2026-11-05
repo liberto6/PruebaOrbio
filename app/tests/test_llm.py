@@ -15,6 +15,7 @@ from backend.llm import (
     TransientLLMFailure,
     TurnContext,
     UnusableOutput,
+    _interpretation_input,
     llm_from_env,
 )
 from backend.rules import COVERAGE_CATALOG, CandidateFields, Location, new_snapshot
@@ -435,3 +436,14 @@ def test_existing_environment_wins_over_the_env_file(clean_env, monkeypatch):
 def test_env_file_path_does_not_depend_on_the_launch_directory():
     assert llm.ENV_FILE.is_absolute()
     assert llm.ENV_FILE.parent.name == "app"
+
+
+def test_the_offer_and_its_state_reach_the_model():
+    client = FakeClient(response("Hola"))
+    action = Action(kind="offer_alternatives", field="work_locations", options=["madrid", "sevilla"])
+    OpenAILLM(client, "m").write_reply(context(), action)
+    assert json.loads(client.requests[0]["input"])["action"]["options"] == ["madrid", "sevilla"]
+
+    assert '"alternatives_offered": true' in _interpretation_input(
+        context(messages=("Sí",), location_alternatives_offered=True)
+    )

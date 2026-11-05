@@ -34,6 +34,7 @@ from backend.rules import (
     FieldError,
     Proposal,
     apply_proposals,
+    evaluate,
     evaluate_coverage,
     new_snapshot,
     record_clarifications,
@@ -126,11 +127,15 @@ NEXT_ACTION_CASES = {
         False,
         CLOSE,
     ),
-    "uncovered with doubts and budget": (
+    "uncovered with doubts and budget gets the single offer": (
         [unresolved("driving_license"), BILBAO],
         [],
         False,
-        CLOSE,
+        Action(
+            kind="offer_alternatives",
+            field="work_locations",
+            options=["barcelona", "madrid", "sevilla", "valencia"],
+        ),
     ),
     # Rule 3: the walk asks missing fields in order and skips the satisfied ones.
     "new application asks the name": ([], [], False, ASK("full_name")),
@@ -1177,9 +1182,10 @@ def test_catalog_alias_covers_and_does_not_disqualify(chat):
     assert chat.llm.actions[-1] == ASK("availability")
 
 
-def test_well_formed_uncovered_place_is_a_real_rejection(chat):
+def test_well_formed_uncovered_place_is_a_real_rejection_once_confirmed(chat):
     chat.send("Ana Ruiz, con carné", interpretation(NAME, LICENSE))
-    stored = chat.send("Bilbao", interpretation(BILBAO))
+    chat.send("Bilbao", interpretation(BILBAO))
+    stored = chat.send("Solo Bilbao", interpretation(BILBAO))
     assert stored.snapshot.outcome == "disqualified"
     assert stored.snapshot.outcome_reasons == ["location_not_covered"]
 
@@ -1600,3 +1606,143 @@ def test_the_default_clock_gives_an_aware_datetime(db, app_id):
     llm = FakeLLM()
     handle_message(db, app_id, "request", "hola", llm)
     assert llm.contexts("interpret")[0].now.tzinfo is not None
+
+
+SPAIN_CITIES = ["barcelona", "madrid", "sevilla", "valencia"]
+ALL_CITIES = sorted(locality for _, locality in COVERAGE_CATALOG)
+OFFER_SPAIN = Action(kind="offer_alternatives", field="work_locations", options=SPAIN_CITIES)
+BARE_YES = unresolved("work_locations", raw="sí", reason="not_answered")
+
+
+def offered(chat):
+    """An application whose only uncovered place has just received the single offer."""
+    chat.send("Ana Ruiz, con carné", interpretation(NAME, LICENSE))
+    return chat.send("Bilbao", interpretation(BILBAO))
+
+
+def test_uncovered_place_gets_the_cities_of_its_country_before_any_rejection():
+    assert next_action(snapshot_with([NAME, LICENSE, BILBAO])) == OFFER_SPAIN
+
+
+def test_uncovered_place_in_a_country_without_coverage_gets_the_whole_catalog():
+    lisbon = resolved("work_locations", places(("PT", "lisboa")))
+    action = next_action(snapshot_with([NAME, LICENSE, lisbon]))
+    assert sorted(action.options) == ALL_CITIES
+
+
+def test_uncovered_place_after_the_offer_closes():
+    snapshot = snapshot_with([NAME, LICENSE, BILBAO]).model_copy(
+        update={"location_alternatives_offered": True}
+    )
+    assert next_action(snapshot) == CLOSE
+
+
+def test_no_license_with_an_uncovered_place_closes_without_an_offer():
+    assert next_action(snapshot_with([NAME, NO_LICENSE, BILBAO])) == CLOSE
+
+
+def test_stop_goes_before_the_offer():
+    assert next_action(snapshot_with([NAME, LICENSE, BILBAO], stop=True)) == STOP
+
+
+def test_the_offer_keeps_the_application_open_and_settles_nothing(chat):
+    stored = offered(chat)
+    snapshot = stored.snapshot
+    assert chat.llm.actions[-1] == OFFER_SPAIN
+    assert snapshot.closed_at is None
+    assert snapshot.outcome == "incomplete"
+    assert snapshot.location_alternatives_offered is True
+    assert (snapshot.last_question_field, snapshot.last_question_kind) == (
+        "work_locations",
+        "alternatives",
+    )
+    state = snapshot.fields.work_locations
+    assert (state.status, state.normalized, state.reason) == (
+        "unresolved",
+        None,
+        "alternatives_offered",
+    )
+    assert state.raw == "evidence"
+    assert state.clarifications_asked == 0
+    assert chat.llm.contexts("summary") == []
+
+
+def test_choosing_an_offered_city_continues_the_screening(chat):
+    offered(chat)
+    stored = chat.send("Madrid", interpretation(MADRID))
+    assert stored.snapshot.closed_at is None
+    assert evaluate_coverage(stored.snapshot.fields.work_locations) == "covered"
+    assert chat.llm.actions[-1] == ASK("availability")
+
+
+def test_refusing_the_offer_closes_as_not_covered(chat):
+    offered(chat)
+    stored = chat.send("Ninguna, solo Bilbao", interpretation(BILBAO))
+    assert stored.snapshot.outcome == "disqualified"
+    assert stored.snapshot.outcome_reasons == ["location_not_covered"]
+    assert OFFER_SPAIN not in chat.llm.actions[2:]
+
+
+def test_naming_another_uncovered_place_after_the_offer_does_not_offer_again(chat):
+    offered(chat)
+    stored = chat.send(
+        "Entonces Toledo", interpretation(resolved("work_locations", places(("ES", "toledo"))))
+    )
+    assert stored.snapshot.outcome == "disqualified"
+    assert chat.llm.actions.count(OFFER_SPAIN) == 1
+
+
+def test_a_bare_yes_selects_no_city_and_is_clarified(chat):
+    offered(chat)
+    stored = chat.send("Sí", interpretation(BARE_YES))
+    assert stored.snapshot.closed_at is None
+    assert chat.llm.actions[-1] == CLARIFY("work_locations", 1)
+    assert stored.snapshot.fields.work_locations.normalized is None
+
+
+def test_exhausted_clarifications_move_on_and_reach_review_not_rejection(chat):
+    offered(chat)
+    chat.send("Sí", interpretation(BARE_YES))
+    chat.send("Sí", interpretation(BARE_YES))
+    stored = chat.send("Sí", interpretation(BARE_YES))
+    assert chat.llm.actions[-1] == ASK("availability")
+    stored = chat.send("Completa", interpretation(AVAILABILITY))
+    stored = chat.send("Mañanas", interpretation(SCHEDULE))
+    stored = chat.send("Ninguna", interpretation(EXPERIENCE))
+    stored = chat.send("No lo sé", interpretation(START))
+    assert stored.snapshot.outcome == "pending_review"
+    assert stored.snapshot.outcome_reasons == ["work_locations_unresolved"]
+
+
+def test_a_job_question_after_the_offer_does_not_reuse_the_earlier_place(chat):
+    offered(chat)
+    stored = chat.send("¿Cuánto pagan?", interpretation(questions=["¿Cuánto pagan?"]))
+    assert stored.snapshot.closed_at is None
+    assert chat.llm.actions[-1] == CLARIFY("work_locations", 1)
+
+
+def test_stopping_and_resuming_after_the_offer_does_not_close_or_offer_again(chat):
+    offered(chat)
+    stopped = chat.send("Luego sigo", interpretation(stop_intent="stop"))
+    assert stopped.snapshot.closed_at is None
+    assert chat.llm.actions[-1] == STOP
+    resumed = chat.send("Ya puedo seguir", interpretation(stop_intent="resume"))
+    assert resumed.snapshot.closed_at is None
+    assert chat.llm.actions[-1] == CLARIFY("work_locations", 1)
+    assert chat.llm.actions.count(OFFER_SPAIN) == 1
+
+
+def test_the_offer_survives_a_reload(chat, db, app_id):
+    offered(chat)
+    assert load_application(db, app_id).snapshot.location_alternatives_offered is True
+
+
+def test_a_failed_offer_saves_nothing_and_retries_once(chat):
+    chat.send("Ana Ruiz, con carné", interpretation(NAME, LICENSE))
+    chat.llm.replies.append(TransientLLMFailure(SECRET))
+    with pytest.raises(TurnFailed):
+        chat.send("Bilbao", interpretation(BILBAO))
+    stored = chat.resume()
+    assert stored.snapshot.location_alternatives_offered is True
+    assert evaluate(stored.snapshot.fields).outcome == "incomplete"
+    assert history_counts(stored) == (2, 3)

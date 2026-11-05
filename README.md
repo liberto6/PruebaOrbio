@@ -116,6 +116,10 @@ Latest results, the rationale for the model and the known limits are in the
 
 ## Verification recorded on 2026-11-05
 
+- `python -m pytest` after adding the single offer of covered cities: 753 passed. Nine focused
+  real-model conversations, once each: the runner reports 9/9 and all were read. One English close
+  added an unrequested invitation to apply again. See the
+  [evidence](docs/planning/e4-5-agent-tone.md#scoped-follow-up-covered-cities-before-a-coverage-rejection).
 - Recruiter detail after limiting “Datos recogidos” to applications without a summary: `npm run build`
   passed. In real Chrome, with a temporary database and no model calls, a closed application shows
   the summary and conversation without that card, and an incomplete one keeps it (1 of 7, all seven
@@ -170,8 +174,9 @@ building a connector or changing the running application. E5 completes delivery.
 
 A [scoped location-question change](docs/planning/e4-5-agent-tone.md#scoped-follow-up-work-location-question)
 now instructs the agent to mention delivery areas in Spain and Mexico and ask for the
-desired city and country together. Coverage rules are unchanged. This prompt change
-has not been validated with the real model.
+desired city and country together. Before a coverage rejection the agent now
+[offers the covered cities once](docs/planning/e4-5-agent-tone.md#scoped-follow-up-covered-cities-before-a-coverage-rejection);
+the coverage evaluation and catalog are unchanged.
 
 The recruiter detail now shows “Datos recogidos” only when an application has no summary, such as
 an incomplete one. Otherwise the internal summary is the single view of the collected data.

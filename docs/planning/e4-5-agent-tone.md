@@ -271,3 +271,47 @@ the earlier runs do not validate this revised prompt. No new test was added for
 literal prompt wording: this change adds no executable backend logic, and mocked
 outputs cannot establish the resulting phrasing. `python -m pytest` from `app/`:
 737 passed in 30.47 s, with no network or real LLM. No frontend/build changes.
+
+## Scoped follow-up: covered cities before a coverage rejection
+
+The user authorized this on 2026-11-05 after a candidate wanting Málaga was rejected without ever
+hearing which cities exist, following the wording above. It changes the early rejection rule; the
+coverage evaluation and catalog do not change.
+
+**Behaviour.** When coverage is the only rejection reason, `next_action` returns
+`offer_alternatives` once instead of `close`, with the catalog cities of the wanted country, or the
+whole catalog if that country has none. A missing licence still closes directly. Saving the offer
+sets `location_alternatives_offered` and holds `work_locations` as unresolved in the same
+transaction, without counting a clarification. So a job question, a stop or a reload cannot reject
+with the earlier place.
+
+| Reply to the offer | Result |
+|---|---|
+| A covered city | Screening continues |
+| Explicit refusal, or insisting on the place | The interpretation restores the place, then closes as `location_not_covered` |
+| Another uncovered place | Closes; no second offer |
+| “Sí” without a city, vague reply or only a job question | Clarified; when the budget runs out, it reaches `pending_review` |
+
+If the model cannot restore the refused place, the failure is a clarification and then human review,
+not a false rejection. No endpoint, table, frontend change, dependency or extra model call per turn;
+the conversation gains one turn when the offer is made.
+
+**Verification.** New tests were observed failing at collection (the action did not exist), then
+`python -m pytest` reports 753 passed. Two existing tests that fixed the old rule were updated, and
+existing rejection scenarios gained a reply to the offer. Five `alternatives_*` scenarios were added.
+Result [`150448Z`](../evals/e3-2-20261105T150448Z.json), prompt hash `9029d80b3d741d81`: nine
+scenarios once each, runner 9/9, 0.0099 USD, turn latency 3.93 s median and 7.55 s maximum, no
+provider failures. The ledger is 1.1344 USD against the runner's 2 USD limit. This run also exercises
+the location wording above, which had no real-model run.
+
+All nine dialogues were read. The offer names only catalog cities, none closes on the offer turn,
+and saved places and outcomes are as expected. Remaining wording defects, left as they are:
+
+- The English close adds an unrequested next step: “You’re welcome to return and apply again if your
+  preferred work location changes.” The prompt already forbids this.
+- “Perfecto, Bilbao no está entre las zonas disponibles” is an awkward use of the free acknowledgement.
+
+**Limits.** One run per scenario shows no statistical reliability. No full battery or held-out set
+was run, so the updated held-out scenarios are unexercised. No Mexican uncovered place was run with
+the real model; automated tests cover the country selection. In the flow diagram only the side-panel
+text was updated: the compiled graph has no separate offer node.
