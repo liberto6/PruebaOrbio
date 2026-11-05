@@ -1,4 +1,5 @@
 import sqlite3
+import threading
 from datetime import datetime, timezone
 
 import pytest
@@ -49,9 +50,11 @@ from backend.storage import (
     UnknownTurn,
     WrongTurnPhase,
     close_application,
+    commit_interpretation,
     init_db,
     load_application,
     load_turn,
+    receive_turn,
     save_turn,
 )
 
@@ -1265,7 +1268,7 @@ def test_state_that_keeps_changing_ends_in_a_retryable_failure(
     with pytest.raises(TurnFailed) as raises:
         chat.send("mensaje", script)
     assert_failed(raises, "interpreted", "state_changed")
-    assert 1 < len(chat.llm.actions) <= 4
+    assert len(chat.llm.actions) == 4  # The first attempt and MAX_RELOADS more, no others.
     assert history_counts(load_application(db, app_id)) == (1, 1)
 
 
@@ -1479,6 +1482,85 @@ def test_no_llm_call_happens_inside_a_transaction(chat, db):
 
     assert stored.snapshot.closed_at is not None
     assert {name for name, _, _ in chat.llm.calls} == {"interpret", "write_reply", "write_summary"}
+
+
+def test_reply_and_summary_contexts_carry_saved_pending_questions(chat):
+    chat.send("¿Cuánto pagan?", interpretation(NAME, questions=["¿Cuánto pagan?"]))
+    chat.send("No tengo carné", interpretation(NO_LICENSE))
+
+    closing_reply = chat.llm.contexts("write_reply")[-1]
+    assert chat.llm.contexts("write_reply")[0].pending_questions == ["¿Cuánto pagan?"]
+    assert closing_reply.pending_questions == ["¿Cuánto pagan?"]
+    assert chat.llm.contexts("write_summary")[0].pending_questions == ["¿Cuánto pagan?"]
+
+
+def test_closing_reply_context_carries_the_outcome_and_reasons(chat):
+    chat.send("No tengo carné", interpretation(NO_LICENSE))
+    closing_reply = chat.llm.contexts("write_reply")[-1]
+    assert closing_reply.outcome == "disqualified"
+    assert closing_reply.outcome_reasons == ["no_driving_license"]
+
+
+def test_invalid_extraction_errors_have_surrogates_sanitized(db, app_id):
+    received = receive_turn(db, app_id, "request", "hola")
+    bad = {"field": "campo\ud800", "status": "resolved", "value": 1, "raw": "x", "reason": None}
+    with pytest.raises(InvalidExtraction) as raises:
+        commit_interpretation(
+            db, app_id, "request", received.application.snapshot.revision, proposals=[bad]
+        )
+    assert raises.value.errors[0].field == "campo?"
+    raises.value.errors[0].model_dump_json()
+
+
+def test_reply_sequence_stays_null_until_the_turn_completes(chat, db, app_id):
+    chat.llm.replies.append(TransientLLMFailure(SECRET))
+    with pytest.raises(TurnFailed):
+        chat.send("Ana Ruiz", interpretation(NAME))
+    turn = load_turn(db, app_id, "request-1")
+    assert (turn.phase, turn.reply_sequence) == ("interpreted", None)
+
+
+class ConstantLLM:
+    """Thread-safe model that gives the same answers to every thread."""
+
+    def interpret(self, context):
+        return interpretation(NAME, questions=["¿Cuánto pagan?"])
+
+    def write_reply(self, context, action):
+        return f"reply from {threading.get_ident()}"
+
+    def write_summary(self, context):
+        raise AssertionError("this turn does not close")
+
+
+def test_real_threads_mixing_message_and_resume_commit_each_effect_once(db, app_id):
+    workers = 8
+    barrier = threading.Barrier(workers)
+    unexpected = []
+
+    def work(index):
+        try:
+            barrier.wait()
+            if index % 2 == 0:
+                handle_message(db, app_id, "same", "Ana Ruiz", ConstantLLM(), now=clock)
+            else:
+                resume_turn(db, app_id, "same", ConstantLLM(), now=clock)
+        except (UnknownTurn, TurnFailed):
+            pass  # A resume can arrive before the turn exists; losing a race may be retryable.
+        except Exception as exc:  # noqa: BLE001 - reported on the main thread.
+            unexpected.append(exc)
+
+    threads = [threading.Thread(target=work, args=(i,)) for i in range(workers)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert unexpected == []
+    stored = load_application(db, app_id)
+    assert history_counts(stored) == (1, 2)
+    assert stored.snapshot.pending_questions == ["¿Cuánto pagan?"]
+    assert load_turn(db, app_id, "same").phase == "completed"
 
 
 def test_the_default_clock_gives_an_aware_datetime(db, app_id):
