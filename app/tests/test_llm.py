@@ -156,6 +156,13 @@ def test_interpret_treats_the_greeting_as_having_asked_for_the_name():
     assert '"asked_field": "full_name"' in client.requests[0]["input"]
 
 
+@pytest.mark.parametrize("stopped, text", [(True, '"stopped": true'), (False, '"stopped": false')])
+def test_interpret_receives_the_saved_stop_state(stopped, text):
+    client = FakeClient(response(json.dumps(extraction())))
+    OpenAILLM(client, "m").interpret(context(stop_requested=stopped))
+    assert text in client.requests[0]["input"]
+
+
 @pytest.mark.parametrize(
     "name, payload, value",
     [

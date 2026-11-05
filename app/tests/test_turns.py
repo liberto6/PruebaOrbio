@@ -1,9 +1,11 @@
 import json
 import sqlite3
 import threading
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from backend import storage
 from backend.rules import ApplyResult, CandidateSnapshot
 from backend.storage import (
     ApplicationClosed,
@@ -24,10 +26,13 @@ from backend.storage import (
     create_application,
     init_db,
     load_application,
+    load_application_with_turn,
     load_turn,
     load_unfinished_turn,
     receive_turn,
+    reminder_due_at,
     save_turn,
+    send_reminder,
     set_recruiter_decision,
 )
 
@@ -1146,3 +1151,256 @@ def test_racing_finishes_of_one_turn_append_one_reply(db, finish):
     assert sum(isinstance(outcome, WrongTurnPhase) for outcome in outcomes) == RACERS - 1
     assert message_texts(db, application_id) == ["Soy Ana", "Fin"]
     assert load_application(db, application_id).snapshot.revision == revision + 1
+
+
+# The single reminder
+
+T0 = datetime(2026, 11, 5, 10, 0, tzinfo=timezone.utc)
+REMINDER_ES = "Si quieres, podemos continuar cuando estés listo."
+REMINDER_EN = "If you'd like, we can continue when you're ready."
+TEN_MINUTES = timedelta(minutes=10)
+
+
+class Clock:
+    def __init__(self):
+        self.now = T0
+
+    def advance(self, delta=TEN_MINUTES):
+        self.now += delta
+
+
+@pytest.fixture
+def clock(monkeypatch):
+    controlled = Clock()
+    monkeypatch.setattr(storage, "_now", lambda: controlled.now)
+    return controlled
+
+
+def greeted(db):
+    return create_application(db, greeting="Hola, ¿cómo te llamas?").id
+
+
+def answered_turn(db, application_id, request_id, **interpretation):
+    """A whole candidate turn, leaving the given interpretation applied."""
+    revision = receive_turn(db, application_id, request_id, "texto").application.snapshot.revision
+    kept = {"proposals": [], **interpretation}
+    interpreted = commit_interpretation(db, application_id, request_id, revision, **kept)
+    return complete_turn(db, application_id, request_id, interpreted.revision, reply="Vale")
+
+
+def due_at(db, application_id):
+    stored, turn = load_application_with_turn(db, application_id)
+    return reminder_due_at(stored, turn)
+
+
+@pytest.mark.parametrize(
+    "elapsed, sent",
+    [(TEN_MINUTES - timedelta(microseconds=1), False), (TEN_MINUTES, True), (TEN_MINUTES * 2, True)],
+)
+def test_reminder_needs_ten_minutes_since_the_greeting(db, clock, elapsed, sent):
+    application_id = greeted(db)
+    clock.advance(elapsed)
+
+    assert send_reminder(db, application_id) is sent
+
+    stored = load_application(db, application_id)
+    assert stored.snapshot.reminder_sent is sent
+    assert len(stored.messages) == (2 if sent else 1)
+    if sent:
+        assert stored.messages[-1].role == "assistant"
+        assert stored.messages[-1].created_at == clock.now.isoformat()
+
+
+@pytest.mark.parametrize("language, text", [("es", REMINDER_ES), ("en", REMINDER_EN)])
+def test_reminder_uses_the_saved_language(db, clock, language, text):
+    application_id = greeted(db)
+    answered_turn(db, application_id, "r1", language=language)
+    clock.advance()
+
+    assert send_reminder(db, application_id) is True
+    assert message_texts(db, application_id)[-1] == text
+
+
+def test_reminder_counts_from_the_last_assistant_message_not_from_the_snapshot(db, clock):
+    application_id = greeted(db)
+    clock.advance()
+    set_recruiter_decision(db, application_id, "advance")
+
+    assert send_reminder(db, application_id) is True
+
+
+def test_reminder_waits_for_ten_minutes_after_the_latest_reply(db, clock):
+    application_id = greeted(db)
+    clock.advance()
+    answered_turn(db, application_id, "r1")
+
+    assert send_reminder(db, application_id) is False
+    clock.advance()
+    assert send_reminder(db, application_id) is True
+
+
+def stopped(db, application_id):
+    answered_turn(db, application_id, "r1", stop_requested=True)
+
+
+def closed(db, application_id):
+    revision = receive_turn(db, application_id, "r1", "No").application.snapshot.revision
+    interpreted = commit_interpretation(
+        db, application_id, "r1", revision, proposals=[LICENSE_FALSE]
+    )
+    close_application(db, application_id, interpreted.revision, "Fin", "Resumen", request_id="r1")
+
+
+def pending(db, application_id):
+    receive_turn(db, application_id, "r1", "Soy Ana")
+
+
+def pending_with_an_assistant_message_last(db, application_id):
+    revision = receive_turn(db, application_id, "r1", "Soy Ana").application.snapshot.revision
+    save_turn(db, application_id, revision, assistant_message="Un momento")
+
+
+def already_reminded(db, application_id):
+    original = storage._now
+    storage._now = lambda: T0 + TEN_MINUTES
+    assert send_reminder(db, application_id) is True
+    storage._now = original
+
+
+def candidate_spoke_last(db, application_id):
+    revision = load_application(db, application_id).snapshot.revision
+    save_turn(db, application_id, revision, candidate_message="hola")
+
+
+@pytest.mark.parametrize(
+    "prepare",
+    [
+        stopped,
+        closed,
+        pending,
+        pending_with_an_assistant_message_last,
+        already_reminded,
+        candidate_spoke_last,
+    ],
+)
+def test_no_reminder_when_it_is_not_eligible_and_nothing_changes(db, clock, prepare):
+    application_id = greeted(db)
+    prepare(db, application_id)
+    clock.advance(TEN_MINUTES * 3)
+    before = everything(db, application_id)
+
+    assert due_at(db, application_id) is None
+    assert send_reminder(db, application_id) is False
+    assert everything(db, application_id) == before
+
+
+def test_no_reminder_without_any_message(db, clock):
+    application_id = create_application(db).id
+    clock.advance()
+
+    assert due_at(db, application_id) is None
+    assert send_reminder(db, application_id) is False
+
+
+def test_reminder_of_an_unknown_application_is_refused(db):
+    with pytest.raises(UnknownApplication):
+        send_reminder(db, "nope")
+
+
+@pytest.mark.parametrize("operation, table", [("INSERT", "messages"), ("UPDATE", "applications")])
+def test_failed_reminder_rolls_back_and_can_be_retried(db, clock, operation, table):
+    application_id = greeted(db)
+    clock.advance()
+    before = everything(db, application_id)
+    fail_on(db, operation, table)
+
+    with pytest.raises(StorageFailure):
+        send_reminder(db, application_id)
+
+    stop_failing(db)
+    assert everything(db, application_id) == before
+    assert send_reminder(db, application_id) is True
+    assert message_texts(db, application_id)[-1] == REMINDER_ES
+
+
+def test_racing_reminders_save_only_one(db, clock):
+    application_id = greeted(db)
+    clock.advance()
+
+    outcomes = race([lambda: send_reminder(db, application_id) for _ in range(RACERS)])
+
+    assert sorted(outcomes) == [False] * (RACERS - 1) + [True]
+    assert message_texts(db, application_id).count(REMINDER_ES) == 1
+
+
+def test_reminder_keeps_fields_question_context_and_counts(db, clock):
+    application_id = greeted(db)
+    revision = receive_turn(db, application_id, "r1", "Ana").application.snapshot.revision
+    interpreted = commit_interpretation(
+        db, application_id, "r1", revision, proposals=[unresolved("full_name")]
+    )
+    complete_turn(
+        db,
+        application_id,
+        "r1",
+        interpreted.revision,
+        reply="¿Tu nombre completo?",
+        question_field="full_name",
+        question_kind="clarification",
+    )
+    before = load_application(db, application_id).snapshot
+    turns_before = execute(db, "SELECT * FROM turns WHERE application_id = ?", application_id)
+    clock.advance()
+
+    assert send_reminder(db, application_id) is True
+
+    after = load_application(db, application_id).snapshot
+    assert after.fields == before.fields
+    assert after.fields.full_name.clarifications_asked == 1
+    assert (after.last_question_field, after.last_question_kind) == ("full_name", "clarification")
+    assert (after.outcome, after.summary, after.closed_at) == (before.outcome, None, None)
+    assert after.pending_questions == before.pending_questions
+    assert after.revision == before.revision + 1
+    assert execute(db, "SELECT * FROM turns WHERE application_id = ?", application_id) == turns_before
+
+
+def test_a_turn_can_follow_a_reminder(db, clock):
+    application_id = greeted(db)
+    clock.advance()
+    send_reminder(db, application_id)
+
+    answered_turn(db, application_id, "r1")
+
+    assert message_texts(db, application_id)[-2:] == ["texto", "Vale"]
+
+
+def test_resume_permits_a_first_reminder(db, clock):
+    application_id = greeted(db)
+    answered_turn(db, application_id, "r1", stop_requested=True)
+    answered_turn(db, application_id, "r2", stop_requested=False)
+    clock.advance()
+
+    assert send_reminder(db, application_id) is True
+
+
+def test_stopping_and_resuming_never_permit_a_second_reminder(db, clock):
+    application_id = greeted(db)
+    clock.advance()
+    send_reminder(db, application_id)
+    answered_turn(db, application_id, "r1", stop_requested=True)
+    answered_turn(db, application_id, "r2", stop_requested=False)
+    clock.advance()
+
+    assert load_application(db, application_id).snapshot.reminder_sent is True
+    assert due_at(db, application_id) is None
+    assert send_reminder(db, application_id) is False
+
+
+def test_due_time_is_ten_minutes_after_the_last_assistant_message(db, clock):
+    application_id = greeted(db)
+    assert due_at(db, application_id) == T0 + TEN_MINUTES
+
+    clock.advance(timedelta(minutes=3))
+    answered_turn(db, application_id, "r1")
+
+    assert due_at(db, application_id) == T0 + timedelta(minutes=13)

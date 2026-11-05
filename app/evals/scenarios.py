@@ -113,6 +113,33 @@ def replies_lack(*words):
     return check
 
 
+def turn_states(expected: dict):
+    """What must hold after given turns, by message index; unlisted keys are not compared."""
+
+    def check(run):
+        for index, wanted in expected.items():
+            if index >= len(run["turn_states"]):
+                return f"no state after message {index}"
+            state = run["turn_states"][index]
+            for key, value in wanted.items():
+                actual = state[key]
+                if key == "clarifications":
+                    actual = {name: actual[name] for name in value}
+                if actual != value:
+                    return f"after message {index}, {key}: expected {value}, got {actual}"
+        return None
+
+    return check
+
+
+def start_value_mentions(word):
+    def check(run):
+        value = (run["fields"]["start_timing"]["normalized"] or {}).get("value")
+        return None if word in folded(value or "") else f"start value lacks {word!r}: {value!r}"
+
+    return check
+
+
 NAME = "Luis Romero Vega"
 LICENSE = "Sí, tengo carnet de conducir"
 TAIL = ["Jornada completa", "Por las mañanas", "Dos años en Glovo", "Puedo empezar el 1 de diciembre de 2026"]
@@ -476,6 +503,107 @@ SCENARIOS = [
         outcome="pending_review",
         fields={"start_timing": UNRESOLVED},
         clarifications={"start_timing": 1},
+    ),
+    # E3.4: stop/resume. Message 2 settles a clarified licence, so resuming must keep that count
+    # and spend none on the location question it goes back to.
+    Scenario(
+        name="stop_job_question_then_explicit_continuation",
+        messages=[
+            NAME,
+            "Me lo estoy sacando",
+            "Ya lo tengo, me lo dieron la semana pasada",
+            "Tengo que dejarlo por ahora, luego sigo",
+            "¿Cuánto se paga al mes?",
+            "Vale, ya puedo seguir",
+            "En Madrid",
+            *TAIL,
+        ],
+        outcome="qualified",
+        fields={**LICENSED, "work_locations": MADRID, **TAIL_FIELDS},
+        clarifications={"driving_license": 1},
+        summary_has=[["luis"], ["madrid"], ["paga", "cuanto", "salario", "sueldo"]],
+        checks=[
+            pending_count(1),
+            pending_mention(["paga", "cuanto"]),
+            turn_states(
+                {
+                    2: {"stop_requested": False, "pending_questions": 0},
+                    3: {
+                        "stop_requested": True,
+                        "closed": False,
+                        "has_summary": False,
+                        "pending_questions": 0,
+                        "clarifications": {"driving_license": 1, "work_locations": 0},
+                    },
+                    4: {
+                        "stop_requested": True,
+                        "closed": False,
+                        "has_summary": False,
+                        "pending_questions": 1,
+                        "clarifications": {"driving_license": 1, "work_locations": 0},
+                    },
+                    5: {
+                        "stop_requested": False,
+                        "closed": False,
+                        "last_question": ["work_locations", "initial"],
+                        "clarifications": {"driving_license": 1, "work_locations": 0},
+                    },
+                }
+            ),
+        ],
+        repeat=CRITICAL_REPEATS,
+    ),
+    Scenario(
+        name="stop_then_answer_keeps_english",
+        messages=[
+            "Can we continue in English, please? My name is John Carter Smith.",
+            "Yes, I have a driving licence.",
+            "I need to stop for now, I will come back later.",
+            "I want to work in Madrid.",
+        ],
+        language="en",
+        fields={**LICENSED, "work_locations": MADRID},
+        next_field="availability",
+        checks=[
+            all_replies_in("en"),
+            turn_states(
+                {
+                    2: {"stop_requested": True, "closed": False, "has_summary": False},
+                    3: {"stop_requested": False, "closed": False, "has_summary": False},
+                }
+            ),
+        ],
+        repeat=CRITICAL_REPEATS,
+    ),
+    # E3.4: imprecise start, then each answer the single clarification accepts.
+    Scenario(
+        name="imprecise_start_then_period",
+        messages=[*UNTIL_LOCATION, "En Madrid", *TAIL[:3], "En unos meses", "Hacia marzo o abril, más o menos"],
+        outcome="qualified",
+        fields={"start_timing": start("period")},
+        clarifications={"start_timing": 1},
+        summary_has=[["marzo"]],
+        checks=[start_value_mentions("marzo"), turn_states({6: {"last_question": ["start_timing", "clarification"]}})],
+        repeat=CRITICAL_REPEATS,
+    ),
+    Scenario(
+        name="imprecise_start_then_condition",
+        messages=[*UNTIL_LOCATION, "En Madrid", *TAIL[:3], "Más adelante", "Cuando termine mi contrato actual"],
+        outcome="qualified",
+        fields={"start_timing": start("condition")},
+        clarifications={"start_timing": 1},
+        summary_has=[["contrato"]],
+        checks=[start_value_mentions("contrato"), turn_states({6: {"last_question": ["start_timing", "clarification"]}})],
+        repeat=CRITICAL_REPEATS,
+    ),
+    Scenario(
+        name="imprecise_start_then_cannot_specify",
+        messages=[*UNTIL_LOCATION, "En Madrid", *TAIL[:3], "Pronto", "No puedo concretarlo, de verdad"],
+        outcome="qualified",
+        fields={"start_timing": start("unknown", None)},
+        clarifications={"start_timing": 1},
+        checks=[turn_states({6: {"last_question": ["start_timing", "clarification"]}})],
+        repeat=CRITICAL_REPEATS,
     ),
     # Held out: never used to tune prompts, reported separately.
     location_only("held_district_with_its_city", "En Chamberí, aquí en Madrid", MADRID, repeat=1, held_out=True),

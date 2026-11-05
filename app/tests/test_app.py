@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -116,7 +117,7 @@ def test_env_file_supplies_the_database_without_overriding_the_environment(tmp_p
 def test_create_returns_only_the_public_state_with_one_greeting(client):
     state = create(client)
 
-    assert set(state) == {"id", "messages", "language", "closed", "pending"}
+    assert set(state) == {"id", "messages", "language", "closed", "pending", "reminder_due_at"}
     assert state["language"] == "es"
     assert state["closed"] is False
     assert state["pending"] is None
@@ -238,7 +239,7 @@ def test_send_saves_the_message_and_returns_the_reply(client):
 
     assert response.status_code == 200
     state = response.json()
-    assert set(state) == {"id", "messages", "language", "closed", "pending"}
+    assert set(state) == {"id", "messages", "language", "closed", "pending", "reminder_due_at"}
     assert [(m["role"], m["text"]) for m in state["messages"][1:]] == [
         ("candidate", "Soy Ana Ruiz"),
         ("assistant", "respuesta ask"),
@@ -438,7 +439,14 @@ def test_responses_never_contain_the_summary_or_internal_data(client):
 
     assert load_application(app.state.db_path, application_id).snapshot.summary == SUMMARY
     for response in responses:
-        assert set(response.json()) == {"id", "messages", "language", "closed", "pending"}
+        assert set(response.json()) == {
+            "id",
+            "messages",
+            "language",
+            "closed",
+            "pending",
+            "reminder_due_at",
+        }
         for internal in (SUMMARY, "Ana Ruiz", "recruiter", "outcome", "driving_license"):
             assert internal not in response.text
 
@@ -549,3 +557,132 @@ def test_an_unexpected_failure_is_generic_and_hides_its_detail(monkeypatch):
     assert set(response.json()) == {"code", "notice"}
     assert response.json()["code"] == "internal_error"
     assert "detalle interno" not in response.text
+
+
+# The single reminder
+
+REMINDER = "Si quieres, podemos continuar cuando estés listo."
+
+
+@pytest.fixture
+def clock(monkeypatch):
+    """Controls the time the server stores and compares, starting at the real now."""
+    times = {"now": datetime.now(timezone.utc)}
+    monkeypatch.setattr("backend.storage._now", lambda: times["now"])
+
+    def advance(minutes):
+        times["now"] += timedelta(minutes=minutes)
+
+    return advance
+
+
+def remind(client, application_id):
+    return client.post(f"/api/applications/{application_id}/reminder")
+
+
+def test_public_state_schedules_the_reminder_ten_minutes_after_the_last_assistant_message(client):
+    state = create(client)
+
+    created_at = datetime.fromisoformat(state["messages"][-1]["created_at"])
+    assert datetime.fromisoformat(state["reminder_due_at"]) == created_at + timedelta(minutes=10)
+
+
+def test_a_due_reminder_is_saved_and_returned_without_credentials_or_a_model(client, clock):
+    application_id = create(client)["id"]
+    clock(10)
+
+    response = remind(client, application_id)
+
+    assert response.status_code == 200
+    state = response.json()
+    assert set(state) == {"id", "messages", "language", "closed", "pending", "reminder_due_at"}
+    assert [m["text"] for m in state["messages"]][1:] == [REMINDER]
+    assert state["messages"][-1]["role"] == "assistant"
+    assert state["reminder_due_at"] is None
+
+
+def test_a_reminder_that_is_not_due_is_a_no_op_returning_the_public_state(client, clock):
+    created = create(client)
+    clock(9)
+
+    response = remind(client, created["id"])
+
+    assert response.status_code == 200
+    assert response.json() == created
+    assert len(saved_messages(created["id"])) == 1
+
+
+def test_a_lost_reminder_response_is_recovered_from_history_and_never_repeats(client, clock):
+    application_id = create(client)["id"]
+    clock(10)
+    remind(client, application_id)  # The browser never reads this response.
+    clock(30)
+
+    loaded = client.get(f"/api/applications/{application_id}").json()
+    again = remind(client, application_id).json()
+
+    assert [m["text"] for m in loaded["messages"]][1:] == [REMINDER]
+    assert again == loaded
+    assert loaded["reminder_due_at"] is None
+
+
+def test_a_reminder_for_an_unknown_application_is_not_found(client):
+    response = remind(client, "nope")
+
+    assert response.status_code == 404
+    assert response.json()["code"] == "application_not_found"
+
+
+def test_a_reminder_storage_failure_is_a_generic_service_error(client, clock, monkeypatch):
+    application_id = create(client)["id"]
+    clock(10)
+
+    def fail(*args):
+        raise StorageFailure("database is locked at C:/secret/path")
+
+    monkeypatch.setattr(main, "send_reminder", fail)
+    response = remind(client, application_id)
+
+    assert response.status_code == 503
+    assert response.json()["code"] == "service_unavailable"
+    assert "secret" not in response.text
+
+
+def test_no_reminder_is_scheduled_or_saved_while_stopped_or_closed(client, clock):
+    stopped_id = create(client)["id"]
+    use_model(FakeLLM(understood(stop_intent="stop")))
+    assert send(client, stopped_id).json()["reminder_due_at"] is None
+    closed_id = create(client)["id"]
+    use_model(FakeLLM(understood(NO_LICENSE)))
+    assert send(client, closed_id).json()["reminder_due_at"] is None
+    clock(30)
+
+    for application_id in (stopped_id, closed_id):
+        state = remind(client, application_id).json()
+        assert state["reminder_due_at"] is None
+        assert REMINDER not in [m["text"] for m in state["messages"]]
+
+
+def test_no_reminder_is_scheduled_or_saved_during_an_unfinished_turn(client, clock):
+    application_id = create(client)["id"]
+    use_model(FakeLLM(interpret=TransientLLMFailure("x")))
+    assert send(client, application_id).status_code == 503
+    clock(30)
+
+    state = remind(client, application_id).json()
+
+    assert state["pending"] is not None
+    assert state["reminder_due_at"] is None
+    assert REMINDER not in [m["text"] for m in state["messages"]]
+
+
+def test_a_new_reply_moves_the_deadline(client, clock):
+    created = create(client)
+    clock(3)
+    use_model(FakeLLM(understood(NAME)))
+
+    state = send(client, created["id"]).json()
+
+    assert state["reminder_due_at"] != created["reminder_due_at"]
+    reply_at = datetime.fromisoformat(state["messages"][-1]["created_at"])
+    assert datetime.fromisoformat(state["reminder_due_at"]) == reply_at + timedelta(minutes=10)

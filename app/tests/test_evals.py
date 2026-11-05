@@ -15,6 +15,8 @@ from evals.scenarios import (
     places,
     replies_admit_no_information,
     resolved,
+    start_value_mentions,
+    turn_states,
 )
 
 NOW = datetime(2026, 11, 5, tzinfo=timezone.utc)
@@ -229,6 +231,60 @@ def test_runner_stops_at_close_and_reports_unused_messages():
     result = run_conversation(scenario, ScriptedLLM([closing]))
     assert (result["closed"], result["unused_messages"]) == (True, 1)
     assert result["outcome"] == "disqualified"
+
+
+def test_runner_records_the_state_after_each_turn():
+    stop = Interpretation(proposals=[], job_questions=[], language=None, stop_intent="stop")
+    question = Interpretation(proposals=[], job_questions=["¿Cuánto?"], language=None, stop_intent=None)
+    name = Proposal(field="full_name", status="unresolved", value=None, raw="x", reason="r")
+    resume = Interpretation(proposals=[name], job_questions=[], language=None, stop_intent="resume")
+    scenario = Scenario(name="t", messages=["para", "¿Cuánto?", "sigo"])
+
+    result = run_conversation(scenario, ScriptedLLM([stop, question, resume]))
+
+    assert [state["stop_requested"] for state in result["turn_states"]] == [True, True, False]
+    assert [state["pending_questions"] for state in result["turn_states"]] == [0, 1, 1]
+    assert [state["closed"] for state in result["turn_states"]] == [False, False, False]
+    assert [state["has_summary"] for state in result["turn_states"]] == [False, False, False]
+    assert [state["clarifications"]["full_name"] for state in result["turn_states"]] == [0, 0, 1]
+    assert result["turn_states"][-1]["last_question"] == ["full_name", "clarification"]
+
+
+TURN_STATE = {
+    "stop_requested": True,
+    "closed": False,
+    "has_summary": False,
+    "pending_questions": 1,
+    "last_question": ["full_name", "initial"],
+    "clarifications": {"full_name": 0},
+}
+
+
+@pytest.mark.parametrize(
+    "expected, passes",
+    [
+        ({"stop_requested": True, "pending_questions": 1}, True),
+        ({"stop_requested": False}, False),
+        ({"pending_questions": 0}, False),
+        ({"clarifications": {"full_name": 1}}, False),
+        ({"clarifications": {"full_name": 0}}, True),
+    ],
+)
+def test_turn_states_compare_only_what_a_scenario_expects(expected, passes):
+    check = turn_states({0: expected})
+    assert (check({"turn_states": [TURN_STATE]}) is None) is passes
+
+
+def test_turn_states_fail_when_the_conversation_ended_earlier():
+    assert turn_states({1: {"stop_requested": True}})({"turn_states": [TURN_STATE]})
+
+
+def test_start_value_must_keep_the_candidate_words():
+    check = start_value_mentions("contrato")
+    state = {"normalized": {"kind": "condition", "value": "Cuando termine mi Contrato"}}
+    assert check({"fields": {"start_timing": state}}) is None
+    state = {"normalized": {"kind": "condition", "value": "pronto"}}
+    assert check({"fields": {"start_timing": state}})
 
 
 @pytest.mark.parametrize(

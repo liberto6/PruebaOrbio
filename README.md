@@ -1,12 +1,13 @@
 # Grupo Sazón
 
 Local candidate screening and recruiter tool. **A candidate can complete a screening in
-the web chat with the real model.** The reminder and the recruiter tool are not implemented.
+the web chat with the real model.** The recruiter tool is not implemented.
 
 Read the [assignment](docs/assignment.html), [process design](docs/design/process-design.md),
 [roadmap](docs/planning/build-roadmap.md), [E1 checklist](docs/planning/e1-foundations.md),
 [E2 plan](docs/planning/e2-rules-and-persistence.md)
 and [E3 plan](docs/planning/e3-conversational-agent.md).
+The active plan is [E4 — Recruiter tool](docs/planning/e4-recruiter-tool.md).
 
 ## Windows setup (PowerShell)
 
@@ -47,7 +48,10 @@ live in `docs/`. Agent instructions and this README remain at the repository roo
 `app/backend/main.py` contains one FastAPI app. `/api/health` works independently of
 the frontend build. `POST /api/applications`, `GET /api/applications/{id}` and
 `POST /api/applications/{id}/messages` drive the chat and return only public state: messages,
-language, closure and any pending turn. Resending the same `request_id` and text is the retry.
+language, closure, any pending turn and `reminder_due_at`. Resending the same `request_id` and
+text is the retry. `POST /api/applications/{id}/reminder` saves the single fixed reminder if the
+server finds it due after 10 minutes of inactivity, and otherwise changes nothing; the open
+page holds one timeout for it, so nothing is sent while the browser is closed.
 After building, FastAPI serves `app/frontend/dist/index.html` at
 `/` and the generated assets at `/assets`. Restart Uvicorn after creating the build.
 Unknown API paths return JSON 404; there is no frontend catch-all.
@@ -88,10 +92,17 @@ python -m evals.run --only guadalajara,no_license --repeat 3
 ```
 
 Latest results, the rationale for the model and the known limits are in the
-[E3 plan](docs/planning/e3-conversational-agent.md).
+[E3 plan](docs/planning/e3-conversational-agent.md). Real transcripts are in the
+[sample conversations](docs/evals/sample-conversations.md).
 
 ## Verification recorded on 2026-11-05
 
+- `python -m pytest` after E3.4: 685 passed. `npm run build` passed.
+- Reminder in the served browser and focused real-model runs (stop/resume and imprecise start, all
+  3/3): see the [E3.4 evidence](docs/planning/e3-conversational-agent.md#e34-evidence-2026-11-05).
+  With the final prompts, 37/39 runs of the affected cases passed; both failures are provider
+  `llm_transient` errors, and those two scenarios then passed 6/6 alone. Replies after a reminder
+  passed 21/21. The full batteries were not rerun.
 - `python -m pytest` after E3.3: 641 passed. `npm run build` passed.
 - Browser checks with the real model (qualified and rejected screenings, reload, retry, closed
   state, new application): see the [E3.3 evidence](docs/planning/e3-conversational-agent.md#e33-evidence-2026-11-05).
@@ -119,5 +130,5 @@ versions are resolved by pip and are not a full environment lock.
 
 ## Next work
 
-E3 continues with the reminder, stop/resume checks and sample conversations; E4 adds the recruiter
-tool; E5 completes delivery.
+The [E4 brief](docs/planning/e4-recruiter-tool.md) is written; implementation is pending.
+It adds the recruiter list, filters, detail and independent decision. E5 completes delivery.

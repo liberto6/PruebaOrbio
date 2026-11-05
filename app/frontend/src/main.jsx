@@ -41,6 +41,8 @@ const COPY = {
 
 const APPLICATION_KEY = 'sazon.application';
 const UNCONFIRMED_KEY = 'sazon.unconfirmed';
+// The saved deadline has microseconds: never ask a moment before the server would agree.
+const REMINDER_MARGIN_MS = 1000;
 
 // Browser storage can be unavailable; the conversation still works until a reload.
 function readStored(key) {
@@ -77,6 +79,9 @@ function App() {
   const inputRef = useRef(null);
   const endRef = useRef(null);
   const started = useRef(false);
+  const reminderChecked = useRef(null);
+  // A send or a new application makes any reminder response still in flight obsolete.
+  const latestAction = useRef(0);
 
   const language = conversation?.language ?? 'es';
   const copy = COPY[language];
@@ -103,6 +108,37 @@ function App() {
     if (canWrite) inputRef.current?.focus();
   }, [canWrite]);
 
+  // One timeout for the saved deadline. Without a deadline or while busy there is no timer.
+  const reminderDueAt = conversation?.reminder_due_at ?? null;
+  const reminderSuspended = sending || starting || notFound || Boolean(retryable);
+  useEffect(() => {
+    if (!reminderDueAt || reminderSuspended) return undefined;
+    const check = `${conversation.id} ${reminderDueAt}`;
+    if (reminderChecked.current === check) return undefined; // A reload may check again.
+    const wait = Math.max(0, Date.parse(reminderDueAt) + REMINDER_MARGIN_MS - Date.now());
+    const timer = setTimeout(() => {
+      reminderChecked.current = check;
+      checkReminder(conversation.id);
+    }, wait);
+    return () => clearTimeout(timer);
+  }, [conversation?.id, reminderDueAt, reminderSuspended]);
+
+  async function checkReminder(id) {
+    const generation = latestAction.current;
+    const isCurrent = () => latestAction.current === generation;
+    try {
+      const { ok, body } = await call(`/api/applications/${encodeURIComponent(id)}/reminder`, {
+        method: 'POST',
+      });
+      if (!isCurrent()) return;
+      if (ok) setConversation(body);
+      else await loadApplication(id, false, isCurrent);
+    } catch {
+      // The reminder may have been saved even if its response was lost: read history once.
+      if (isCurrent()) await loadApplication(id, false, isCurrent);
+    }
+  }
+
   function forgetUnconfirmed(request) {
     const current = readStored(UNCONFIRMED_KEY);
     if (!request || current?.request_id === request.request_id) writeStored(UNCONFIRMED_KEY, null);
@@ -110,6 +146,7 @@ function App() {
   }
 
   async function createApplication() {
+    latestAction.current += 1;
     setStarting(true);
     setNotice(null);
     try {
@@ -133,9 +170,10 @@ function App() {
   }
 
   // SQLite is the authority: a failed read keeps what is on screen and any local request.
-  async function loadApplication(id, reportFailure) {
+  async function loadApplication(id, reportFailure, isCurrent = () => true) {
     try {
       const { ok, body } = await call(`/api/applications/${encodeURIComponent(id)}`);
+      if (!isCurrent()) return;
       if (ok) {
         setConversation(body);
       } else if (body?.code === 'application_not_found') {
@@ -169,6 +207,7 @@ function App() {
 
   async function deliver(request) {
     const id = conversation.id;
+    latestAction.current += 1;
     setSending(true);
     setNotice(null);
     try {

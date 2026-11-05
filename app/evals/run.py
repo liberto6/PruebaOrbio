@@ -190,12 +190,27 @@ class _WarningsOfThisThread(logging.Handler):
             self.messages.append(record.getMessage())
 
 
+def _turn_state(snapshot) -> dict:
+    fields = snapshot.fields
+    return {
+        "stop_requested": snapshot.stop_requested,
+        "closed": snapshot.closed_at is not None,
+        "has_summary": snapshot.summary is not None,
+        "pending_questions": len(snapshot.pending_questions),
+        "last_question": [snapshot.last_question_field, snapshot.last_question_kind],
+        "clarifications": {
+            name: getattr(fields, name).clarifications_asked for name in CandidateFields.model_fields
+        },
+    }
+
+
 def run_conversation(scenario, adapter) -> dict:
     """Drives the fixed messages through the real coordinator and a temporary database."""
     warnings = _WarningsOfThisThread()
     logger = logging.getLogger("backend.conversation")
     logger.addHandler(warnings)
     turn_seconds = []
+    turn_states = []
     turn_failure = None
     unused = 0
     try:
@@ -215,6 +230,7 @@ def run_conversation(scenario, adapter) -> dict:
                     break
                 finally:
                     turn_seconds.append(round(time.perf_counter() - started, 3))
+                turn_states.append(_turn_state(load_application(db_path, application_id).snapshot))
             stored = load_application(db_path, application_id)
     finally:
         logger.removeHandler(warnings)
@@ -235,6 +251,7 @@ def run_conversation(scenario, adapter) -> dict:
         "unused_messages": unused,
         "warnings": warnings.messages,
         "turn_seconds": turn_seconds,
+        "turn_states": turn_states,
         "calls": adapter.calls,
         "cost_usd": cost_of(adapter.calls),
     }

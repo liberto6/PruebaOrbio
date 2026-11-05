@@ -33,20 +33,24 @@ Order is linear. E4 may start alongside E3 with sample data once E2 is done.
 
 ## Current state — 2026-11-05
 
-**E1 and E2 are complete; E3 is in progress, with E3.1, E3.2 and E3.3 implemented.** A
-candidate can complete a screening in the browser with the real model (`gpt-6-luna`),
-reload, retry and resume; closed applications are read-only. The reminder and remaining
-E3.4 scenarios are pending, and no recruiter tool exists yet.
-`python -m pytest` reports 641 passed. Real-model evals are in `app/evals/` and their
-results in `docs/evals/`. See [E3 plan and evidence](e3-conversational-agent.md),
+**E1, E2 and E3 are complete; the E4 brief is written and implementation is pending.**
+A candidate can complete a
+screening in the browser with the real model (`gpt-6-luna`), reload, retry, stop and resume, and
+gets one reminder after 10 minutes of inactivity; closed applications are read-only. No recruiter
+tool exists yet. `python -m pytest` reports 685 passed. Real-model evals are in `app/evals/`,
+their results and the [sample conversations](../evals/sample-conversations.md) in `docs/evals/`.
+See [E3 plan and evidence](e3-conversational-agent.md),
 [E2 evidence](e2-rules-and-persistence.md), [E1 evidence](e1-foundations.md) and
 [README](../../README.md).
 
 The roadmap's "every Phase 1 rule" covers E2's deterministic rules only; E3 must
 prove the conversational behaviour through its scenarios.
 
-Next: E3.4 final validation (reminder, stop/resume, sample conversations), on the user's
-go-ahead. [E3.3 evidence and limits](e3-conversational-agent.md#e33-evidence-2026-11-05)
+Next: implement the [E4 recruiter tool](e4-recruiter-tool.md): list and filters,
+detail and independent recruiter decision. No additional bonus is included; E5 follows E4.
+The user confirmed E3 complete and [decided](e3-conversational-agent.md#product-decision-a-bare-yes-after-the-reminder)
+that a bare "Sí" after the reminder does not count as a licence.
+[E3.4 evidence and limits](e3-conversational-agent.md#e34-evidence-2026-11-05)
 and the product decisions validated by the user are in the plan.
 
 ## If time runs short

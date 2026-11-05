@@ -1,0 +1,2027 @@
+{
+ "started_at": "2026-11-05T10:32:59.549294+00:00",
+ "model": "gpt-6-luna",
+ "sdk": "3.46.0",
+ "prompts_hash": "b3292b70208a07a9",
+ "note": "One-off E3.4 check: replies after a saved reminder, with aged synthetic message timestamps.",
+ "totals": {
+  "runs": 12,
+  "passed": 9,
+  "false_rejection": 0,
+  "false_qualification": 0,
+  "unnecessary_review": 0,
+  "interpretation_unusable": 0,
+  "turns": 0,
+  "input_tokens": 115573,
+  "cached_tokens": 82542,
+  "output_tokens": 3466,
+  "reasoning_tokens": 875,
+  "cost_usd": 0.0058615199999999985,
+  "turn_seconds_median": null,
+  "turn_seconds_max": null,
+  "seconds_by_step": {
+   "interpret": 2.24,
+   "reply": 1.13
+  }
+ },
+ "runs": [
+  {
+   "scenario": "sí_to_license",
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false,
+   "warnings": [],
+   "turn_seconds": [],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3311,
+     "cached": 3308,
+     "output": 81,
+     "reasoning": 0,
+     "seconds": 1.992
+    },
+    {
+     "step": "reply",
+     "input": 887,
+     "cached": 0,
+     "output": 14,
+     "reasoning": 0,
+     "seconds": 1.121
+    },
+    {
+     "step": "interpret",
+     "input": 3381,
+     "cached": 2816,
+     "output": 108,
+     "reasoning": 30,
+     "seconds": 3.119
+    },
+    {
+     "step": "reply",
+     "input": 955,
+     "cached": 0,
+     "output": 14,
+     "reasoning": 0,
+     "seconds": 1.063
+    }
+   ],
+   "state_before_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "driving_license",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "state_after_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "work_locations",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "fields": {
+    "full_name": {
+     "raw": "Luis Romero Vega",
+     "normalized": "Luis Romero Vega",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Sí",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Luis Romero Vega"
+    },
+    {
+     "role": "assistant",
+     "text": "Luis, ¿tienes actualmente permiso de conducir?"
+    },
+    {
+     "role": "assistant",
+     "text": "Si quieres, podemos continuar cuando estés listo."
+    },
+    {
+     "role": "candidate",
+     "text": "Sí"
+    },
+    {
+     "role": "assistant",
+     "text": "Luis, ¿en qué ciudad te gustaría trabajar?"
+    }
+   ]
+  },
+  {
+   "scenario": "sí_to_license",
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false,
+   "warnings": [],
+   "turn_seconds": [],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3311,
+     "cached": 3308,
+     "output": 81,
+     "reasoning": 0,
+     "seconds": 1.371
+    },
+    {
+     "step": "reply",
+     "input": 887,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.939
+    },
+    {
+     "step": "interpret",
+     "input": 3379,
+     "cached": 2816,
+     "output": 109,
+     "reasoning": 31,
+     "seconds": 1.964
+    },
+    {
+     "step": "reply",
+     "input": 953,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.46
+    }
+   ],
+   "state_before_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "driving_license",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "state_after_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "work_locations",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "fields": {
+    "full_name": {
+     "raw": "Luis Romero Vega",
+     "normalized": "Luis Romero Vega",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Sí",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Luis Romero Vega"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente permiso de conducir?"
+    },
+    {
+     "role": "assistant",
+     "text": "Si quieres, podemos continuar cuando estés listo."
+    },
+    {
+     "role": "candidate",
+     "text": "Sí"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    }
+   ]
+  },
+  {
+   "scenario": "sí_to_license",
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false,
+   "warnings": [],
+   "turn_seconds": [],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3311,
+     "cached": 3308,
+     "output": 81,
+     "reasoning": 0,
+     "seconds": 1.259
+    },
+    {
+     "step": "reply",
+     "input": 887,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 0.958
+    },
+    {
+     "step": "interpret",
+     "input": 3380,
+     "cached": 2816,
+     "output": 76,
+     "reasoning": 0,
+     "seconds": 1.639
+    },
+    {
+     "step": "reply",
+     "input": 954,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.782
+    }
+   ],
+   "state_before_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "driving_license",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "state_after_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "work_locations",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "fields": {
+    "full_name": {
+     "raw": "Luis Romero Vega",
+     "normalized": "Luis Romero Vega",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Sí",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Luis Romero Vega"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente una licencia de conducir?"
+    },
+    {
+     "role": "assistant",
+     "text": "Si quieres, podemos continuar cuando estés listo."
+    },
+    {
+     "role": "candidate",
+     "text": "Sí"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    }
+   ]
+  },
+  {
+   "scenario": "place_to_location",
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false,
+   "warnings": [],
+   "turn_seconds": [],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3311,
+     "cached": 3308,
+     "output": 81,
+     "reasoning": 0,
+     "seconds": 1.27
+    },
+    {
+     "step": "reply",
+     "input": 887,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.891
+    },
+    {
+     "step": "interpret",
+     "input": 3359,
+     "cached": 2816,
+     "output": 79,
+     "reasoning": 0,
+     "seconds": 1.546
+    },
+    {
+     "step": "reply",
+     "input": 931,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.975
+    },
+    {
+     "step": "interpret",
+     "input": 3424,
+     "cached": 2816,
+     "output": 91,
+     "reasoning": 0,
+     "seconds": 2.104
+    },
+    {
+     "step": "reply",
+     "input": 947,
+     "cached": 0,
+     "output": 19,
+     "reasoning": 0,
+     "seconds": 1.127
+    }
+   ],
+   "state_before_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "work_locations",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "state_after_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "availability",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "fields": {
+    "full_name": {
+     "raw": "Luis Romero Vega",
+     "normalized": "Luis Romero Vega",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Sí, tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "En Madrid",
+     "normalized": {
+      "identified": [
+       {
+        "country": "ES",
+        "locality": "madrid"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Luis Romero Vega"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "Sí, tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "assistant",
+     "text": "Si quieres, podemos continuar cuando estés listo."
+    },
+    {
+     "role": "candidate",
+     "text": "En Madrid"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Qué disponibilidad buscas: tiempo completo, tiempo parcial o solo fines de semana?"
+    }
+   ]
+  },
+  {
+   "scenario": "place_to_location",
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false,
+   "warnings": [],
+   "turn_seconds": [],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3311,
+     "cached": 3308,
+     "output": 81,
+     "reasoning": 0,
+     "seconds": 1.994
+    },
+    {
+     "step": "reply",
+     "input": 887,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 1.231
+    },
+    {
+     "step": "interpret",
+     "input": 3360,
+     "cached": 2816,
+     "output": 79,
+     "reasoning": 0,
+     "seconds": 1.657
+    },
+    {
+     "step": "reply",
+     "input": 932,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.899
+    },
+    {
+     "step": "interpret",
+     "input": 3425,
+     "cached": 2816,
+     "output": 130,
+     "reasoning": 37,
+     "seconds": 1.943
+    },
+    {
+     "step": "reply",
+     "input": 948,
+     "cached": 0,
+     "output": 18,
+     "reasoning": 0,
+     "seconds": 0.952
+    }
+   ],
+   "state_before_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "work_locations",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "state_after_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "availability",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "fields": {
+    "full_name": {
+     "raw": "Luis Romero Vega",
+     "normalized": "Luis Romero Vega",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Sí, tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "En Madrid",
+     "normalized": {
+      "identified": [
+       {
+        "country": "ES",
+        "locality": "madrid"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Luis Romero Vega"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente un permiso de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "Sí, tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "assistant",
+     "text": "Si quieres, podemos continuar cuando estés listo."
+    },
+    {
+     "role": "candidate",
+     "text": "En Madrid"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Qué disponibilidad tienes: jornada completa, parcial y/o fines de semana?"
+    }
+   ]
+  },
+  {
+   "scenario": "place_to_location",
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false,
+   "warnings": [],
+   "turn_seconds": [],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3311,
+     "cached": 3308,
+     "output": 106,
+     "reasoning": 23,
+     "seconds": 1.433
+    },
+    {
+     "step": "reply",
+     "input": 887,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 1.043
+    },
+    {
+     "step": "interpret",
+     "input": 3360,
+     "cached": 2816,
+     "output": 79,
+     "reasoning": 0,
+     "seconds": 1.8
+    },
+    {
+     "step": "reply",
+     "input": 932,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.746
+    },
+    {
+     "step": "interpret",
+     "input": 3425,
+     "cached": 2816,
+     "output": 91,
+     "reasoning": 0,
+     "seconds": 1.408
+    },
+    {
+     "step": "reply",
+     "input": 948,
+     "cached": 0,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 1.232
+    }
+   ],
+   "state_before_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "work_locations",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "state_after_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "availability",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "fields": {
+    "full_name": {
+     "raw": "Luis Romero Vega",
+     "normalized": "Luis Romero Vega",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Sí, tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "En Madrid",
+     "normalized": {
+      "identified": [
+       {
+        "country": "ES",
+        "locality": "madrid"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Luis Romero Vega"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente una licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "Sí, tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "assistant",
+     "text": "Si quieres, podemos continuar cuando estés listo."
+    },
+    {
+     "role": "candidate",
+     "text": "En Madrid"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Buscas trabajar a tiempo completo, a tiempo parcial o los fines de semana?"
+    }
+   ]
+  },
+  {
+   "scenario": "ready_to_continue",
+   "failures": [
+    "license unresolved, asked 1, clarification"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false,
+   "warnings": [],
+   "turn_seconds": [],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3311,
+     "cached": 3308,
+     "output": 81,
+     "reasoning": 0,
+     "seconds": 1.45
+    },
+    {
+     "step": "reply",
+     "input": 887,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 0.956
+    },
+    {
+     "step": "interpret",
+     "input": 3384,
+     "cached": 2816,
+     "output": 278,
+     "reasoning": 191,
+     "seconds": 4.364
+    },
+    {
+     "step": "reply",
+     "input": 971,
+     "cached": 0,
+     "output": 16,
+     "reasoning": 0,
+     "seconds": 1.267
+    }
+   ],
+   "state_before_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "driving_license",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "state_after_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "driving_license",
+     "clarification"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 1,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "fields": {
+    "full_name": {
+     "raw": "Luis Romero Vega",
+     "normalized": "Luis Romero Vega",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "\"Vale, ya puedo seguir\"",
+     "normalized": null,
+     "status": "unresolved",
+     "reason": "not_answered",
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Luis Romero Vega"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente una licencia de conducir?"
+    },
+    {
+     "role": "assistant",
+     "text": "Si quieres, podemos continuar cuando estés listo."
+    },
+    {
+     "role": "candidate",
+     "text": "Vale, ya puedo seguir"
+    },
+    {
+     "role": "assistant",
+     "text": "Perfecto. ¿Tienes actualmente una licencia de conducir?"
+    }
+   ]
+  },
+  {
+   "scenario": "ready_to_continue",
+   "failures": [
+    "license unresolved, asked 1, clarification"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false,
+   "warnings": [],
+   "turn_seconds": [],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3311,
+     "cached": 3308,
+     "output": 81,
+     "reasoning": 0,
+     "seconds": 6.015
+    },
+    {
+     "step": "reply",
+     "input": 887,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 0.922
+    },
+    {
+     "step": "interpret",
+     "input": 3384,
+     "cached": 2816,
+     "output": 239,
+     "reasoning": 154,
+     "seconds": 3.836
+    },
+    {
+     "step": "reply",
+     "input": 970,
+     "cached": 0,
+     "output": 18,
+     "reasoning": 0,
+     "seconds": 1.223
+    }
+   ],
+   "state_before_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "driving_license",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "state_after_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "driving_license",
+     "clarification"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 1,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "fields": {
+    "full_name": {
+     "raw": "Luis Romero Vega",
+     "normalized": "Luis Romero Vega",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Vale, ya puedo seguir",
+     "normalized": null,
+     "status": "unresolved",
+     "reason": "not_answered",
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Luis Romero Vega"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente un permiso de conducir?"
+    },
+    {
+     "role": "assistant",
+     "text": "Si quieres, podemos continuar cuando estés listo."
+    },
+    {
+     "role": "candidate",
+     "text": "Vale, ya puedo seguir"
+    },
+    {
+     "role": "assistant",
+     "text": "Perfecto, seguimos. ¿Tienes actualmente un permiso de conducir?"
+    }
+   ]
+  },
+  {
+   "scenario": "ready_to_continue",
+   "failures": [
+    "license unresolved, asked 1, clarification"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false,
+   "warnings": [],
+   "turn_seconds": [],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3311,
+     "cached": 3308,
+     "output": 108,
+     "reasoning": 25,
+     "seconds": 1.743
+    },
+    {
+     "step": "reply",
+     "input": 887,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.877
+    },
+    {
+     "step": "interpret",
+     "input": 3383,
+     "cached": 2816,
+     "output": 219,
+     "reasoning": 134,
+     "seconds": 3.513
+    },
+    {
+     "step": "reply",
+     "input": 969,
+     "cached": 0,
+     "output": 15,
+     "reasoning": 0,
+     "seconds": 4.17
+    }
+   ],
+   "state_before_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "driving_license",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "state_after_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "driving_license",
+     "clarification"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 1,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "fields": {
+    "full_name": {
+     "raw": "Luis Romero Vega",
+     "normalized": "Luis Romero Vega",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Vale, ya puedo seguir",
+     "normalized": null,
+     "status": "unresolved",
+     "reason": "not_answered",
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Luis Romero Vega"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "assistant",
+     "text": "Si quieres, podemos continuar cuando estés listo."
+    },
+    {
+     "role": "candidate",
+     "text": "Vale, ya puedo seguir"
+    },
+    {
+     "role": "assistant",
+     "text": "Perfecto. ¿Tienes actualmente licencia de conducir?"
+    }
+   ]
+  },
+  {
+   "scenario": "yes_in_english",
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false,
+   "warnings": [],
+   "turn_seconds": [],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3322,
+     "cached": 3319,
+     "output": 118,
+     "reasoning": 32,
+     "seconds": 2.223
+    },
+    {
+     "step": "reply",
+     "input": 898,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.818
+    },
+    {
+     "step": "interpret",
+     "input": 3395,
+     "cached": 2816,
+     "output": 111,
+     "reasoning": 33,
+     "seconds": 1.965
+    },
+    {
+     "step": "reply",
+     "input": 966,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 0.766
+    }
+   ],
+   "state_before_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "driving_license",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "state_after_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "work_locations",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "fields": {
+    "full_name": {
+     "raw": "My name is John Carter Smith.",
+     "normalized": "John Carter Smith",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Yes",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Can we continue in English, please? My name is John Carter Smith."
+    },
+    {
+     "role": "assistant",
+     "text": "Do you currently hold a driving licence?"
+    },
+    {
+     "role": "assistant",
+     "text": "If you'd like, we can continue when you're ready."
+    },
+    {
+     "role": "candidate",
+     "text": "Yes"
+    },
+    {
+     "role": "assistant",
+     "text": "Which city would you like to work in?"
+    }
+   ]
+  },
+  {
+   "scenario": "yes_in_english",
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false,
+   "warnings": [],
+   "turn_seconds": [],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3322,
+     "cached": 3319,
+     "output": 142,
+     "reasoning": 59,
+     "seconds": 2.718
+    },
+    {
+     "step": "reply",
+     "input": 898,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.79
+    },
+    {
+     "step": "interpret",
+     "input": 3392,
+     "cached": 2816,
+     "output": 122,
+     "reasoning": 44,
+     "seconds": 2.054
+    },
+    {
+     "step": "reply",
+     "input": 966,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 0.793
+    }
+   ],
+   "state_before_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "driving_license",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "state_after_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "work_locations",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "fields": {
+    "full_name": {
+     "raw": "John Carter Smith",
+     "normalized": "John Carter Smith",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Yes",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Can we continue in English, please? My name is John Carter Smith."
+    },
+    {
+     "role": "assistant",
+     "text": "Do you currently hold a driving licence?"
+    },
+    {
+     "role": "assistant",
+     "text": "If you'd like, we can continue when you're ready."
+    },
+    {
+     "role": "candidate",
+     "text": "Yes"
+    },
+    {
+     "role": "assistant",
+     "text": "Which city would you like to work in?"
+    }
+   ]
+  },
+  {
+   "scenario": "yes_in_english",
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false,
+   "warnings": [],
+   "turn_seconds": [],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3322,
+     "cached": 3319,
+     "output": 132,
+     "reasoning": 49,
+     "seconds": 2.446
+    },
+    {
+     "step": "reply",
+     "input": 898,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.655
+    },
+    {
+     "step": "interpret",
+     "input": 3392,
+     "cached": 3389,
+     "output": 111,
+     "reasoning": 33,
+     "seconds": 1.772
+    },
+    {
+     "step": "reply",
+     "input": 966,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 0.72
+    }
+   ],
+   "state_before_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "driving_license",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "state_after_reply": {
+    "stop_requested": false,
+    "closed": false,
+    "has_summary": false,
+    "pending_questions": 0,
+    "last_question": [
+     "work_locations",
+     "initial"
+    ],
+    "clarifications": {
+     "full_name": 0,
+     "driving_license": 0,
+     "work_locations": 0,
+     "availability": 0,
+     "preferred_schedule": 0,
+     "delivery_experience": 0,
+     "start_timing": 0
+    }
+   },
+   "fields": {
+    "full_name": {
+     "raw": "John Carter Smith",
+     "normalized": "John Carter Smith",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Yes",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Can we continue in English, please? My name is John Carter Smith."
+    },
+    {
+     "role": "assistant",
+     "text": "Do you currently hold a driving licence?"
+    },
+    {
+     "role": "assistant",
+     "text": "If you'd like, we can continue when you're ready."
+    },
+    {
+     "role": "candidate",
+     "text": "Yes"
+    },
+    {
+     "role": "assistant",
+     "text": "Which city would you like to work in?"
+    }
+   ]
+  }
+ ]
+}

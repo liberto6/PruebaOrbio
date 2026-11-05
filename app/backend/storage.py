@@ -1,6 +1,6 @@
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Literal
 from uuid import uuid4
 
@@ -21,6 +21,12 @@ from backend.rules import (
 
 _QUESTION = TypeAdapter(NonBlank)
 _LANGUAGE = TypeAdapter(Language)
+
+REMINDER_DELAY = timedelta(minutes=10)
+REMINDER_TEXTS = {
+    "es": "Si quieres, podemos continuar cuando estés listo.",
+    "en": "If you'd like, we can continue when you're ready.",
+}
 
 
 class StorageFailure(Exception):
@@ -416,6 +422,36 @@ def set_recruiter_decision(db_path, application_id: str, decision: str) -> Candi
         )
         _write_snapshot(connection, updated)
     return updated
+
+
+def reminder_due_at(stored: StoredApplication, unfinished_turn: Turn | None) -> datetime | None:
+    """When the single reminder may be sent, or None if it cannot be. Never uses `updated_at`."""
+    snapshot = stored.snapshot
+    if (
+        snapshot.closed_at is not None
+        or snapshot.stop_requested
+        or snapshot.reminder_sent
+        or unfinished_turn is not None
+        or not stored.messages
+        or stored.messages[-1].role != "assistant"
+    ):
+        return None
+    return datetime.fromisoformat(stored.messages[-1].created_at) + REMINDER_DELAY
+
+
+def send_reminder(db_path, application_id: str) -> bool:
+    """Saves the fixed reminder if it is due. False means it was not eligible: nothing changed."""
+    with _transaction(db_path) as connection:
+        stored = _read_stored(connection, application_id)
+        due = reminder_due_at(stored, _unfinished_turn(connection, application_id))
+        now = _now()
+        if due is None or now < due:
+            return False
+        snapshot = stored.snapshot
+        text = REMINDER_TEXTS[snapshot.language]
+        _append_message(connection, application_id, "assistant", text, now)
+        _write_snapshot(connection, _next_revision(snapshot, now, reminder_sent=True))
+    return True
 
 
 def _now() -> datetime:

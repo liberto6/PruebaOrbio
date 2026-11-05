@@ -346,6 +346,7 @@ def _context(stored: StoredApplication, now) -> TurnContext:
         language=snapshot.language,
         last_question_field=snapshot.last_question_field,
         last_question_kind=snapshot.last_question_kind,
+        stop_requested=snapshot.stop_requested,
         catalog=[
             Location(country=country, locality=locality)
             for country, locality in sorted(COVERAGE_CATALOG)

@@ -1,6 +1,6 @@
 import sqlite3
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -25,6 +25,7 @@ from backend.llm import (
     TransientLLMFailure,
     TurnContext,
     UnusableOutput,
+    _interpretation_input,
 )
 from backend.rules import (
     COVERAGE_CATALOG,
@@ -38,6 +39,7 @@ from backend.rules import (
     record_clarifications,
 )
 from backend.storage import (
+    REMINDER_TEXTS,
     ApplicationClosed,
     CannotClose,
     ClarificationRefused,
@@ -56,6 +58,7 @@ from backend.storage import (
     load_turn,
     receive_turn,
     save_turn,
+    send_reminder,
 )
 
 NOW = datetime(2026, 11, 5, 10, 30, tzinfo=timezone.utc)
@@ -476,6 +479,36 @@ def test_start_application_stores_the_fixed_greeting_once(tmp_path):
 def test_greeting_identifies_the_virtual_assistant_and_asks_the_full_name():
     assert "asistente virtual de Grupo Sazón" in GREETING
     assert GREETING.endswith("¿Cuál es tu nombre completo?")
+
+
+def test_the_interpreter_is_told_the_saved_stop_state(tmp_path):
+    db = tmp_path / "stopped.db"
+    init_db(db)
+    app_id = start_application(db).id
+    llm = FakeLLM(interpretations=[interpretation(stop_intent="stop")])
+
+    handle_message(db, app_id, "r1", "Paro por ahora", llm, now=clock)
+    handle_message(db, app_id, "r2", "Sigo", llm, now=clock)
+
+    assert [c.stop_requested for c in llm.contexts("interpret")] == [False, True]
+
+
+def test_a_reply_after_a_reminder_is_interpreted_against_the_saved_question(tmp_path, monkeypatch):
+    db = tmp_path / "reminder.db"
+    init_db(db)
+    app_id = start_application(db).id
+    llm = FakeLLM(interpretations=[interpretation(resolved("full_name", "Ana Ruiz"))])
+    handle_message(db, app_id, "r1", "Ana Ruiz", llm, now=clock)
+    later = datetime.now(timezone.utc) + timedelta(minutes=11)
+    monkeypatch.setattr(storage, "_now", lambda: later)
+    assert send_reminder(db, app_id) is True
+
+    handle_message(db, app_id, "r2", "Sí", llm, now=clock)
+
+    context = llm.contexts("interpret")[-1]
+    assert (context.last_question_field, context.last_question_kind) == ("driving_license", "initial")
+    assert [m.text for m in context.messages[-2:]] == [REMINDER_TEXTS["es"], "Sí"]
+    assert '"asked_field": "driving_license"' in _interpretation_input(context)
 
 
 def test_technical_error_text_follows_the_language():

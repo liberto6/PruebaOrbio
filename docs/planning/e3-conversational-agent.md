@@ -1,7 +1,8 @@
 # E3 - Conversational agent
 
-**Status: In progress, revised 2026-11-05.** E3.1, E3.2 and E3.3 are implemented; the
-browser chat works with the real model. E3 is not complete until E3.4. Sources:
+**Status: Complete, 2026-11-05, with the limits in the
+[E3.4 evidence](#e34-evidence-2026-11-05).** The user confirmed E3 complete and requested
+the [E4 brief](e4-recruiter-tool.md). Sources:
 [assignment](../assignment.html), [process design](../design/process-design.md),
 [roadmap](build-roadmap.md) and [E2 contracts and limits](e2-rules-and-persistence.md).
 
@@ -343,6 +344,107 @@ sequential calls. Existing model limits remain; demo contingency packaging is E5
 Planning baseline checked on 2026-11-05: 593 pytest tests passed and the frontend
 build passed. These are pre-E3.3 checks, not acceptance evidence for this block.
 
+## E3.4 implementation brief — 2026-11-05
+
+**Status: implemented; see [E3.4 evidence](#e34-evidence-2026-11-05).** Finish E3 with the
+single reminder, focused real-model checks for the remaining behaviours and representative
+conversations. Reuse E3.1–E3.3 and their evidence; do not reopen model selection, add
+dependencies or repeat their full eval, concurrency or browser matrices.
+
+### Single reminder
+
+- Reuse `reminder_sent` in the snapshot. Add one storage operation and
+  `POST /api/applications/{id}/reminder`, with no body or model dependency.
+  Return 200 with the current public state whether a reminder was saved or was
+  ineligible; an unknown id remains 404. Reuse existing technical error handling.
+- Inside one write transaction, check that the application is open, not stopped,
+  has no unfinished turn and has never sent a reminder. Its last conversational
+  message must be from the assistant and at least 10 minutes old, using server
+  UTC time and message `created_at`, not snapshot `updated_at`. The greeting counts.
+  If eligible, append the fixed ES/EN message and set `reminder_sent` together,
+  preserving revision checks. Repeated or concurrent calls must save at most one.
+- Suggested copy: “Si quieres, podemos continuar cuando estés listo.” / “If you'd
+  like, we can continue when you're ready.” Use the saved language. Preserve fields,
+  outcome, last screening question and clarification counts; create no candidate
+  turn or summary. Stopping or resuming never resets `reminder_sent`.
+- Add only `reminder_due_at` to the public allowlist: the last assistant message's
+  timestamp plus 10 minutes when the other eligibility conditions hold, otherwise
+  null. Compute it from the same consistent read as messages and pending state.
+  It schedules a check; the server still rechecks eligibility before writing.
+- In the existing chat, schedule one timeout for that deadline, or check immediately
+  if it has passed on reload. Suspend it while sending, starting another application
+  or holding an unconfirmed request; cancel obsolete timers. A new saved state
+  recalculates the deadline. Do not use periodic polling, a scheduler or a new table.
+- Render only the saved reminder. On failure, reload history once to recover a
+  possible committed reminder; avoid an immediate retry loop or blocking candidate
+  input. Discard reminder responses made obsolete by a candidate send or application
+  change so they cannot overwrite newer history. A later reload may check again.
+  Browser suspension can delay the reminder; no delivery is promised while closed.
+
+### Remaining real-model checks
+
+Stop/resume already exists in the coordinator and fake-model tests. Validate its
+interpretation with the existing runner, adding only the cases and assertions needed
+below. `TurnContext` currently has no stop state; change that contract only if these
+checks expose a failure requiring it.
+
+| Case | Required evidence |
+|---|---|
+| Stop, unrelated job question, explicit continuation | Stop keeps the application open/incomplete without summary; the job question is stored but does not resume screening; explicit continuation resumes from saved facts and retains clarification counts |
+| Stop, then answer the outstanding screening question | The answer resumes screening, applies its data and keeps the saved language; use an English conversation for this case |
+| Imprecise start, then approximate period | Ask one clarification, accept the approximate period without inventing a date; otherwise complete profile closes as qualified |
+| Imprecise start, then condition | Ask one clarification, retain the condition; otherwise complete profile closes as qualified |
+| Imprecise start, then explicit inability to specify | Ask one clarification, resolve as `unknown`; otherwise complete profile closes as qualified |
+
+Run each of these five scenarios three times. Inspect intermediate stop state and
+clarification counts, not only the final outcome. Reuse the existing unresolved-start
+case as the negative control: one clarification, then `pending_review` if all other
+fields are resolved. Do not expand the scenario battery beyond these gaps.
+
+Use synthetic data and the selected model within the existing 5 USD E3 cap. Before
+running, account for recorded eval spend (about 0.83 USD in E3.2) and the unmetered E3.3
+browser calls; do not present the runner's ledger as exact total spend. Record new
+tokens, estimated cost and latency with the existing runner. Keep failed runs. Link
+the actual result files even if the runner retains its `e3-2-` filename prefix.
+
+Expected states and facts must pass, with no observed false rejection/qualification
+or invented critical facts. Manually inspect the new dialogue and summaries for
+faithfulness, Spanish internal summaries and ES/EN behaviour. If a defect needs a
+prompt or adapter change, rerun the affected existing critical cases as well; do
+not claim the old results validate changed prompts. Record any unresolved failure
+and its effect on closure rather than silently weakening expectations.
+
+### Delivery and acceptance
+
+Implement the reminder backend through TDD, with controlled time, temporary SQLite
+and no network. Extend existing tests; do not introduce a frontend test framework.
+
+- [x] Storage checks: just before/at 10 minutes; ES/EN; no reminder when stopped,
+  closed, pending or already sent; atomic rollback and simultaneous checks; question
+  context and clarification counts unchanged. Resume permits a first reminder but
+  never a second one.
+- [x] HTTP checks: saved reminder and ineligible no-op return the public projection,
+  unknown id, operation without credentials, and recovery after a lost response.
+- [x] Served-browser checks: timed appearance once, reload without duplication,
+  stop then reload without a reminder, resume in the same application, and no stale
+  reminder response replacing a newer turn or another application. Controlled time
+  or synthetic message timestamps may shorten the wait; document the method.
+- [x] Focused real-model cases above pass and results, cost, latency and manual
+  observations are recorded here. A model failure requires correction and relevant
+  rechecks before closing this block; accepted earlier limits remain explicit.
+- [x] Save `docs/evals/sample-conversations.md` with four actual synthetic transcripts:
+  qualified, early rejection, pending review and stop/resume. Reuse existing passing
+  runs where suitable; link each source run/case and distinguish candidate-visible
+  dialogue from saved outcome and internal summary. Never rewrite a transcript as
+  if the model had produced it. This is the assignment deliverable, not a status file.
+- [x] Run `python -m pytest` from `app/` and `npm run build` from `app/frontend/`.
+  Record actual results and limits; update the E3 closure checklist, roadmap and
+  README. Confirm AGENTS.md still matches the active plan, stack and exclusions.
+
+Close E3 only with this evidence. The next implementation stage is E4; recruiter UI,
+authentication, Docker, CI, deployment, WhatsApp, voice and E5 packaging remain out
+of this block.
+
 ## Evals
 
 One adapter implements the interpretation/reply/summary contract; no plugin registry,
@@ -389,9 +491,9 @@ must be explicitly reflected in the design and roadmap.
 - [x] E3.1: next action, turn recovery and atomic storage extensions verified.
 - [x] E3.2: complete runner conversations, critical evals and documented model rationale.
 - [x] E3.3: browser chat, resume, public responses and failure paths verified.
-- [ ] E3.4: reminder, remaining evals, results and sample conversations recorded.
-- [ ] Existing E2 tests and new tests pass without network; no screening rule changed.
-- [ ] Stage plan, roadmap, README and AGENTS.md reflect delivered work and real limits.
+- [x] E3.4: reminder, remaining evals, results and sample conversations recorded.
+- [x] Existing E2 tests and new tests pass without network; no screening rule changed.
+- [x] Stage plan, roadmap, README and AGENTS.md reflect delivered work and real limits.
 
 E3 is complete when the browser screening works with the selected real LLM and the
 criteria above have evidence. Recruiter workflow and submission/presentation remain
@@ -523,3 +625,139 @@ Known limits:
 
 Next: E3.4 adds the reminder, stop/resume and sample conversations, with no further eval
 breadth, starting only on the user's go-ahead.
+
+### E3.4 evidence (2026-11-05)
+
+- `storage.py` has `send_reminder` and `reminder_due_at`; `main.py` has
+  `POST /api/applications/{id}/reminder` and `reminder_due_at` in the allowlist. The chat holds
+  one timeout, and no dependency or table was added. The fixed texts live in `storage.py`
+  because the language is only known inside the write transaction.
+- `python -m pytest` from `app/`: 685 passed, 44 of them new, with no network or real LLM.
+  `npm run build` and `pip check` passed.
+- TDD: storage and HTTP tests first failed against a stub or a missing field. No-op eligibility
+  tests passed against the stub, so each guard was checked by mutation; the pending-turn guard
+  survived, got its own test and then failed under mutation. The test that a reply after a reminder
+  keeps its saved question passed when written, because storage already preserved it.
+
+#### Real model
+
+Prompts `fce960c48adb8f67` (final prompts are in the product decision below), run [`e3-2-20261105T104154Z`](../evals/e3-2-20261105T104154Z.json):
+
+| Scenario | Passed | Intermediate state inspected |
+|---|---|---|
+| Stop, job question, explicit continuation | 3/3 | Stopped, open and no summary after the stop and the question; question stored; continuation clears the stop; licence count stays 1 and location 0 |
+| Stop, then answer (English) | 3/3 | Answer clears the stop, applies Madrid and asks the next field in English |
+| Imprecise start, then period | 3/3 | One clarification; `period` keeps the words; qualified |
+| Imprecise start, then condition | 3/3 | One clarification; `condition` keeps the words; qualified |
+| Imprecise start, then cannot specify | 3/3 | One clarification; `unknown`; qualified |
+| Negative control: unresolved start | 3/3 | One clarification; `pending_review` |
+
+Both prompt changes below required reruns, so the same run repeats the critical cases they could
+affect. `license_in_progress_alone`, `guadalajara_unresolved`, `job_questions_are_stored`,
+`instruction_to_ignore_rules_is_not_a_license`, and the dodging licence-limit and name cases
+each passed 3/3. **`dodging_the_license_ends_in_review` passed 2/3.** Its outcome and fields
+were right; the check does not recognize the spelling "Carné", the same scorer gap as in E3.2.
+It stays recorded as a failure and the expectation was not changed. The run had 38/39 passed, with no
+false rejection, false qualification, unnecessary review or `interpretation_unusable`.
+
+Failures found on the way, all kept:
+
+| Run | Result | Cause and fix |
+|---|---|---|
+| [`102815Z`](../evals/e3-2-20261105T102815Z.json) | Stop scenario 1/3, others 3/3 | "Vale, ya puedo seguir" was read as `not_answered` and spent a clarification. Prompt exception added |
+| [`e3-4-…103259Z`](../evals/e3-4-reminder-replies-20261105T103259Z.json) | 9/12 | Same defect after a reminder; same exception |
+| [`103313Z`](../evals/e3-2-20261105T103313Z.json) | Stop 1/3, English 2/3, 35/39 in total | Stop not cleared in two runs, because the interpreter inferred it from history: an English answer got a second stop acknowledgement. `TurnContext` now has `stop_requested`, sent as `stopped`. One further run failed with `llm_transient` after 60 s |
+
+Replies after a saved reminder, with aged synthetic timestamps, through a one-off script not kept
+in the repository: 12/12 with those prompts
+([`e3-4-…104822Z`](../evals/e3-4-reminder-replies-20261105T104822Z.json)). "Sí" to the licence
+question, a place, "Yes" in English, and "Vale, ya puedo seguir", which spends no clarification.
+
+Cost: 0.1796 USD for these six files, about 0.0626 for the final run. The ledger in
+`docs/evals/` is 1.0115 USD. Adding the unmetered browser calls (about 13 turns in E3.3 and 8 here,
+at about 0.0003 USD per turn) gives about 1.02 USD of the 5 USD cap: an estimate, not a bill.
+Full-turn latency in the final run: median 3.2 s, maximum 36 s over 237 turns. Ten turns took over
+25 s, with single calls of 31-34 s, which matches the 30 s timeout plus its one retry; the cause
+was not investigated further.
+
+Manual reading of the final runs (the 6 whole stop dialogues, the closing turns of the 9 start
+dialogues from the start question on, and their 12 summaries): summaries are
+Spanish and faithful, with no invented date; start answers are kept in the candidate's words, and
+English stays English after the fixed Spanish greeting. Dialogue defects seen, not fixed:
+
+- In one final run the answer to a job question asked while stopped ignored it, and the "no tengo
+  esa información" arrived a turn later. The question was stored in all runs.
+- Some initial start questions already offer an approximate period, which the prompt reserves for
+  the clarification. One clarification was odd: "aunque estés tramitando otra".
+
+#### Served browser
+
+Built frontend served by FastAPI on port 8765, in Chrome, with a temporary `SCREENING_DB`, since
+deleted. Time was shortened by a throwaway script that moved `created_at` of an application's
+messages in that database and then reloaded the page; the timer itself ran for real, for 4 to 25 s.
+Results were read from the DOM and a wrapper around `fetch` that logged, held or failed reminder
+calls. No screenshots. Real model for the candidate turns; each check ran once.
+
+| Check | Result |
+|---|---|
+| Timed appearance | Absent before the deadline, then shown once from one POST; input stayed usable |
+| Reload after it | Same two messages, one reminder |
+| Reply after the reminder | Name accepted, next question asked |
+| Stop, then reload an hour past due | `reminder_due_at` null, no reminder, input usable |
+| Resume in the same application | Same id, screening continues, a new deadline; first reminder then appears once and a reload keeps one |
+| Stale response against a newer turn | Reminder response held while a message was sent; on release the 10 messages of the newer state stayed |
+| Stale response against another application | Held across "Nueva candidatura"; the new one kept its one greeting, and the old record has its reminder |
+| Lost reminder response | POST then one GET, no second POST, no notice; reminder shown |
+
+The first round ran before the final prompts. Stop, reload, answer-to-resume and the reminder after
+resuming were repeated on the final code; the stale and lost-response checks were not, because the
+final change only touched interpretation, not the frontend or the endpoint.
+
+#### Limits
+
+- Full batteries were not rerun with the final prompts, as instructed; earlier results for other
+  cases come from the previous prompts. The early-rejection sample also uses them.
+- The timer compares the browser clock with a server timestamp. If the browser runs ahead, its one
+  check is a no-op and the reminder waits for a reload. Both are the same machine in this demo.
+  A suspended or closed browser sends nothing, as the brief accepts.
+- There is no repeatable frontend test suite, and the reminder can arrive while someone is typing.
+  Their draft is kept.
+- Runs and samples use fixed scripts. This is a small acceptance set, not a statistical claim.
+- Earlier limits remain, except that `TurnContext` now has the stop state.
+- [Sample conversations](../evals/sample-conversations.md) are copied by script from run files.
+
+#### Product decision: a bare yes after the reminder
+
+The results above show a bare "Sí" after the reminder counting as holding a licence, which could
+produce a false qualification. The user decided that "Si quieres, podemos continuar" answered with
+"Sí" does not mean holding a licence, knowing that a model gives no absolute guarantee. A bare
+acceptance right after the reminder now answers no field: the question is asked again and no
+clarification is spent. A reply with its own content, such as "Sí, tengo carnet", still counts.
+
+Prompts `7cd32219725ef7e1`, the final ones for E3:
+
+| Run | Result | Notes |
+|---|---|---|
+| [`e3-4-…110416Z`](../evals/e3-4-reminder-replies-20261105T110416Z.json) | 21/21 | "Sí", "Vale", "Yes" and "Vale, ya puedo seguir" keep the licence unsaved with no clarification spent; "Sí, tengo carnet" and a place are saved; "Sí" with no reminder still counts. One-off script, not kept |
+| [`110610Z`](../evals/e3-2-20261105T110610Z.json) | 37/39 | Same critical cases as the run above. No false rejection, false qualification, unnecessary review or `interpretation_unusable`. Two failures are `llm_transient`, in `stop_job_question_then_explicit_continuation` and `imprecise_start_then_period` |
+| [`111651Z`](../evals/e3-2-20261105T111651Z.json) | 6/6 | Those two scenarios repeated alone, 3/3 each |
+
+The failures are attributed to the provider because they were timeouts and did not recur; this was
+not confirmed further. `dodging_the_license_ends_in_review` passed 3/3 here, but its scorer gap
+on "Carné" remains. The sample conversations and stop/start tables above used the previous prompts,
+which differ only in this exception. Full batteries were not rerun.
+
+Limits this adds:
+
+- In 1 of the 3 English "Yes" runs, the saved state was right (licence unsaved, licence question
+  still pending) but the reply said the licence had been noted and asked for the city. The script
+  does not check reply text, so it counts as passed. The licence is asked again on the next turn.
+- Latency worsened in `110610Z`: 16 of 231 turns took over 25 s, and four single calls took about
+  243 s, well beyond the expected 30 s plus one retry. So the configured timeout does not bound a
+  call in practice. `111651Z` reached 40 s at most. The cause was not investigated, and it can show
+  in a live demo.
+
+New cost: 0.0853 USD for these three files, 0.2649 USD for E3.4 in all. The ledger is 1.0966 USD;
+with the unmetered browser calls, about 1.10 USD of the 5 USD cap, an estimate rather than a bill.
+
+Next: [E4 recruiter tool](e4-recruiter-tool.md), as requested by the user.

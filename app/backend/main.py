@@ -28,6 +28,8 @@ from backend.storage import (
     init_db,
     load_application,
     load_application_with_turn,
+    reminder_due_at,
+    send_reminder,
 )
 
 logger = logging.getLogger(__name__)
@@ -117,6 +119,7 @@ def get_llm() -> ScreeningLLM:
 def _public_state(request: Request, application_id: str) -> dict:
     """An explicit allowlist: the summary, fields and recruiter decision never reach the browser."""
     stored, turn = load_application_with_turn(request.app.state.db_path, application_id)
+    due_at = reminder_due_at(stored, turn)
     return {
         "id": stored.snapshot.id,
         "messages": [
@@ -132,6 +135,7 @@ def _public_state(request: Request, application_id: str) -> dict:
         "closed": stored.snapshot.closed_at is not None,
         "pending": turn
         and {"request_id": turn.request_id, "candidate_sequence": turn.candidate_sequence},
+        "reminder_due_at": due_at and due_at.isoformat(),
     }
 
 
@@ -216,6 +220,12 @@ def send_message(
     llm: ScreeningLLM = Depends(get_llm),
 ):
     handle_message(request.app.state.db_path, application_id, body.request_id, body.text, llm)
+    return _public_state(request, application_id)
+
+
+@app.post("/api/applications/{application_id}/reminder")
+def request_reminder(application_id: str, request: Request):
+    send_reminder(request.app.state.db_path, application_id)
     return _public_state(request, application_id)
 
 
