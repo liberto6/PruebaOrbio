@@ -142,8 +142,6 @@ The other runner failure is a scorer gap on the spelling "carné". Further limit
 4. **Fewer wrong rejections:** a confirmation before a coverage rejection, and place resolution beyond the list.
 5. **Recruiter and quality:** job facts or RAG for candidate questions, analytics on drop-off, frontend tests.
 
-**Scaling to 10K candidates a week** (about one a minute on average, with peaks). At about 0.0017 USD per completed scripted screening, the median of the saved qualified runs, the model costs about 17 USD a week. That is an extrapolation from synthetic runs, but cost is not the constraint. It would require Postgres with indexed fields instead of SQLite; several app instances, which the saved turn state allows; model calls in a queue with bounded concurrency instead of held HTTP requests, plus provider limits and a fallback; server-side pagination and folder counts; a scheduler for reminders; monitoring of cost, latency and drop-off; evals in CI with larger samples; and the [ATS sync](docs/design/ats-integration.md#what-a-future-implementation-must-add).
-
 ## Sample conversations
 
 [Five real transcripts](docs/evals/sample-conversations.md), copied by script from one eval run: **qualified**, with an imprecise start date clarified once; **early rejection** for no licence; **covered cities offered** after an uncovered city; **pending review** for an unresolved Guadalajara; and **stop and resume**, with a job question while stopped.
