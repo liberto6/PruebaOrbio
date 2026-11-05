@@ -1,0 +1,207 @@
+{
+ "started_at": "2026-11-05T04:09:11.273541+00:00",
+ "model": "gpt-6-luna",
+ "sdk": "3.46.0",
+ "settings": {
+  "interpretation_effort": "low",
+  "writing_effort": "none",
+  "timeout_seconds": 30,
+  "max_retries": 1,
+  "max_output_tokens": 3000
+ },
+ "prompts_hash": "3c93da87bf949b33",
+ "arguments": {
+  "repeat": 1,
+  "only": "license_in_progress_then_no",
+  "held_out": false
+ },
+ "stopped_by_budget": false,
+ "totals": {
+  "runs": 1,
+  "passed": 1,
+  "false_rejection": 0,
+  "false_qualification": 0,
+  "unnecessary_review": 0,
+  "interpretation_unusable": 0,
+  "turns": 3,
+  "input_tokens": 12952,
+  "cached_tokens": 5342,
+  "output_tokens": 468,
+  "reasoning_tokens": 74,
+  "cost_usd": 0.00104842,
+  "turn_seconds_median": 4.591,
+  "turn_seconds_max": 6.165,
+  "seconds_by_step": {
+   "interpret": 3.31,
+   "reply": 1.28,
+   "summary": 1.24
+  }
+ },
+ "runs": [
+  {
+   "scenario": "license_in_progress_then_no",
+   "held_out": false,
+   "closed": true,
+   "outcome": "disqualified",
+   "outcome_reasons": [
+    "no_driving_license"
+   ],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Marta Gil Soto",
+     "normalized": "Marta Gil Soto",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Aún no, me examino en marzo",
+     "normalized": false,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Marta Gil Soto.\nCarnet de conducir: No; se examina en marzo.\nUbicación, disponibilidad, horario preferido, experiencia en reparto e incorporación: no recogido.\nResultado: Descalificado. Motivo: no tiene carnet de conducir.\nPreguntas para el equipo: ninguna.",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Marta Gil Soto"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente permiso de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "Me lo estoy sacando"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias por aclararlo, Marta. Para este puesto necesitamos saber si ya tienes el permiso de conducir actualmente; ¿lo tienes ya o todavía no?"
+    },
+    {
+     "role": "candidate",
+     "text": "Aún no, me examino en marzo"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Marta. Para este puesto es necesario tener el permiso de conducir actualmente, así que no podemos continuar con tu candidatura por ahora."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    6.165,
+    4.591,
+    4.536
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3166,
+     "cached": 0,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 4.554
+    },
+    {
+     "step": "reply",
+     "input": 848,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.496
+    },
+    {
+     "step": "interpret",
+     "input": 3218,
+     "cached": 2671,
+     "output": 114,
+     "reasoning": 30,
+     "seconds": 3.456
+    },
+    {
+     "step": "reply",
+     "input": 904,
+     "cached": 0,
+     "output": 33,
+     "reasoning": 0,
+     "seconds": 1.046
+    },
+    {
+     "step": "interpret",
+     "input": 3293,
+     "cached": 2671,
+     "output": 130,
+     "reasoning": 44,
+     "seconds": 1.924
+    },
+    {
+     "step": "reply",
+     "input": 947,
+     "cached": 0,
+     "output": 31,
+     "reasoning": 0,
+     "seconds": 1.289
+    },
+    {
+     "step": "summary",
+     "input": 576,
+     "cached": 0,
+     "output": 65,
+     "reasoning": 0,
+     "seconds": 1.237
+    }
+   ],
+   "cost_usd": 0.00104842,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  }
+ ]
+}

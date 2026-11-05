@@ -1,0 +1,920 @@
+{
+ "started_at": "2026-11-05T04:20:58.340252+00:00",
+ "model": "gpt-6-luna",
+ "sdk": "3.46.0",
+ "settings": {
+  "interpretation_effort": "low",
+  "writing_effort": "none",
+  "timeout_seconds": 30,
+  "max_retries": 1,
+  "max_output_tokens": 3000
+ },
+ "prompts_hash": "991e9e1bcea4d47a",
+ "arguments": {
+  "repeat": null,
+  "only": "english_option_codes",
+  "held_out": false
+ },
+ "stopped_by_budget": false,
+ "totals": {
+  "runs": 3,
+  "passed": 0,
+  "false_rejection": 0,
+  "false_qualification": 0,
+  "unnecessary_review": 0,
+  "interpretation_unusable": 0,
+  "turns": 21,
+  "input_tokens": 92563,
+  "cached_tokens": 59507,
+  "output_tokens": 3140,
+  "reasoning_tokens": 628,
+  "cost_usd": 0.00547067,
+  "turn_seconds_median": 3.307,
+  "turn_seconds_max": 5.33,
+  "seconds_by_step": {
+   "interpret": 1.97,
+   "reply": 1.09,
+   "summary": 1.34
+  }
+ },
+ "runs": [
+  {
+   "scenario": "english_option_codes_reach_the_summary_correctly",
+   "held_out": false,
+   "closed": true,
+   "outcome": "qualified",
+   "outcome_reasons": [
+    "screening_passed"
+   ],
+   "language": "en",
+   "last_question_field": "start_timing",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Emma Stone Reyes",
+     "normalized": "Emma Stone Reyes",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Yes, I have a licence.",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "Puebla",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "puebla"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": "Part time and weekends",
+     "normalized": {
+      "options": [
+       "part_time",
+       "weekends"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": "In the evenings",
+     "normalized": {
+      "options": [
+       "evening"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": "I have never done delivery work",
+     "normalized": {
+      "years": 0.0,
+      "platforms": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": "On January 10th, 2027",
+     "normalized": {
+      "kind": "date",
+      "value": "2027-01-10"
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Emma Stone Reyes\nLicencia de conducir: Sí.\nUbicación de trabajo: Puebla.\nDisponibilidad: Tiempo parcial y fines de semana.\nHorario preferido: Por las tardes/noches.\nExperiencia en entregas: 0 años; sin plataformas.\nFecha de inicio: 10 de enero de 2027.\nResultado: Screening superado.\nDudas pendientes: ninguna. Preguntas para el equipo: ninguna.",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Please continue in English. I'm Emma Stone Reyes."
+    },
+    {
+     "role": "assistant",
+     "text": "Do you currently hold a driving licence?"
+    },
+    {
+     "role": "candidate",
+     "text": "Yes, I have a licence."
+    },
+    {
+     "role": "assistant",
+     "text": "Which city would you like to work in?"
+    },
+    {
+     "role": "candidate",
+     "text": "Puebla"
+    },
+    {
+     "role": "assistant",
+     "text": "Would you prefer full-time, part-time, weekends, or a combination?"
+    },
+    {
+     "role": "candidate",
+     "text": "Part time and weekends"
+    },
+    {
+     "role": "assistant",
+     "text": "Would you prefer to work mornings, afternoons, evenings, or are you flexible?"
+    },
+    {
+     "role": "candidate",
+     "text": "In the evenings"
+    },
+    {
+     "role": "assistant",
+     "text": "How long have you worked in delivery, and with which platforms or companies, including local businesses? You can also let me know if you have no delivery experience."
+    },
+    {
+     "role": "candidate",
+     "text": "I have never done delivery work"
+    },
+    {
+     "role": "assistant",
+     "text": "When would you be able to start?"
+    },
+    {
+     "role": "candidate",
+     "text": "On January 10th, 2027"
+    },
+    {
+     "role": "assistant",
+     "text": "Thank you, Emma. Your application has been recorded for the selection team to review."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.681,
+    2.574,
+    3.325,
+    3.494,
+    2.827,
+    2.734,
+    4.209
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3170,
+     "cached": 3167,
+     "output": 113,
+     "reasoning": 30,
+     "seconds": 2.684
+    },
+    {
+     "step": "reply",
+     "input": 879,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.863
+    },
+    {
+     "step": "interpret",
+     "input": 3220,
+     "cached": 2669,
+     "output": 81,
+     "reasoning": 0,
+     "seconds": 1.522
+    },
+    {
+     "step": "reply",
+     "input": 925,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 0.941
+    },
+    {
+     "step": "interpret",
+     "input": 3264,
+     "cached": 2669,
+     "output": 138,
+     "reasoning": 45,
+     "seconds": 2.084
+    },
+    {
+     "step": "reply",
+     "input": 968,
+     "cached": 0,
+     "output": 19,
+     "reasoning": 0,
+     "seconds": 1.129
+    },
+    {
+     "step": "interpret",
+     "input": 3348,
+     "cached": 2669,
+     "output": 150,
+     "reasoning": 60,
+     "seconds": 2.249
+    },
+    {
+     "step": "reply",
+     "input": 944,
+     "cached": 0,
+     "output": 20,
+     "reasoning": 0,
+     "seconds": 1.173
+    },
+    {
+     "step": "interpret",
+     "input": 3424,
+     "cached": 2669,
+     "output": 84,
+     "reasoning": 0,
+     "seconds": 1.314
+    },
+    {
+     "step": "reply",
+     "input": 950,
+     "cached": 0,
+     "output": 36,
+     "reasoning": 0,
+     "seconds": 1.455
+    },
+    {
+     "step": "interpret",
+     "input": 3514,
+     "cached": 2669,
+     "output": 90,
+     "reasoning": 0,
+     "seconds": 1.623
+    },
+    {
+     "step": "reply",
+     "input": 977,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.986
+    },
+    {
+     "step": "interpret",
+     "input": 3583,
+     "cached": 2669,
+     "output": 143,
+     "reasoning": 48,
+     "seconds": 1.942
+    },
+    {
+     "step": "reply",
+     "input": 956,
+     "cached": 0,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 0.844
+    },
+    {
+     "step": "summary",
+     "input": 717,
+     "cached": 0,
+     "output": 90,
+     "reasoning": 0,
+     "seconds": 1.369
+    }
+   ],
+   "cost_usd": 0.0018686099999999997,
+   "failures": [
+    "summary contains 'tarde': 'Nombre: Emma Stone Reyes\\nLicencia de conducir: Sí.\\nUbicación de trabajo: Puebla.\\nDisponibilidad: Tiempo parcial y fines de semana.\\nHorario preferido: Por las tardes/noches.\\nExperiencia en entregas: 0 años; sin plataformas.\\nFecha de inicio: 10 de enero de 2027.\\nResultado: Screening superado.\\nDudas pendientes: ninguna. Preguntas para el equipo: ninguna.'"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "english_option_codes_reach_the_summary_correctly",
+   "held_out": false,
+   "closed": true,
+   "outcome": "qualified",
+   "outcome_reasons": [
+    "screening_passed"
+   ],
+   "language": "en",
+   "last_question_field": "start_timing",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Emma Stone Reyes",
+     "normalized": "Emma Stone Reyes",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Yes, I have a licence.",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "Puebla",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "puebla"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": "Part time and weekends",
+     "normalized": {
+      "options": [
+       "part_time",
+       "weekends"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": "In the evenings",
+     "normalized": {
+      "options": [
+       "evening"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": "I have never done delivery work",
+     "normalized": {
+      "years": 0.0,
+      "platforms": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": "On January 10th, 2027",
+     "normalized": {
+      "kind": "date",
+      "value": "2027-01-10"
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Emma Stone Reyes\nLicencia de conducir: sí\nUbicación de trabajo: Puebla\nDisponibilidad: tiempo parcial y fines de semana\nHorario preferido: tardes\nExperiencia en reparto: 0 años\nFecha de inicio: 10 de enero de 2027\nResultado: Screening superado. Motivo: screening superado.\nDudas pendientes: ninguna. Preguntas para el equipo: ninguna",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Please continue in English. I'm Emma Stone Reyes."
+    },
+    {
+     "role": "assistant",
+     "text": "Do you currently hold a driving licence?"
+    },
+    {
+     "role": "candidate",
+     "text": "Yes, I have a licence."
+    },
+    {
+     "role": "assistant",
+     "text": "Which city would you like to work in?"
+    },
+    {
+     "role": "candidate",
+     "text": "Puebla"
+    },
+    {
+     "role": "assistant",
+     "text": "What availability are you looking for: full-time, part-time, weekends, or a combination?"
+    },
+    {
+     "role": "candidate",
+     "text": "Part time and weekends"
+    },
+    {
+     "role": "assistant",
+     "text": "What schedule do you prefer: mornings, afternoons, evenings, or are you flexible?"
+    },
+    {
+     "role": "candidate",
+     "text": "In the evenings"
+    },
+    {
+     "role": "assistant",
+     "text": "How long have you worked in delivery, and with which platforms, companies, or local businesses? You can also tell me if you have no delivery experience yet."
+    },
+    {
+     "role": "candidate",
+     "text": "I have never done delivery work"
+    },
+    {
+     "role": "assistant",
+     "text": "When could you start working?"
+    },
+    {
+     "role": "candidate",
+     "text": "On January 10th, 2027"
+    },
+    {
+     "role": "assistant",
+     "text": "Thank you, Emma. Your application has been recorded for the selection team to review."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.682,
+    3.069,
+    3.307,
+    3.132,
+    2.882,
+    2.365,
+    4.446
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3170,
+     "cached": 2669,
+     "output": 132,
+     "reasoning": 49,
+     "seconds": 2.675
+    },
+    {
+     "step": "reply",
+     "input": 879,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.878
+    },
+    {
+     "step": "interpret",
+     "input": 3220,
+     "cached": 3217,
+     "output": 123,
+     "reasoning": 40,
+     "seconds": 1.879
+    },
+    {
+     "step": "reply",
+     "input": 925,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 1.137
+    },
+    {
+     "step": "interpret",
+     "input": 3264,
+     "cached": 3261,
+     "output": 144,
+     "reasoning": 51,
+     "seconds": 2.223
+    },
+    {
+     "step": "reply",
+     "input": 968,
+     "cached": 0,
+     "output": 23,
+     "reasoning": 0,
+     "seconds": 0.993
+    },
+    {
+     "step": "interpret",
+     "input": 3352,
+     "cached": 2669,
+     "output": 88,
+     "reasoning": 0,
+     "seconds": 1.812
+    },
+    {
+     "step": "reply",
+     "input": 948,
+     "cached": 0,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 1.259
+    },
+    {
+     "step": "interpret",
+     "input": 3429,
+     "cached": 2669,
+     "output": 84,
+     "reasoning": 0,
+     "seconds": 1.612
+    },
+    {
+     "step": "reply",
+     "input": 955,
+     "cached": 0,
+     "output": 36,
+     "reasoning": 0,
+     "seconds": 1.173
+    },
+    {
+     "step": "interpret",
+     "input": 3519,
+     "cached": 2669,
+     "output": 90,
+     "reasoning": 0,
+     "seconds": 1.454
+    },
+    {
+     "step": "reply",
+     "input": 982,
+     "cached": 0,
+     "output": 10,
+     "reasoning": 0,
+     "seconds": 0.823
+    },
+    {
+     "step": "interpret",
+     "input": 3586,
+     "cached": 2669,
+     "output": 145,
+     "reasoning": 50,
+     "seconds": 1.992
+    },
+    {
+     "step": "reply",
+     "input": 955,
+     "cached": 0,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 0.953
+    },
+    {
+     "step": "summary",
+     "input": 717,
+     "cached": 0,
+     "output": 88,
+     "reasoning": 0,
+     "seconds": 1.417
+    }
+   ],
+   "cost_usd": 0.0018178300000000003,
+   "failures": [
+    "summary lacks ['noche']: 'Nombre: Emma Stone Reyes\\nLicencia de conducir: sí\\nUbicación de trabajo: Puebla\\nDisponibilidad: tiempo parcial y fines de semana\\nHorario preferido: tardes\\nExperiencia en reparto: 0 años\\nFecha de inicio: 10 de enero de 2027\\nResultado: Screening superado. Motivo: screening superado.\\nDudas pendientes: ninguna. Preguntas para el equipo: ninguna'",
+    "summary contains 'tarde': 'Nombre: Emma Stone Reyes\\nLicencia de conducir: sí\\nUbicación de trabajo: Puebla\\nDisponibilidad: tiempo parcial y fines de semana\\nHorario preferido: tardes\\nExperiencia en reparto: 0 años\\nFecha de inicio: 10 de enero de 2027\\nResultado: Screening superado. Motivo: screening superado.\\nDudas pendientes: ninguna. Preguntas para el equipo: ninguna'"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "english_option_codes_reach_the_summary_correctly",
+   "held_out": false,
+   "closed": true,
+   "outcome": "qualified",
+   "outcome_reasons": [
+    "screening_passed"
+   ],
+   "language": "en",
+   "last_question_field": "start_timing",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Emma Stone Reyes",
+     "normalized": "Emma Stone Reyes",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Yes, I have a licence.",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "Puebla",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "puebla"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": "Part time and weekends",
+     "normalized": {
+      "options": [
+       "part_time",
+       "weekends"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": "In the evenings",
+     "normalized": {
+      "options": [
+       "evening"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": "I have never done delivery work",
+     "normalized": {
+      "years": 0.0,
+      "platforms": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": "On January 10th, 2027",
+     "normalized": {
+      "kind": "date",
+      "value": "2027-01-10"
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Emma Stone Reyes.\nLicencia de conducir: sí.\nUbicación de trabajo: Puebla.\nDisponibilidad: tiempo parcial y fines de semana.\nHorario preferido: tardes.\nExperiencia en reparto: 0 años.\nInicio: 10 de enero de 2027.\nResultado: Screening superado.\nDudas pendientes: ninguna. Preguntas para el equipo: ninguna.",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Please continue in English. I'm Emma Stone Reyes."
+    },
+    {
+     "role": "assistant",
+     "text": "Do you currently hold a driving licence?"
+    },
+    {
+     "role": "candidate",
+     "text": "Yes, I have a licence."
+    },
+    {
+     "role": "assistant",
+     "text": "Which city would you like to work in?"
+    },
+    {
+     "role": "candidate",
+     "text": "Puebla"
+    },
+    {
+     "role": "assistant",
+     "text": "What availability are you looking for: full-time, part-time, weekends, or a combination?"
+    },
+    {
+     "role": "candidate",
+     "text": "Part time and weekends"
+    },
+    {
+     "role": "assistant",
+     "text": "Would you prefer morning, afternoon, evening, or a flexible schedule?"
+    },
+    {
+     "role": "candidate",
+     "text": "In the evenings"
+    },
+    {
+     "role": "assistant",
+     "text": "How long have you worked in delivery, and with which platforms, companies, or local businesses? You can also let me know if you have no delivery experience."
+    },
+    {
+     "role": "candidate",
+     "text": "I have never done delivery work"
+    },
+    {
+     "role": "assistant",
+     "text": "When would you be able to start?"
+    },
+    {
+     "role": "candidate",
+     "text": "On January 10th, 2027"
+    },
+    {
+     "role": "assistant",
+     "text": "Thank you, Emma. Your application has been recorded for the selection team to review."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.685,
+    3.069,
+    3.571,
+    2.585,
+    2.89,
+    3.345,
+    5.33
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3170,
+     "cached": 2669,
+     "output": 128,
+     "reasoning": 45,
+     "seconds": 2.688
+    },
+    {
+     "step": "reply",
+     "input": 879,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.895
+    },
+    {
+     "step": "interpret",
+     "input": 3220,
+     "cached": 3217,
+     "output": 128,
+     "reasoning": 45,
+     "seconds": 1.803
+    },
+    {
+     "step": "reply",
+     "input": 925,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 1.165
+    },
+    {
+     "step": "interpret",
+     "input": 3264,
+     "cached": 3261,
+     "output": 140,
+     "reasoning": 47,
+     "seconds": 2.168
+    },
+    {
+     "step": "reply",
+     "input": 968,
+     "cached": 0,
+     "output": 23,
+     "reasoning": 0,
+     "seconds": 1.299
+    },
+    {
+     "step": "interpret",
+     "input": 3352,
+     "cached": 3349,
+     "output": 88,
+     "reasoning": 0,
+     "seconds": 1.508
+    },
+    {
+     "step": "reply",
+     "input": 948,
+     "cached": 0,
+     "output": 18,
+     "reasoning": 0,
+     "seconds": 1.035
+    },
+    {
+     "step": "interpret",
+     "input": 3426,
+     "cached": 2669,
+     "output": 84,
+     "reasoning": 0,
+     "seconds": 1.409
+    },
+    {
+     "step": "reply",
+     "input": 952,
+     "cached": 0,
+     "output": 36,
+     "reasoning": 0,
+     "seconds": 1.399
+    },
+    {
+     "step": "interpret",
+     "input": 3516,
+     "cached": 2669,
+     "output": 144,
+     "reasoning": 52,
+     "seconds": 2.431
+    },
+    {
+     "step": "reply",
+     "input": 979,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.822
+    },
+    {
+     "step": "interpret",
+     "input": 3585,
+     "cached": 2669,
+     "output": 161,
+     "reasoning": 66,
+     "seconds": 2.303
+    },
+    {
+     "step": "reply",
+     "input": 954,
+     "cached": 0,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 1.748
+    },
+    {
+     "step": "summary",
+     "input": 717,
+     "cached": 0,
+     "output": 80,
+     "reasoning": 0,
+     "seconds": 1.223
+    }
+   ],
+   "cost_usd": 0.0017842300000000004,
+   "failures": [
+    "summary lacks ['noche']: 'Nombre: Emma Stone Reyes.\\nLicencia de conducir: sí.\\nUbicación de trabajo: Puebla.\\nDisponibilidad: tiempo parcial y fines de semana.\\nHorario preferido: tardes.\\nExperiencia en reparto: 0 años.\\nInicio: 10 de enero de 2027.\\nResultado: Screening superado.\\nDudas pendientes: ninguna. Preguntas para el equipo: ninguna.'",
+    "summary contains 'tarde': 'Nombre: Emma Stone Reyes.\\nLicencia de conducir: sí.\\nUbicación de trabajo: Puebla.\\nDisponibilidad: tiempo parcial y fines de semana.\\nHorario preferido: tardes.\\nExperiencia en reparto: 0 años.\\nInicio: 10 de enero de 2027.\\nResultado: Screening superado.\\nDudas pendientes: ninguna. Preguntas para el equipo: ninguna.'"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  }
+ ]
+}
