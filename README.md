@@ -1,193 +1,152 @@
-# Grupo Sazón
+# Grupo Sazón: candidate screening agent and recruiter tool
 
-Local candidate screening and recruiter tool. **A candidate can complete a screening in
-the web chat with the real model, and a recruiter can review it and record a decision.**
+Grupo Sazón hires delivery drivers: about 1,000 applications a week, 13 recruiters phoning by hand, 60% of candidates not answering and 80% of recruiter time spent on unqualified people. This repository has two products: a **screening agent**, a web chat that collects and validates the seven screening fields, and a **recruiter tool** that lists the results and records a decision. **It is a local demo, not production-ready: recruiter routes are unauthenticated.**
 
-Read the [assignment](docs/assignment.html), [process design](docs/design/process-design.md),
-[roadmap](docs/planning/build-roadmap.md), [E1 checklist](docs/planning/e1-foundations.md),
-[E2 plan](docs/planning/e2-rules-and-persistence.md),
-[E3 plan](docs/planning/e3-conversational-agent.md)
-and [E4 plan](docs/planning/e4-recruiter-tool.md).
-[E4.5 — Agent tone](docs/planning/e4-5-agent-tone.md) is closed by user decision with
-known limits. [E4.6 — ATS integration design](docs/planning/e4-6-ats-integration-design.md)
-is delivered as a proposal only: the [OpenAPI contract](docs/design/ats-api.yaml) and its
-[explanation](docs/design/ats-integration.md). Active stage: [E5 — Delivery](docs/planning/e5-delivery.md).
+Phase 1 deliverable: **[process design](docs/design/process-design.md)** (Spanish). Real transcripts: **[sample conversations](docs/evals/sample-conversations.md)**.
 
-## Windows setup (PowerShell)
+## Setup
 
-Start from the repository root; the first command enters `app/`, where all Python
-commands below run. Available local versions were Python 3.13.7,
-Node.js 22.17.0, npm 10.9.2 and Git 2.50.0.windows.2.
-Setup was verified with a newly created virtual environment and npm ci.
+Prerequisites: Git, Python 3.13, Node.js 22 with npm 10, and an OpenAI API key. Verified on Windows with Python 3.13.7, Node.js 22.17.0, npm 10.9.2 and Git 2.50.0. Direct Python dependencies are pinned; transitive ones are not.
+
+From the repository root, in PowerShell (verified):
 
 ```powershell
 Set-Location app
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements-dev.txt
+Copy-Item .env.example .env    # Then edit app/.env and set OPENAI_API_KEY
 Push-Location frontend
 npm ci
 npm run build
 Pop-Location
-python -m pytest
 python -m uvicorn backend.main:app --reload
 ```
 
-Open http://127.0.0.1:8000 for the candidate chat and
-http://127.0.0.1:8000/recruiter for the recruiter tool. In another PowerShell window:
+macOS or Linux, **not verified**: the same steps, with `cd app`, `python3 -m venv .venv`, `source .venv/bin/activate`, `cp .env.example .env` and `(cd frontend && npm ci && npm run build)`.
+
+Open the **candidate chat** at http://127.0.0.1:8000 and the **recruiter tool** at http://127.0.0.1:8000/recruiter. Opening the chat creates an application. **Each chat message calls the paid real model**; a scripted conversation in the final tuned battery averaged about 0.001 USD.
+
+From `app/`, tests need no key and make no network calls. Evals are optional, call the real model and **cost money**:
 
 ```powershell
-Invoke-RestMethod http://127.0.0.1:8000/api/health
+python -m pytest
+python -m evals.run                                            # Tuned battery, about 0.11 USD
+python -m evals.run --held-out                                 # Held-out battery, about 0.06 USD
+python -m evals.run --only guadalajara,no_license --repeat 3   # Scenario names containing these parts
 ```
 
-Expected JSON: `{"status":"ok"}`. Stop Uvicorn with Ctrl+C.
-If PowerShell blocks activation, use `.\.venv\Scripts\python.exe` instead of
-`python` in the pip, pytest and Uvicorn commands; activation is optional.
-Install only runtime dependencies with `python -m pip install -r requirements.txt`.
+Evals save results in `docs/evals/`, and the runner refuses to start once those files add up to 2 USD (now 1.55).
+
+- **Activation blocked by PowerShell:** activation is optional. Use `.\.venv\Scripts\python.exe` instead of `python`.
+- **No key:** the app starts and saves messages, and the chat says the service is unavailable. Restart Uvicorn after editing `.env`, then retry the message.
+- **No build:** `/` and `/recruiter` return a JSON 503 with the build commands, and the API stays up. Restart Uvicorn after creating a build. Check the server with `Invoke-RestMethod http://127.0.0.1:8000/api/health` (status `ok`).
+- **Configuration:** the database is `app/data/screening.db`, created at startup and ignored by Git. `SCREENING_DB` overrides it, with relative paths resolved against `app/`. `SCREENING_MODEL` is optional.
 
 ## Architecture
 
-Application code, tests and dependency files live in `app/`; design and planning
-live in `docs/`. Agent instructions and this README remain at the repository root.
+One FastAPI process serves the API and one React build. One candidate turn, where every saved step commits in one SQLite transaction:
 
-`app/backend/main.py` contains one FastAPI app. `/api/health` works independently of
-the frontend build. `POST /api/applications`, `GET /api/applications/{id}` and
-`POST /api/applications/{id}/messages` drive the chat and return only public state: messages,
-language, closure, any pending turn and `reminder_due_at`. Resending the same `request_id` and
-text is the retry. `POST /api/applications/{id}/reminder` saves the single fixed reminder if the
-server finds it due after 10 minutes of inactivity, and otherwise changes nothing; the open
-page holds one timeout for it, so nothing is sent while the browser is closed.
-`GET /api/recruiter/applications` (optional `outcome` and `recruiter_decision` filters),
-`GET /api/recruiter/applications/{id}` and `PATCH /api/recruiter/applications/{id}/decision`
-serve the recruiter tool with their own projections. They need no provider credentials, never
-call the model, and a decision changes nothing else in the application.
-After building, FastAPI serves `app/frontend/dist/index.html` at
-`/` and `/recruiter`, and the generated assets at `/assets`. Restart Uvicorn after creating the build.
-Unknown API paths return JSON 404; there is no frontend catch-all.
-Without a build, startup logs the build commands and `/` and `/recruiter` return an actionable
-JSON 503 while the API stays available.
-
-The frontend is one React build with two screens, in plain JavaScript and CSS: the chat, and
-`Recruiter.jsx` when the path is exactly `/recruiter`, which never creates an application or
-reads the candidate session. It shows a table with a sidebar of folders by recruiter decision
-(Bandeja, Avanzadas, Descartadas), and a choice in the detail saves at once. It reads the whole
-list and filters in the browser. A plain link in each header switches between the screens for the demo.
-Fraunces and DM Sans are bundled from `app/frontend/src/fonts/` under the OFL, so nothing is
-requested from Google. There is no router and no
-separate frontend development server or CORS setup. The browser keeps the application id
-and any unconfirmed request in `localStorage`; SQLite is authoritative for the history.
-Opening the page without a saved id creates an application.
-
-`app/backend/rules.py` holds the strict Pydantic candidate model, field validation,
-coverage catalog, clarification limit and outcome evaluation. `app/backend/storage.py`
-persists applications and messages in SQLite through standard-library `sqlite3`, with
-each operation in one transaction. The database defaults to `app/data/screening.db`, created
-at startup and ignored by Git; `SCREENING_DB` overrides it, with relative paths resolved
-against `app/`. Python validates and determines outcomes while the LLM interprets and writes.
-`app/backend/conversation.py` chooses the next action and advances each candidate turn
-from saved state. `app/backend/llm.py` holds the model contract, prompts and OpenAI
-adapter. The model picks covered places from a closed list and reports others as stated;
-Python compares them with the catalog.
-
-**This is a local demo, not production-ready.** There is no authentication or deployment
-infrastructure: anyone who can reach the server can read candidate data and change decisions at
-`/recruiter`. Separate routes and projections are not access control. The recruiter list returns
-all matches, without pagination.
-
-## Model and evals
-
-The model is OpenAI `gpt-6-luna`: economical, with strict structured output. Configure it
-by copying `app/.env.example` to `app/.env` and setting `OPENAI_API_KEY`; `SCREENING_MODEL`
-is optional. `.env` is ignored by Git. Pytest needs no credentials and makes no network calls.
-Without a key the app still starts and saves messages; the chat says the service is unavailable.
-**Each chat message costs money**, because it calls the real model.
-
-From `app/`, these commands run scripted conversations against the real model. **Each run
-costs money** (a full battery was about 0.11 USD) and saves its results in `docs/evals/`:
-
-```powershell
-python -m evals.run
-python -m evals.run --held-out --repeat 3
-python -m evals.run --only guadalajara,no_license --repeat 3
+```mermaid
+flowchart TD
+  A["Candidate message"] --> B["Save message; turn phase: received"]
+  B --> C["Model interprets: strict JSON evidence"]
+  C --> D["Python validates with guards and rules; saves fields; phase: interpreted"]
+  D --> E["Python decides next_action: ask, clarify, offer cities, acknowledge stop or close"]
+  E --> F["Model writes the reply, and the summary on close"]
+  F --> G["Save reply and outcome; phase: completed; browser shows the saved reply"]
 ```
 
-The rationale for the model is in the [E3 plan](docs/planning/e3-conversational-agent.md). Latest
-results on the delivered prompts and their known limits are in the
-[final batteries](docs/planning/e4-5-agent-tone.md#final-batteries-before-e5). Real transcripts are in the
-[sample conversations](docs/evals/sample-conversations.md).
+| File | Owns |
+|---|---|
+| `app/backend/main.py` | HTTP routes, candidate and recruiter projections, stable error codes, serving the build |
+| `app/backend/conversation.py` | `next_action`, turn phases and retry, place guards |
+| `app/backend/rules.py` | Field models, validation, coverage catalog, clarification limit, outcome evaluation |
+| `app/backend/storage.py` | SQLite tables and transactions, turn phases, reminder eligibility |
+| `app/backend/llm.py` | `ScreeningLLM` contract, extraction schema, prompts, OpenAI adapter, failure mapping |
+| `app/frontend/src/` | `main.jsx` (chat) and `Recruiter.jsx` (`/recruiter`), one build, plain JavaScript and CSS |
+| `app/evals/`, `app/tests/` | Real-model runner and scenarios, outside pytest; the pytest suite |
 
-## Verification recorded on 2026-11-05
+**Routes.** Chat routes (`/api/applications...`) return an explicit allowlist: messages, language, closure, pending turn and reminder deadline, never the fields or summary. Recruiter routes (`GET /api/recruiter/applications`, optional `outcome` and `recruiter_decision` filters; `GET .../{id}`; `PATCH .../{id}/decision`) read the saved records through `storage.py`, never call the model and need no key. A decision changes nothing else. The screen reads the whole list once and files it into folders by decision (Bandeja, Avanzadas, Descartadas).
 
-- `python -m pytest`: 802 passed. Final batteries on the delivered prompts: 109/110 tuned and 70/74
-  held-out, with no false rejection, false qualification or unnecessary review counted. Known limits,
-  including a reply occasionally doubled in one message, are in the
-  [evidence](docs/planning/e4-5-agent-tone.md#final-batteries-before-e5).
-- ATS design, documentation only: Spectral 6.17.0 reports 0 errors and 4 reviewed warnings on the
-  [proposed contract](docs/design/ats-api.yaml), and its examples load through the real models. Not
-  implemented and not tested against any ATS. See the
-  [evidence](docs/planning/e4-6-ats-integration-design.md#evidence-2026-11-05).
-- `python -m pytest` after adding the single offer of covered cities: 753 passed. Nine focused
-  real-model conversations, once each: the runner reports 9/9 and all were read. One English close
-  added an unrequested invitation to apply again. See the
-  [evidence](docs/planning/e4-5-agent-tone.md#scoped-follow-up-covered-cities-before-a-coverage-rejection).
-- Recruiter detail after limiting “Datos recogidos” to applications without a summary: `npm run build`
-  passed. In real Chrome, with a temporary database and no model calls, a closed application shows
-  the summary and conversation without that card, and an incomplete one keeps it (1 of 7, all seven
-  rows). No summary-failure case or narrow width was checked.
-- `python -m pytest` after the E4.5 prompt change: 737 passed. Five real-model conversations, run
-  three times in all: the runner reports 5/5 each time, but manual review of the final run fails two
-  of the five. Screening outcomes and saved data are as expected. See the
-  [E4.5 final cycle](docs/planning/e4-5-agent-tone.md#final-cycle-the-users-acknowledgement-rule).
-- `python -m pytest` after E4: 736 passed. `npm run build` passed. Recruiter screen checks in
-  real Chrome, with a temporary database and a fake model, and what was not checked: see the
-  [E4 evidence](docs/planning/e4-recruiter-tool.md#e4-evidence-2026-11-05).
-- `python -m pytest` after E3.4: 685 passed. `npm run build` passed.
-- Reminder in the served browser and focused real-model runs (stop/resume and imprecise start, all
-  3/3): see the [E3.4 evidence](docs/planning/e3-conversational-agent.md#e34-evidence-2026-11-05).
-  With the final prompts, 37/39 runs of the affected cases passed; both failures are provider
-  `llm_transient` errors, and those two scenarios then passed 6/6 alone. Replies after a reminder
-  passed 21/21. The full batteries were not rerun.
-- `python -m pytest` after E3.3: 641 passed. `npm run build` passed.
-- Browser checks with the real model (qualified and rejected screenings, reload, retry, closed
-  state, new application): see the [E3.3 evidence](docs/planning/e3-conversational-agent.md#e33-evidence-2026-11-05).
-- `python -m pytest` after E3.2: 593 passed.
-- Final evals with the real model: tuned 89/89 and held-out 82/84, with no false rejection
-  or false qualification.
+**Storage.** `applications` has the outcome and decision as columns and the candidate as a JSON `snapshot`; `messages` holds the full history; `turns` holds the phase of each request.
 
-## Verification recorded on 2026-11-04
+**Structured output.** The model answers a strict JSON schema (`Extraction` in `llm.py`); Python turns it into `fields`, where all seven keys always exist. Each has `raw`, `normalized`, `status` (`missing`, `resolved`, `unresolved`), `reason` and `clarifications_asked`. Next to `fields` are `outcome`, `outcome_reasons`, `pending_questions`, `summary` and `recruiter_decision`; the recruiter detail route returns them. The `normalized` values:
 
-- Created `app/.venv` and installed `requirements-dev.txt` successfully.
-- `python -m pytest` after E2: 192 passed, with temporary SQLite files and no network
-  or LLM calls. The environment was not recreated after adding the `pydantic` pin.
-- `python -m pip check`: no broken requirements.
-- `npm ci` and `npm run build`: passed; the npm lockfile is included.
-- `npm audit`: no reported vulnerabilities after updating Vite to 7.3.7 and
-  compatible transitive dependencies.
-- Uvicorn served the health endpoint, HTML and generated JS/CSS over real HTTP.
-- Headless Chrome rendered the React placeholder; the screenshot was inspected.
-- Earlier missing-build checks confirmed a useful root 503 and a working API.
-- Health TDD was recorded during implementation: 404 before the route, then 200.
+```json
+{
+  "full_name": "Luis Romero Vega",
+  "driving_license": true,
+  "work_locations": {"identified": [{"country": "ES", "locality": "madrid"}], "unresolved": []},
+  "availability": {"options": ["full_time"], "notes": null},
+  "preferred_schedule": {"options": ["morning"], "notes": null},
+  "delivery_experience": {"years": 2.0, "platforms": ["Glovo"]},
+  "start_timing": {"kind": "date", "value": "2026-12-01"}
+}
+```
 
-The test run emits a Starlette deprecation warning about its HTTPX test adapter;
-it does not fail tests. Direct Python dependencies are pinned; transitive Python
-versions are resolved by pip and are not a full environment lock.
+## Key design decisions
 
-## Next work
+- **OpenAI `gpt-6-luna`.** Economical (0.10/0.50 USD per million input/output tokens), with strict structured output, and a probe call worked. Gemini Flash's free quota could not be confirmed and its only probe timed out at 60 s. *Trade-off:* selection was kept simple: no other provider was compared head to head. It proved cheap (110 runs for 0.11 USD, median turn 3.6 s), but four calls took about 243 s in one run, cause not investigated, and prompt rules are not always followed. Another provider needs a new adapter.
+- **The model converses, Python decides.** A wrong outcome is the costliest error and candidate text must not change the rules, so outcomes come only from `rules.py`, which is testable without a model. *Trade-off:* two model calls per turn, and a wrong extraction can still give a wrong outcome. "Sí, tengo coche" counts as holding a licence, a false qualification risk accepted by decision.
+- **Closed city list plus contradiction guard.** The model picks covered cities from a closed enum and reports others as stated, so it cannot invent coverage. But any listed city is a valid answer: one run saved Valencia for the north of Monterrey. So a city is refused when no candidate message names it and the latest one names another. *Trade-off:* a wrong city passes if the candidate names no other, and places outside the list are not checked. There is no geocoding, so a nearby town counts as uncovered.
+- **Turn phases and retry from saved state.** A turn makes several calls that can fail separately. Resending the same `request_id` and text resumes the saved phase, so a retry or lost response neither duplicates a message nor loses an answer. *Trade-off:* a `turns` table and more code than a plain chat; concurrent retries can repeat a paid call, though not its database effects; a reply that keeps failing holds the turn.
+- **SQLite.** No server to install, and real transactions for the phases. *Trade-off:* one writer at a time, no migrations (new snapshot keys get defaults), and fields inside the JSON cannot be indexed. It does not fit real volume.
+- **Local React build served by FastAPI.** One process, one origin and no CORS, so a reviewer starts one command. *Trade-off:* Node is needed to build, Uvicorn must restart after a first build, and there are no frontend tests.
+- **Never reject on a doubt.** A false rejection can lose a valid candidate, while a doubt costs one recruiter look. Rejection needs an unequivocal no, or an uncovered place after one offer of the covered cities. After the clarification limit (two per field, one for start date) the doubt goes to `pending_review`. *Trade-off:* extra turns and recruiter work, the client's own pain point, so evals count unnecessary review.
 
-[E4](docs/planning/e4-recruiter-tool.md) is complete.
-[E4.5 — Agent tone](docs/planning/e4-5-agent-tone.md) is closed by [user decision](docs/planning/e4-5-agent-tone.md#user-decision-closed-with-known-limits)
-with known limits: replies now receive the saved fields and pending questions and usually open
-with a brief acknowledgement, but a correction can go unacknowledged and a job question can come
-up when not asked. [E4.6 — ATS integration design](docs/planning/e4-6-ats-integration-design.md)
-is delivered: a [proposed API contract](docs/design/ats-api.yaml) and
-[integration explanation](docs/design/ats-integration.md), with no connector and no change to the
-running application. The active stage is [E5 — Delivery](docs/planning/e5-delivery.md).
+## Assignment coverage
 
-A [scoped location-question change](docs/planning/e4-5-agent-tone.md#scoped-follow-up-work-location-question)
-now instructs the agent to mention delivery areas in Spain and Mexico and ask for the
-desired city and country together. Before a coverage rejection the agent now
-[offers the covered cities once](docs/planning/e4-5-agent-tone.md#scoped-follow-up-covered-cities-before-a-coverage-rejection);
-the coverage evaluation and catalog are unchanged.
+| Core requirement | How it is met | Where |
+|---|---|---|
+| Language | Python 3.13 backend; JavaScript only for the browser screens | `app/backend/` |
+| LLM | OpenAI `gpt-6-luna`, justified above | `llm.py`, [E3 plan](docs/planning/e3-conversational-agent.md) |
+| Conversation | The model writes each message for the action Python chose, following the Phase 1 stages | `REPLY_PROMPT`, `next_action` |
+| Data extraction | Strict JSON schema; all seven fields always present, with raw and normalized values | `Extraction`, `CandidateFields` |
+| Validation | Invalid or ambiguous answers are saved as unresolved and asked again, rephrased, then with options | `rules.py`, `next_action` |
+| Context | Full history saved; the interpreter gets all of it, a reply the last six messages plus saved fields | `messages` table, `llm.py` |
+| Storage | Conversations and extracted data in SQLite, the data as JSON | `storage.py` |
+| Summary | Generated at close, saved, in Spanish, shown only to the recruiter; incomplete applications have none | `write_summary` |
+| Error handling | Unusable model output asks the candidate to repeat; provider failures keep the turn for retry; stable error codes | `conversation.py`, `main.py` |
 
-The recruiter detail now shows “Datos recogidos” only when an application has no summary, such as
-an incomplete one. Otherwise the internal summary is the single view of the collected data.
+Bonus features built:
+
+- **Multi-language.** Detects a request or a whole message in the other language and continues in ES or EN with the same data. One isolated word does not switch. Same-sentence code-switching is not built or scored as such. The greeting and the summary are always Spanish.
+- **Guardrails, basic.** Candidate text is passed as data; evals include injection scenarios and one insult, which is not broad coverage. The prompt forbids inventing job terms. Candidate responses omit internal data, logs hold codes rather than message text, and model calls use `store=False`. Messages do reach the provider, and the chat does not tell the candidate.
+- **Re-engagement.** One fixed reminder after 10 minutes of inactivity, only while the page is open. Nothing is sent with the browser closed.
+- **Tests and evals.** See below.
+- **ATS integration design, design only.** [OpenAPI contract](docs/design/ats-api.yaml) and [explanation](docs/design/ats-integration.md). No connector exists, and it was not tested against any ATS.
+
+Not built: voice, sentiment analysis, analytics, interview scheduling, deployment design and RAG. Job questions are saved for the recruiter, not answered.
+
+## Tests and evals
+
+`python -m pytest` reports **802 passed**. The [final batteries](docs/planning/e4-5-agent-tone.md#final-batteries-before-e5) on the delivered prompts gave **109/110 tuned** and **70/74 held-out**, with no false rejection, false qualification or unnecessary review counted. This is a small scripted acceptance set, and one held-out failure did motivate the city guard. **The runner does not score tone**: read the transcripts for that. Known limits, left in place by decision:
+
+- A reply occasionally appears twice in one message, once with stray characters (2 of about 800 replies, cause unknown).
+- A job question in the last turn can be answered but not saved, so the recruiter does not see it (1 of 3 runs).
+- A job answer can repeat on the next turn (1 of 14 runs with a job question, found by reading).
+- An extra location question can appear instead of saving the city (1 of 3 runs); no wrong city was saved.
+- Acknowledgements are repetitive ("Perfecto"), and a correction may go unacknowledged.
+
+The other runner failure is a scorer gap on the spelling "carné". Further limits are in that section and in the stage plans.
+
+## Potential improvements
+
+1. **Production minimum** (from the process design): recruiter authentication, a notice to candidates about their data, retention and deletion, and a message length limit.
+2. **The real no-answer problem:** a server-side reminder and a channel such as WhatsApp, since nothing reaches a candidate who left the page. The 8-city catalog is fictional against the client's 45 locations.
+3. **Agent defects:** save raw model output to find the doubled reply, save last-turn job questions reliably, try `WRITING_EFFORT = "low"` (untested), and add tone to the evals.
+4. **Fewer wrong rejections:** a confirmation before a coverage rejection, and place resolution beyond the list.
+5. **Recruiter and quality:** job facts or RAG for candidate questions, analytics on drop-off, frontend tests.
+
+**Scaling to 10K candidates a week** (about one a minute on average, with peaks). At about 0.0017 USD per completed scripted screening, the median of the saved qualified runs, the model costs about 17 USD a week. That is an extrapolation from synthetic runs, but cost is not the constraint. It would require Postgres with indexed fields instead of SQLite; several app instances, which the saved turn state allows; model calls in a queue with bounded concurrency instead of held HTTP requests, plus provider limits and a fallback; server-side pagination and folder counts; a scheduler for reminders; monitoring of cost, latency and drop-off; evals in CI with larger samples; and the [ATS sync](docs/design/ats-integration.md#what-a-future-implementation-must-add).
+
+## Sample conversations
+
+[Five real transcripts](docs/evals/sample-conversations.md), copied by script from one eval run: **qualified**, with an imprecise start date clarified once; **early rejection** for no licence; **covered cities offered** after an uncovered city; **pending review** for an unresolved Guadalajara; and **stop and resume**, with a job question while stopped.
+
+## Project map
+
+- Design: [process design](docs/design/process-design.md), [flow diagram](docs/design/conversation-flow.html), [ATS contract](docs/design/ats-api.yaml), [ATS explanation](docs/design/ats-integration.md).
+- Planning and verification evidence: [roadmap](docs/planning/build-roadmap.md), [E1](docs/planning/e1-foundations.md), [E2](docs/planning/e2-rules-and-persistence.md), [E3](docs/planning/e3-conversational-agent.md), [E4](docs/planning/e4-recruiter-tool.md), [E4.5](docs/planning/e4-5-agent-tone.md), [E4.6](docs/planning/e4-6-ats-integration-design.md), [E5](docs/planning/e5-delivery.md).
+- [Assignment](docs/assignment.html); eval results in [`docs/evals/`](docs/evals/). Fraunces and DM Sans are bundled under the OFL in `app/frontend/src/fonts/`.

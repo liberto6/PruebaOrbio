@@ -40,7 +40,7 @@ A candidate can complete a
 screening in the browser with the real model (`gpt-6-luna`), reload, retry, stop and resume, and
 gets one reminder after 10 minutes of inactivity; closed applications are read-only. A recruiter
 works through an inbox and folders at `/recruiter`, reads the detail and saves a decision. `python -m
-pytest` reports 736 passed and `npm run build` passes. Real-model evals are in `app/evals/`,
+pytest` reported 736 passed at E4's closure and `npm run build` passed. Real-model evals are in `app/evals/`,
 their results and the [sample conversations](../evals/sample-conversations.md) in `docs/evals/`.
 See [E4 plan and evidence](e4-recruiter-tool.md), [E3 plan and evidence](e3-conversational-agent.md),
 [E2 evidence](e2-rules-and-persistence.md), [E1 evidence](e1-foundations.md) and

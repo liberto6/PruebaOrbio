@@ -33,16 +33,16 @@ are presented openly.
 
 ## Decisions for the user
 
-- [ ] Public or private repository, and where it is hosted.
-- [ ] Video narration language. Recommended: English narration over the Spanish demo.
-- [ ] Fallback if the model fails live. Recommended: the recorded video, plus conversations already saved
-  in a local database for the recruiter tool, which needs no model.
+- [x] Repository: public, in the user's GitHub account `liberto6`. The assignment does not state otherwise.
+- [x] Video narration: English over the Spanish demo.
+- [x] Fallback if the model fails live: the recorded video, plus conversations already saved in a local
+  database for the recruiter tool, which needs no model.
 
 ## Checklist
 
-- [ ] Delivered work committed, with the user's approval.
-- [ ] README reorganized; every link and command checked.
-- [ ] Process design matches the delivered behaviour.
+- [x] Delivered work committed, with the user's approval.
+- [x] README reorganized; every link and command checked.
+- [x] Process design matches the delivered behaviour.
 - [ ] Clean clone: install, `python -m pytest`, `npm run build`, one real screening, one decision.
 - [ ] No secret in the repository or its history, and `.env` and the database ignored.
 - [ ] Demo script rehearsed once against the real model; its cost recorded.
@@ -53,4 +53,4 @@ are presented openly.
 
 ## Evidence
 
-None yet.
+- README, 2026-11-05: reorganized around the assignment's list; relative links and anchors resolved by script; PowerShell setup, build, 503, health, `SCREENING_DB`, `python -m pytest` (802 passed) and `python -m evals.run --help` run in a throwaway clone with no key and no chat message or paid eval; macOS/Linux commands not verified; the per-stage log left the README, with its one README-only item moved to the [E4 evidence](e4-recruiter-tool.md#e4-evidence-2026-11-05).

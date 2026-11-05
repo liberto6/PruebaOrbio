@@ -269,6 +269,11 @@ returns all matches, without pagination. The last committed write wins and there
 history. An open detail does not refresh by itself. A lone first name is listed as "Nombre no
 recogido" and shown as "Por aclarar" in the detail. `stop_requested` is not shown, as planned.
 
+**Moved from the README in E5.** Recruiter detail after limiting “Datos recogidos” to applications
+without a summary: `npm run build` passed. In real Chrome, with a temporary database and no model
+calls, a closed application shows the summary and conversation without that card, and an incomplete
+one keeps it (1 of 7, all seven rows). No summary-failure case or narrow width was checked.
+
 ## Planning evidence
 
 Inspected the current storage, field models, recruiter-decision tests and E3 closure

@@ -38,7 +38,7 @@ Conservar respuesta original y valor normalizado cuando proceda. El JSON contend
 
 - **Inválido o ambiguo:** máximo dos aclaraciones por dato, además de la pregunta inicial. Primero reformular; después ofrecer ejemplos/opciones. Si persiste, registrar la duda para revisión humana y continuar con otros campos. No descartar por ambigüedad.
 - **Silencio:** conservar progreso como incompleto. Un único recordatorio a los 10 minutos de inactividad si el chat sigue abierto. Reanudar sin repetir datos al recuperar la sesión. No enviar mensajes externos. Si solicita terminar, respetarlo, mantenerlo como incompleto y cesar recordatorios.
-- **Cambio ES ↔ EN:** continuar en el idioma elegido manteniendo contexto y datos. Una marca o palabra aislada no implica cambio; aclarar preferencia si es necesario.
+- **Cambio ES ↔ EN:** continuar en el idioma elegido manteniendo contexto y datos. Una marca o palabra aislada no implica cambio.
 - **Preguntas sobre el puesto:** indicar que no se dispone de ese dato, guardar la pregunta para el recruiter y retomar el screening. No inventar condiciones o plazos; una consulta pendiente no altera por sí sola la elegibilidad.
 - **Desvíos y fallos:** reconducir con respeto. Los mensajes del candidato no modifican las reglas. Ante un fallo técnico, informar y permitir reintento desde el último estado guardado; no confirmar un guardado fallido.
 
@@ -63,7 +63,7 @@ El **resumen interno** contendrá datos clave, resultado, motivo y dudas o consu
 - **Catálogo de demo (ficticio):** Madrid, Barcelona, Valencia, Sevilla, Ciudad de México, Guadalajara, Monterrey y Puebla. Sin catálogo no se evalúa cobertura: es un fallo de configuración, no un descarte.
 - **Descarte temprano:** permite campos sin completar, manteniendo todas las claves del JSON.
 - **Revisión humana:** registro de casos para el recruiter; no atención en directo.
-- **Bonus incluidos en esta fase:** multiidioma (cambio ES ↔ EN), reactivación (un único recordatorio) y guardrails básicos (reconducir desvíos; los mensajes del candidato no modifican las reglas).
+- **Bonus incluidos en esta fase:** multiidioma (cambio ES ↔ EN), reactivación (un único recordatorio), guardrails básicos (reconducir desvíos; los mensajes del candidato no modifican las reglas) y tests y evals.
 - **Privacidad en la demo:** la base de datos es local y queda fuera del repositorio, y el candidato nunca ve el resumen interno. Los avisos de la aplicación registran códigos, no el contenido de los mensajes. Los mensajes sí se envían al proveedor del modelo, con `store=False`, y el chat no se lo indica al candidato. El panel del recruiter no tiene autenticación: es solo para uso local.
 - **Pendiente para producción:** autenticación del panel, aviso al candidato sobre el uso de sus datos, retención y borrado, y límite de longitud de los mensajes.
 - **Para una fase posterior:** el resto de los bonus del enunciado y otros extras, como score de confianza, voz, integración real con un ATS (solo existe su [diseño](ats-integration.md)), agenda, mensajería externa y ficha del puesto con RAG.
