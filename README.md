@@ -8,10 +8,11 @@ Phase 1 deliverable: **[process design](docs/design/process-design.md)** (Spanis
 
 Prerequisites: Git, Python 3.13, Node.js 22 with npm 10, and an OpenAI API key. Verified on Windows with Python 3.13.7, Node.js 22.17.0, npm 10.9.2 and Git 2.50.0. Direct Python dependencies are pinned; transitive ones are not.
 
-From the repository root, in PowerShell (verified):
+In PowerShell (verified):
 
 ```powershell
-Set-Location app
+git clone https://github.com/liberto6/PruebaOrbio.git
+Set-Location PruebaOrbio\app
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements-dev.txt
@@ -23,7 +24,7 @@ Pop-Location
 python -m uvicorn backend.main:app --reload
 ```
 
-macOS or Linux, **not verified**: the same steps, with `cd app`, `python3 -m venv .venv`, `source .venv/bin/activate`, `cp .env.example .env` and `(cd frontend && npm ci && npm run build)`.
+macOS or Linux, **not verified**: the same steps, with `cd PruebaOrbio/app`, `python3 -m venv .venv`, `source .venv/bin/activate`, `cp .env.example .env` and `(cd frontend && npm ci && npm run build)`.
 
 Open the **candidate chat** at http://127.0.0.1:8000 and the **recruiter tool** at http://127.0.0.1:8000/recruiter. Opening the chat creates an application. **Each chat message calls the paid real model**; a scripted conversation in the final tuned battery averaged about 0.001 USD.
 

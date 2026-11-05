@@ -1,6 +1,6 @@
 # E5 — Delivery
 
-**Status: planned, 2026-11-05.** Sources: [assignment](../assignment.html),
+**Status: in progress, 2026-11-05. Remaining: the video and a live rehearsal by the user.** Sources: [assignment](../assignment.html),
 [process design](../design/process-design.md) and [roadmap](build-roadmap.md).
 
 ## Goal
@@ -43,14 +43,18 @@ are presented openly.
 - [x] Delivered work committed, with the user's approval.
 - [x] README reorganized; every link and command checked.
 - [x] Process design matches the delivered behaviour.
-- [ ] Clean clone: install, `python -m pytest`, `npm run build`, one real screening, one decision.
-- [ ] No secret in the repository or its history, and `.env` and the database ignored.
-- [ ] Demo script rehearsed once against the real model; its cost recorded.
+- [x] Clean clone: install, `python -m pytest`, `npm run build`, one real screening, one decision.
+- [x] No secret in the repository or its history, and `.env` and the database ignored.
+- [x] Demo script run once against the real model by an agent; its cost recorded. The user's own rehearsal is still to do.
 - [ ] Video script and shot list ready; video recorded by the user, 5-10 minutes.
-- [ ] Presentation script ready.
-- [ ] Repository published and its link checked from outside, by the user or with their approval.
+- [x] Presentation script ready, kept out of Git in `docs/delivery/`, with personal answers for the user to adjust.
+- [x] Repository published and its link checked from outside, with the user's approval.
 - [ ] Roadmap, README and `AGENTS.md` match the delivered work.
 
 ## Evidence
 
 - README, 2026-11-05: reorganized around the assignment's list; relative links and anchors resolved by script; PowerShell setup, build, 503, health, `SCREENING_DB`, `python -m pytest` (802 passed) and `python -m evals.run --help` run in a throwaway clone with no key and no chat message or paid eval; macOS/Linux commands not verified; the per-stage log left the README, with its one README-only item moved to the [E4 evidence](e4-recruiter-tool.md#e4-evidence-2026-11-05).
+- Clean clone, 2026-11-05: every PowerShell setup step passed on a new clone of `b2cea18`, with no reused environment, and `python -m pytest` reported 802 passed. macOS/Linux, the evals, the no-build path and blocked activation were not part of this run.
+- Demo run, 2026-11-05: in real Chrome against the real model, on that clone. Qualified with “maadrid” and a job question, no licence, single offer then rejection for Málaga, English to the close, pending review on Guadalajara, and the reminder after about 10 minutes all behaved as the script says, with no doubled reply and no provider error. Turns took 2.8 to 6.2 s. Most messages were entered by a page script rather than typed. Estimated cost about 0.007 USD from saved run costs; browser calls are not metered. In the recruiter tool, a decision was saved with no key and survived a reload.
+- Noticed, left in place by the code freeze: “Malaga” without its accent in the recruiter row, “Good to know” repeated like “Perfecto”, and summary layout that varies between runs.
+- Secrets, 2026-11-05: no `.env`, database or key pattern in the tracked files or the history of any branch.
