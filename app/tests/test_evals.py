@@ -8,7 +8,14 @@ from backend.conversation import REPEAT_REQUEST_TEXTS
 from backend.llm import Interpretation, UnusableOutput
 from backend.rules import Proposal
 from evals.run import cost_of, run_conversation, score, wrong_decisions
-from evals.scenarios import SCENARIOS, Scenario, experience, places, resolved
+from evals.scenarios import (
+    SCENARIOS,
+    Scenario,
+    experience,
+    places,
+    replies_admit_no_information,
+    resolved,
+)
 
 NOW = datetime(2026, 11, 5, tzinfo=timezone.utc)
 SCENARIO = Scenario(
@@ -209,6 +216,20 @@ def test_runner_stops_at_close_and_reports_unused_messages():
     result = run_conversation(scenario, ScriptedLLM([closing]))
     assert (result["closed"], result["unused_messages"]) == (True, 1)
     assert result["outcome"] == "disqualified"
+
+
+@pytest.mark.parametrize(
+    "reply, admitted",
+    [
+        ("No tengo esa información.", True),
+        ("I don\u2019t have that information.", True),
+        ("I don't have that information.", True),
+        ("El sueldo es muy bueno.", False),
+    ],
+)
+def test_admitting_no_information_is_recognized(reply, admitted):
+    transcript = [{"role": "assistant", "text": "greeting"}, {"role": "assistant", "text": reply}]
+    assert (replies_admit_no_information({"transcript": transcript}) is None) is admitted
 
 
 def test_scenarios_have_unique_names_and_held_out_cases():

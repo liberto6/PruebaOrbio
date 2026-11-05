@@ -76,7 +76,7 @@ def all_replies_in(language):
 
 
 def replies_admit_no_information(run):
-    pattern = r"no (tengo|dispongo|cuento|dispongo de)|don't have|do not have"
+    pattern = r"no (tengo|dispongo|cuento)|don.t have|do not have"
     if not any(re.search(pattern, folded(reply)) for reply in replies_of(run)):
         return "no reply says the information is not available"
     return None
@@ -354,6 +354,30 @@ SCENARIOS = [
         checks=[all_replies_in("en")],
     ),
     Scenario(
+        name="english_option_codes_reach_the_summary_correctly",
+        messages=[
+            "Please continue in English. I'm Emma Stone Reyes.",
+            "Yes, I have a licence.",
+            "Puebla",
+            "Part time and weekends",
+            "In the evenings",
+            "I have never done delivery work",
+            "On January 10th, 2027",
+        ],
+        outcome="qualified",
+        language="en",
+        fields={
+            "work_locations": places("MX/puebla"),
+            "availability": options("part_time", "weekends"),
+            "preferred_schedule": options("evening"),
+            "delivery_experience": experience(0),
+            "start_timing": start("date", "2027-01-10"),
+        },
+        summary_has=[["noche"], ["parcial"], ["fines de semana"]],
+        summary_lacks=["tarde"],
+        repeat=CRITICAL_REPEATS,
+    ),
+    Scenario(
         name="switch_to_english_and_back_to_spanish",
         messages=[
             NAME,
@@ -492,7 +516,7 @@ SCENARIOS = [
             "delivery_experience": experience(0.5, "bakery"),
             "start_timing": start("unknown", None),
         },
-        summary_has=[["maria"], ["monterrey"], ["seguro", "insurance"]],
+        summary_has=[["maria"], ["monterrey"], ["seguro", "insurance"], ["noche"]],
         checks=[pending_count(1), all_replies_in("en"), replies_admit_no_information],
         held_out=True,
     ),
