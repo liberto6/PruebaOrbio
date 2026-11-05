@@ -155,6 +155,19 @@ def test_a_good_close_passes():
     assert score(CLOSED, closed_run("Screening superado por la candidata en Madrid.")) == []
 
 
+@pytest.mark.parametrize(
+    "summary, denies",
+    [
+        ("Pendiente de revisión.\nDudas pendientes: ninguna.", True),
+        ("Pendiente de revisión. Dudas pendientes: zona sin aclarar.", False),
+    ],
+)
+def test_a_review_summary_must_not_deny_its_doubts(summary, denies):
+    scenario = Scenario(name="r", messages=["hola"], outcome="pending_review")
+    bad_run = {**closed_run(summary), "outcome": "pending_review"}
+    assert any("denies" in problem for problem in score(scenario, bad_run)) is denies
+
+
 def test_experience_compares_years_and_each_platform():
     scenario = Scenario(name="e", messages=[], fields={"delivery_experience": experience(1.5, "glovo")})
     result = with_field("delivery_experience", status="resolved", normalized={"years": 1.5, "platforms": ["Glovo"]})

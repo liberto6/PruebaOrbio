@@ -47,6 +47,7 @@ INTERNAL_TERMS = re.compile(
 EMOJI = re.compile("[\U0001f300-\U0001faff☀-➿]")
 MONEY = re.compile(r"\d\s*(€|euros?|pesos|usd|mxn|\$)|[€$]\s*\d")
 PROMISE = re.compile(r"entrevista|interview|te (llamaremos|contactaremos)|we will (call|contact)")
+DENIED_DOUBTS = re.compile(r"dudas( pendientes)?\s*:\s*(ninguna|no hay|sin dudas)")
 OUTCOME_WORDS = {"qualified": "superado", "disqualified": "descalificado", "pending_review": "pendiente"}
 
 
@@ -159,6 +160,8 @@ def _summary_problems(scenario, run: dict) -> list[str]:
         problems.append(f"invented money term in summary: {summary!r}")
     if OUTCOME_WORDS[run["outcome"]] not in text:
         problems.append(f"summary lacks the result {run['outcome']}: {summary!r}")
+    if run["outcome"] == "pending_review" and DENIED_DOUBTS.search(text):
+        problems.append(f"summary denies the doubts under review: {summary!r}")
     for words in scenario.summary_has:
         if not any(word in text for word in words):
             problems.append(f"summary lacks {words}: {summary!r}")

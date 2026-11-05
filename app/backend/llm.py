@@ -389,7 +389,10 @@ flexible. Places are shown by name.
 - Result and reason, in plain Spanish, from `outcome` and `outcome_reasons`: qualified is \
 "Screening superado", disqualified is "Descalificado", pending_review is "Pendiente de revisión".
 - Pending doubts: each field with status unresolved, with what the candidate said (raw) and why it \
-is open; fields with status missing are listed as "no recogido".
+is open; fields with status missing are listed as "no recogido". When `outcome_reasons` has \
+coverage_unresolved, the places in the work_locations `unresolved` list are a pending doubt: \
+coverage could not be confirmed for them. With outcome pending_review there is always at least \
+one doubt: never write "ninguna" for it.
 - Candidate questions for the team: every item in `pending_questions`, or "ninguna".
 """
 
@@ -400,7 +403,7 @@ def _dumped(data) -> str:
 
 
 def _interpretation_input(context: TurnContext) -> str:
-    # The greeting asks for the name without being saved as question metadata.
+    # An application created without the greeting has no saved question yet.
     state = {
         "current_date": context.now.strftime("%Y-%m-%d (%A)"),
         "language": context.language,
