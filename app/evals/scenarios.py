@@ -193,7 +193,7 @@ SCENARIOS = [
             "work_locations": MISSING,
             "start_timing": MISSING,
         },
-        summary_has=[["carlos"], ["permiso", "carnet"]],
+        summary_has=[["carlos"], ["permiso", "carnet", "licencia"]],
     ),
     Scenario(
         name="license_in_progress_then_yes",
@@ -468,7 +468,7 @@ SCENARIOS = [
         outcome="pending_review",
         fields={"driving_license": UNRESOLVED, "work_locations": MADRID, **TAIL_FIELDS},
         clarifications={"driving_license": 2},
-        summary_has=[["permiso", "carnet"]],
+        summary_has=[["permiso", "carnet", "licencia"]],
     ),
     Scenario(
         name="dodging_the_start_stops_after_its_single_clarification",

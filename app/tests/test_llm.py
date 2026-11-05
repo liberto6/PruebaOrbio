@@ -204,6 +204,20 @@ def test_unresolved_evidence_has_no_value_even_if_the_model_wrote_one():
     assert (proposal.raw, proposal.reason) == ("me lo estoy sacando", "in_progress")
 
 
+@pytest.mark.parametrize("reason", [None, "ambiguous_place"])
+def test_places_only_in_doubt_keep_the_same_shape_whatever_status_the_model_wrote(reason):
+    payload = places(unresolved=["Guadalajara"], status="unresolved", reason=reason)
+    proposal = interpret(extraction(work_locations=payload)).proposals[0]
+    assert (proposal.status, proposal.reason) == ("resolved", None)
+    assert proposal.value == {"identified": [], "unresolved": ["Guadalajara"]}
+
+
+def test_unresolved_locations_with_an_identified_place_stay_unresolved():
+    payload = places(other=[("ES", "Bilbao")], status="unresolved", reason="retracted")
+    proposal = interpret(extraction(work_locations=payload)).proposals[0]
+    assert (proposal.status, proposal.value, proposal.reason) == ("unresolved", None, "retracted")
+
+
 def test_places_are_translated_and_python_builds_the_identifiers():
     payload = places(
         catalog=["ES/madrid", "MX/ciudad_de_mexico"],

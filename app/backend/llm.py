@@ -195,8 +195,17 @@ VALUE_BUILDERS = {
 }
 
 
+def _has_only_doubtful_places(evidence: Evidence) -> bool:
+    return (
+        isinstance(evidence, LocationsEvidence)
+        and bool(evidence.unresolved_places)
+        and not (evidence.catalog_places or evidence.other_places)
+    )
+
+
 def _proposal(name: str, evidence: Evidence) -> Proposal:
-    resolved = evidence.status == "resolved"
+    # Doubtful places are kept as such under either status: the model writes both.
+    resolved = evidence.status == "resolved" or _has_only_doubtful_places(evidence)
     return Proposal(
         field=name,
         status=evidence.status,
