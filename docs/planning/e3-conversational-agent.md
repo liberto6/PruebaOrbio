@@ -1,6 +1,7 @@
 # E3 - Conversational agent
 
-**Status: Planned, revised 2026-11-05.** No E3 implementation is claimed. Sources:
+**Status: In progress, revised 2026-11-05.** E3.1 is implemented with a fake LLM; no
+real model, HTTP endpoint or chat exists yet, so E3 is not complete. Sources:
 [assignment](../assignment.html), [process design](../design/process-design.md),
 [roadmap](build-roadmap.md) and [E2 contracts and limits](e2-rules-and-persistence.md).
 
@@ -241,7 +242,7 @@ must be explicitly reflected in the design and roadmap.
 
 ## Closure
 
-- [ ] E3.1: next action, turn recovery and atomic storage extensions verified.
+- [x] E3.1: next action, turn recovery and atomic storage extensions verified.
 - [ ] E3.2: complete runner conversations, critical evals and documented model choice.
 - [ ] E3.3: browser chat, resume, public responses and failure paths verified.
 - [ ] E3.4: reminder, remaining evals, results and sample conversations recorded.
@@ -251,3 +252,34 @@ must be explicitly reflected in the design and roadmap.
 E3 is complete when the browser screening works with the selected real LLM and the
 criteria above have evidence. Recruiter workflow and submission/presentation remain
 E4/E5. Do not claim completion from fake-LLM tests alone.
+
+### E3.1 evidence (2026-11-05)
+
+- Commits `fde6e19` to `cadc44e`: turn phases and metadata in `storage.py`/`rules.py`,
+  `next_action` and turn coordination in `conversation.py`, and the model contract in
+  `llm.py`. No HTTP endpoint or provider SDK was added.
+- `python -m pytest` from `app/`: 501 passed, with the known Starlette/HTTPX warning.
+  No test uses the network or a real LLM.
+- An independent read-only review tried to break the block. Executed checks: 300
+  randomized conversations against an oracle, 60 rounds of 8 real threads, process
+  kills during interpret, reply and summary, and 93 hand mutations (6 survived).
+  It found a false rejection through wrong place identifiers, a stale failure phase,
+  a close that could orphan a turn and six test gaps. All were fixed in `992ae58` to
+  `cadc44e`. The review itself was not repeated on the fixes: its reproduction script
+  was rerun and the tech lead read the diff and exercised the repeat-request flow.
+- TDD limits: most new tests first failed on a missing name or stub, not on behaviour,
+  and some passed when written. Several gap tests were checked by mutation instead.
+
+Known limits E3.2 and E3.3 must respect:
+
+- A clean but wrong identifier, such as `("ES","centro_madrid")` or `("MX","madrid")`,
+  still rejects, because Python cannot tell it from a real place such as `("ES","bilbao")`.
+  This is the main risk for E3.2: prompts and critical evals must cover it.
+- A candidate who dodges a question is re-asked without limit unless the interpreter
+  proposes `unresolved`. E3.2 must prove that it does.
+- Adapters must translate every SDK error to an `LLMFailure` subclass; anything else
+  escapes the coordinator with its raw text. E3.3 needs a generic error handler, and it
+  owns envelope validation (blank, non-string and surrogate ids and text) and the
+  public projection, because coordinator results include the internal summary.
+- A crash between the two repeat-request commits can make the resumed reply consume one
+  clarification. The state stays valid; this is accepted as very unlikely.

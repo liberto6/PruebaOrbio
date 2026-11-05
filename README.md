@@ -1,8 +1,9 @@
 # Grupo Sazón
 
-Local candidate screening and recruiter tool. **E2 rules and persistence are implemented
-but not connected to the application.** The Spanish placeholder does not accept
-applications. The conversation, LLM integration and recruiter tool are not implemented.
+Local candidate screening and recruiter tool. **E2 rules, persistence and E3.1 turn
+coordination are implemented but not connected to the application.** The Spanish
+placeholder does not accept applications. The real LLM integration, chat and recruiter
+tool are not implemented.
 
 Read the [assignment](docs/assignment.html), [process design](docs/design/process-design.md),
 [roadmap](docs/planning/build-roadmap.md), [E1 checklist](docs/planning/e1-foundations.md)
@@ -60,7 +61,9 @@ persists applications and messages in SQLite through standard-library `sqlite3`,
 each operation in one transaction. Neither is used by `main.py` yet, and the caller
 supplies the database path, so running the application creates no database. Python
 validates and determines outcomes while the LLM will interpret and write. No
-LLM/provider is selected yet.
+LLM/provider is selected yet. `app/backend/conversation.py` chooses the next action and
+advances each candidate turn from saved state; `app/backend/llm.py` holds the model
+contract. They only run in tests so far, against a fake LLM.
 This is a local demo without authentication or deployment infrastructure.
 
 ## Verification recorded on 2026-11-04
@@ -83,5 +86,5 @@ versions are resolved by pip and are not a full environment lock.
 
 ## Next work
 
-E3 adds conversation and LLM integration; E4 adds the recruiter tool; E5 completes
-delivery.
+E3 continues with the real LLM, web chat and evals (latest test run: 501 passed); E4
+adds the recruiter tool; E5 completes delivery.

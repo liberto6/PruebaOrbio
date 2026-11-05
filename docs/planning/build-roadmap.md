@@ -31,21 +31,23 @@ High-level plan for Phase 2. Each stage is detailed only when it starts. Source 
 
 Order is linear. E4 may start alongside E3 with sample data once E2 is done.
 
-## Current state — 2026-11-04
+## Current state — 2026-11-05
 
-**E1 and E2 are complete; E3 is planned, not implemented.** Field validation, coverage, the four outcomes, the
-clarification limit and SQLite persistence exist in `app/backend/`, but are not yet
-connected to the application. No conversation, LLM or recruiter tool exists yet.
-`python -m pytest` reports 192 passed, with one upstream Starlette/HTTPX deprecation
-warning. See [E2 evidence and E3 requirements](e2-rules-and-persistence.md),
-[E1 evidence](e1-foundations.md) and [README](../../README.md).
+**E1 and E2 are complete; E3 is in progress, with E3.1 implemented.** Field validation,
+coverage, the four outcomes, the clarification limit, SQLite persistence and turn
+coordination exist in `app/backend/`, but are not yet connected to the application.
+Coordination has only run against a fake LLM. No real model, chat or recruiter tool
+exists yet. `python -m pytest` reports 501 passed, with one upstream Starlette/HTTPX
+deprecation warning. See [E3 plan and E3.1 evidence](e3-conversational-agent.md),
+[E2 evidence](e2-rules-and-persistence.md), [E1 evidence](e1-foundations.md) and
+[README](../../README.md).
 
 The roadmap's "every Phase 1 rule" covers E2's deterministic rules only; E3 must
 prove the conversational behaviour through its scenarios.
 
-Next: implement E3.1 from the [revised E3 plan](e3-conversational-agent.md).
-E3 proceeds through coordination, real-LLM comparison, web chat and final validation.
-The provider/model is not selected; E3.2 records the quality, cost and latency evidence.
+Next: E3.2 from the [E3 plan](e3-conversational-agent.md), then web chat and final
+validation. The provider/model is not selected; the shortlist is OpenAI Luna and Gemini
+Flash, and E3.2 records the quality, cost and latency evidence.
 
 ## If time runs short
 
