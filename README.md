@@ -5,9 +5,9 @@ the web chat with the real model, and a recruiter can review it and record a dec
 
 Read the [assignment](docs/assignment.html), [process design](docs/design/process-design.md),
 [roadmap](docs/planning/build-roadmap.md), [E1 checklist](docs/planning/e1-foundations.md),
-[E2 plan](docs/planning/e2-rules-and-persistence.md)
-and [E3 plan](docs/planning/e3-conversational-agent.md).
-The active plan is [E4 — Recruiter tool](docs/planning/e4-recruiter-tool.md).
+[E2 plan](docs/planning/e2-rules-and-persistence.md),
+[E3 plan](docs/planning/e3-conversational-agent.md)
+and [E4 plan](docs/planning/e4-recruiter-tool.md). E5 is next.
 
 ## Windows setup (PowerShell)
 
@@ -65,7 +65,9 @@ JSON 503 while the API stays available.
 
 The frontend is one React build with two screens, in plain JavaScript and CSS: the chat, and
 `Recruiter.jsx` when the path is exactly `/recruiter`, which never creates an application or
-reads the candidate session. A plain link in each header switches between them for the demo.
+reads the candidate session. It shows a table with a sidebar of folders by recruiter decision
+(Bandeja, Avanzadas, Descartadas), and a choice in the detail saves at once. It reads the whole
+list and filters in the browser. A plain link in each header switches between the screens for the demo.
 Fraunces and DM Sans are bundled from `app/frontend/src/fonts/` under the OFL, so nothing is
 requested from Google. There is no router and no
 separate frontend development server or CORS setup. The browser keeps the application id
@@ -147,5 +149,4 @@ versions are resolved by pip and are not a full environment lock.
 
 ## Next work
 
-[E4](docs/planning/e4-recruiter-tool.md) is implemented and awaits user validation.
-E5 completes delivery.
+[E4](docs/planning/e4-recruiter-tool.md) is complete. E5 completes delivery.

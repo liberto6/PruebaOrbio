@@ -2,8 +2,8 @@
 
 Build the local Grupo Sazón screening agent and recruiter tool. Read sources in
 order: [assignment](docs/assignment.html), [process design](docs/design/process-design.md),
-[roadmap](docs/planning/build-roadmap.md), then the active stage plan:
-[E4](docs/planning/e4-recruiter-tool.md).
+[roadmap](docs/planning/build-roadmap.md), then the active stage plan. E4 is complete
+([plan](docs/planning/e4-recruiter-tool.md)); E5 is next and its plan is not written yet.
 
 - Inspect existing work before editing; implement only the requested stage.
 - Application code, dependencies and tests live in `app/`. Run Python setup,
@@ -16,10 +16,9 @@ order: [assignment](docs/assignment.html), [process design](docs/design/process-
   Automated backend tests must not call an LLM or external services. Real-model evals
   live in `app/evals/`, outside pytest; they need credentials and cost money.
 - Code, README and commits are English; product copy and process design are Spanish.
-- E4 adds only the recruiter list, filters, detail and independent decision; it is
-  implemented and awaits user validation. Recruiter routes are unauthenticated: local demo only.
-  Authentication, Docker, CI, deployment, WhatsApp, voice and additional bonuses
-  remain excluded. Preserve the completed E3 screening behaviour.
+- Recruiter routes are unauthenticated: local demo only. Authentication, Docker, CI,
+  deployment, WhatsApp, voice and additional bonuses remain excluded. Preserve the completed
+  E3 screening and E4 recruiter behaviour.
 - Use [README](README.md) for setup and checks. Run relevant checks and update the
   active stage checklist and roadmap with actual evidence, limits and next steps.
 - A stage is not finished until the stage plan, roadmap, README and this file

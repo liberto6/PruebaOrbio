@@ -26,18 +26,18 @@ High-level plan for Phase 2. Each stage is detailed only when it starts. Source 
 | **E1. Foundations** | Set the frame before writing logic | Architecture, tools, repository | Decisions recorded, repository created, empty app starts, sample test passes | Structure and conventions |
 | **E2. Rules and persistence** | Code validates and decides without an LLM | Field rules, coverage catalog, clarification limit, 4 outcomes, storage | Tests cover every Phase 1 rule and outcome; saved JSON keeps all keys | Data model and JSON shape |
 | **E3. Conversational agent** | Natural conversation from the web chat | LLM, extraction, re-asking, context, summary, failures, ES/EN, guardrails, reminder, resume, evals | A full conversation works in the browser; Phase 1 scenarios reach the expected outcome | LLM model (compare as soon as interpretation works), prompts, scenarios |
-| **E4. Recruiter tool** | Recruiters work with the agent's output | List and status filter, detail with conversation and summary, incomplete candidates, recruiter decision | Full path from candidate to recruiter decision; bonus review done | Screens and listing data |
+| **E4. Recruiter tool** | Recruiters work with the agent's output | List in folders by recruiter decision, detail with conversation and summary, incomplete candidates, recruiter decision | Full path from candidate to recruiter decision; bonus review done | Screens and listing data |
 | **E5. Delivery** | Ready to submit and defend | Code freeze, README, sample conversations, video, presentation script | Clean-clone install works from the README; 5-10 min video recorded; live demo rehearsed | Public or private repository, demo script, fallback if the LLM fails |
 
 Order is linear. E4 may start alongside E3 with sample data once E2 is done.
 
 ## Current state — 2026-11-05
 
-**E1, E2 and E3 are complete; E4 is implemented and awaits user validation.**
+**E1, E2, E3 and E4 are complete, E4 as confirmed by the user.**
 A candidate can complete a
 screening in the browser with the real model (`gpt-6-luna`), reload, retry, stop and resume, and
 gets one reminder after 10 minutes of inactivity; closed applications are read-only. A recruiter
-can list and filter applications at `/recruiter`, read the detail and save a decision. `python -m
+works through an inbox and folders at `/recruiter`, reads the detail and saves a decision. `python -m
 pytest` reports 736 passed and `npm run build` passes. Real-model evals are in `app/evals/`,
 their results and the [sample conversations](../evals/sample-conversations.md) in `docs/evals/`.
 See [E4 plan and evidence](e4-recruiter-tool.md), [E3 plan and evidence](e3-conversational-agent.md),
@@ -47,9 +47,8 @@ See [E4 plan and evidence](e4-recruiter-tool.md), [E3 plan and evidence](e3-conv
 The roadmap's "every Phase 1 rule" covers E2's deterministic rules only; E3 must
 prove the conversational behaviour through its scenarios.
 
-Next: the user validates the [E4 recruiter tool](e4-recruiter-tool.md#e4-evidence-2026-11-05),
-including its recorded limits. No additional bonus is included; E5 follows E4.
-The user confirmed E3 complete and [decided](e3-conversational-agent.md#product-decision-a-bare-yes-after-the-reminder)
+Next: E5, delivery; its plan is not written yet. No additional bonus is included. The
+[E4 limits](e4-recruiter-tool.md#e4-evidence-2026-11-05) remain recorded. The user confirmed E3 complete and [decided](e3-conversational-agent.md#product-decision-a-bare-yes-after-the-reminder)
 that a bare "Sí" after the reminder does not count as a licence.
 [E3.4 evidence and limits](e3-conversational-agent.md#e34-evidence-2026-11-05)
 and the product decisions validated by the user are in the plan.

@@ -1,15 +1,14 @@
 # E4 — Recruiter tool
 
-**Status: implementation done, 2026-11-05; awaiting user validation.** See the
-[E4 evidence](#e4-evidence-2026-11-05) and its limits. E3 is complete as confirmed by
-the user. Sources: [assignment](../assignment.html),
+**Status: complete, confirmed by the user on 2026-11-05.** See the
+[E4 evidence](#e4-evidence-2026-11-05) and its limits. Sources: [assignment](../assignment.html),
 [process design](../design/process-design.md), [roadmap](build-roadmap.md),
 [E2 contracts](e2-rules-and-persistence.md) and [E3 evidence](e3-conversational-agent.md).
 
 ## Goal and scope
 
 A recruiter can find an application, understand the screening and record a decision
-that survives reload. Deliver one Spanish interface with a filtered list and a detail
+that survives reload. Deliver one Spanish interface with a list in folders and a detail
 view, using the existing FastAPI, SQLite and React/Vite application.
 
 Include all four screening outcomes, incomplete applications, the seven fields,
@@ -124,14 +123,14 @@ the raw evidence for reasons outside the known set.
 
 **Decision.** A labelled select with no separate save action: choosing a value saves it. After
 a failure it returns to the saved value, and choosing again retries. Ignore further choices while a request is in flight. Show success only after confirmation; then refresh the
-list so active filters reflect the saved decision. If a response is lost, reload the
+list so the folders reflect the saved decision. If a response is lost, reload the
 detail to reconcile the saved value before offering another save. Do not optimistically
 claim persistence. A failed list refresh must not turn a confirmed save into a failure.
 
-Keep selection on the current page; no detail URL or persisted filter state is
-required. Retain filters when returning from detail. Load on entry/selection and on
+Keep selection on the current page; no detail URL or persisted folder state is
+required. Keep the folder when returning from detail. Load on entry/selection and on
 explicit refresh, with visible loading, error and retry states; no polling or realtime
-updates. Discard obsolete responses when selection or filters change. Extend the
+updates. Discard obsolete responses when selection changes. Extend the
 existing off-white, charcoal and terracotta style with readable desktop layout,
 usable narrow widths, keyboard access and labels that do not rely on colour.
 
@@ -163,7 +162,8 @@ services. Reuse E2/E3 regression coverage rather than recreating their test matr
   Record results here. Update roadmap, README (including `/recruiter` and local-demo
   limits) and AGENTS.md to match delivered work before declaring E4 complete.
 
-E4 is done when that candidate-to-recruiter path works and the checks have evidence.
+E4 is done: the candidate-to-recruiter path works, the checks have evidence and the user
+confirmed it. The filter wording above is met by the folders, with the API filters still tested.
 Next is E5: clean-clone setup verification, final documentation, video and presentation.
 
 ## E4 evidence, 2026-11-05
@@ -213,7 +213,7 @@ case, not by repeating the key presses. Not checked: a real narrow window or dev
 reader, colour contrast measurements, other browsers, or high volumes. There are no automated
 frontend tests.
 
-**UI refactor, on top of 9cd59e8; frontend only, awaiting user validation.** The first
+**UI refactor, on top of 9cd59e8; frontend only.** The first
 browser evidence above describes the earlier side-by-side layout, and its failure checks
 were repeated below only where stated. `python -m pytest`: 736 passed. `npm run build`: passed.
 Real Chrome, built app, temporary SQLite database and fake model:
@@ -243,6 +243,14 @@ Real Chrome, built app, temporary SQLite database and fake model:
 - Saving on selection replaced “Guardar decisión”, and the folder sidebar replaced the filters
   and quick views, so earlier evidence that mentions those controls describes the previous
   screen. Arrow keys on a closed select can save each value they pass through.
+- Final screen, temporary database, mostly scripted clicks: folder counts, an empty folder, inbox
+  order with qualified and incomplete records, and a decision moving a record from “Bandeja” to
+  “Avanzadas”. Saving from the select, a failed save and retry, and a reload that kept the decision
+  were checked on the screen just before the sidebar, in a 390 px iframe no overflow on the final
+  one. At closure: `python -m pytest` 736 passed, `npm run build` passed.
+
+Not checked on the final screen: “Descartadas”, inbox order with pending or disqualified records,
+a reload after moving a record, and closing the drawer with a real click on the sidebar.
 
 Not checked in this refactor: the empty-database message, obsolete responses, list and detail
 error states and the save-and-reload-both-fail case (logic unchanged, checked before the
