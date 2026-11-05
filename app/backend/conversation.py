@@ -65,16 +65,22 @@ LOCALITY_ALIASES = {
         "valencia": "valencia",
         "sevilla": "sevilla",
         "seville": "sevilla",
+        "madrid capital": "madrid",
     },
     "MX": {
         "ciudad de mexico": "ciudad_de_mexico",
+        "ciudad mexico": "ciudad_de_mexico",
+        "cd mexico": "ciudad_de_mexico",
         "cdmx": "ciudad_de_mexico",
         "mexico city": "ciudad_de_mexico",
+        "mexico df": "ciudad_de_mexico",
+        "distrito federal": "ciudad_de_mexico",
         "guadalajara": "guadalajara",
         "monterrey": "monterrey",
         "puebla": "puebla",
     },
 }
+CATALOG_SPELLINGS = frozenset(key for aliases in LOCALITY_ALIASES.values() for key in aliases)
 COUNTRY_ID = re.compile(r"[A-Z]{2}")
 LOCALITY_ID = re.compile(r"[a-z0-9_]+")
 
@@ -153,9 +159,24 @@ def _with_canonical_places(proposal: Proposal) -> Proposal:
     except ValidationError as exc:
         malformed = FieldError(field="work_locations", error="malformed_locations")
         raise InvalidExtraction([malformed]) from exc
-    identified = [_canonical_place(place) for place in locations.identified]
-    value = locations.model_copy(update={"identified": identified}).model_dump()
+    identified = []
+    unresolved = list(locations.unresolved)
+    for place in locations.identified:
+        if _is_catalog_name_in_another_country(place):
+            unresolved.append(f"{place.locality} ({place.country})")
+        else:
+            identified.append(_canonical_place(place))
+    value = WorkLocations(identified=identified, unresolved=unresolved).model_dump()
     return proposal.model_copy(update={"value": value})
+
+
+def _is_catalog_name_in_another_country(place: Location) -> bool:
+    """Probably a wrong country, so it must be clarified, not count as an uncovered place."""
+    return (
+        COUNTRY_ID.fullmatch(place.country) is not None
+        and place.country not in LOCALITY_ALIASES
+        and _folded(place.locality) in CATALOG_SPELLINGS
+    )
 
 
 def _canonical_place(place: Location) -> Location:
@@ -167,10 +188,10 @@ def _canonical_place(place: Location) -> Location:
 
 
 def _folded(text: str) -> str:
-    """Ignores only case, accents and repeated whitespace; this is not fuzzy matching."""
+    """Ignores only case, accents and separators; this is not fuzzy matching."""
     decomposed = unicodedata.normalize("NFKD", text)
     without_accents = "".join(char for char in decomposed if not unicodedata.combining(char))
-    return " ".join(without_accents.casefold().split())
+    return " ".join(without_accents.casefold().replace("_", " ").replace("-", " ").split())
 
 
 def _utc_now() -> datetime:

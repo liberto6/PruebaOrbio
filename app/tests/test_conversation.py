@@ -311,6 +311,16 @@ def guarded_location(country, locality):
         ("MX", "Guadalajara", "guadalajara", "covered"),
         ("MX", "Monterrey", "monterrey", "covered"),
         ("MX", "Puebla", "puebla", "covered"),
+        # Slugged forms and the other realistic spellings a model may write.
+        ("MX", "mexico_city", "ciudad_de_mexico", "covered"),
+        ("MX", "ciudad-de-mexico", "ciudad_de_mexico", "covered"),
+        ("MX", "ciudad_mexico", "ciudad_de_mexico", "covered"),
+        ("MX", "cd_mexico", "ciudad_de_mexico", "covered"),
+        ("MX", "CD MEXICO", "ciudad_de_mexico", "covered"),
+        ("MX", "México DF", "ciudad_de_mexico", "covered"),
+        ("MX", "distrito_federal", "ciudad_de_mexico", "covered"),
+        ("ES", "madrid_capital", "madrid", "covered"),
+        ("ES", "Madrid capital", "madrid", "covered"),
         # Well-formed places outside the catalog stay legitimate and not covered.
         ("ES", "bilbao", "bilbao", "not_covered"),
         ("ES", "guadalajara", "guadalajara", "not_covered"),
@@ -345,6 +355,48 @@ def test_catalog_guard_normalizes_known_spellings_per_country(
 def test_catalog_guard_rejects_malformed_identifiers_as_technical_failures(country, locality):
     with pytest.raises(InvalidExtraction):
         guarded_location(country, locality)
+
+
+@pytest.mark.parametrize(
+    "country, locality, kept_as",
+    [
+        ("XX", "madrid", "madrid (XX)"),
+        ("XX", "Madrid", "Madrid (XX)"),
+        ("VE", "valencia", "valencia (VE)"),
+        ("US", "mexico_city", "mexico_city (US)"),
+    ],
+)
+def test_catalog_place_name_in_a_non_catalog_country_is_a_doubt_not_a_rejection(
+    country, locality, kept_as
+):
+    value = guard_interpretation(
+        interpretation(resolved("work_locations", places((country, locality))))
+    ).proposals[0].value
+    assert value == places(unresolved=[kept_as])
+    snapshot = snapshot_with([resolved("work_locations", value)])
+    assert evaluate_coverage(snapshot.fields.work_locations) == "unresolved"
+
+
+def test_a_doubtful_country_keeps_other_options_and_stops_a_rejection():
+    value = guard_interpretation(
+        interpretation(
+            resolved(
+                "work_locations",
+                places(("ES", "bilbao"), ("XX", "madrid"), unresolved=["por el centro"]),
+            )
+        )
+    ).proposals[0].value
+    assert value == places(("ES", "bilbao"), unresolved=["por el centro", "madrid (XX)"])
+    snapshot = snapshot_with([resolved("work_locations", value)])
+    assert evaluate_coverage(snapshot.fields.work_locations) == "unresolved"
+
+
+@pytest.mark.parametrize("place", [("FR", "paris"), ("ES", "guadalajara"), ("MX", "valencia")])
+def test_clean_places_that_match_no_catalog_rule_stay_uncovered(place):
+    value = guard_interpretation(
+        interpretation(resolved("work_locations", places(place)))
+    ).proposals[0].value
+    assert value == places(place)
 
 
 def test_catalog_guard_checks_every_location_and_keeps_unresolved_options():
