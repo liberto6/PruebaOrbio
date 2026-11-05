@@ -46,8 +46,8 @@ The roadmap's "every Phase 1 rule" covers E2's deterministic rules only; E3 must
 prove the conversational behaviour through its scenarios.
 
 Next: E3.2 from the [E3 plan](e3-conversational-agent.md), then web chat and final
-validation. The provider/model is not selected; the shortlist is OpenAI Luna and Gemini
-Flash, and E3.2 records the quality, cost and latency evidence.
+validation. The model is OpenAI `gpt-6-luna`; E3.2 records the quality, cost and
+latency evidence that justifies it.
 
 ## If time runs short
 

@@ -19,20 +19,18 @@ queues, generic provider platform or additional agents are needed for this scope
 
 ## Decisions and boundaries
 
-- **Model is not selected.** Compare a small shortlist in E3.2 before fixing the
-  provider. Prefer an economical model that meets the quality criteria below;
-  a flagship may be a reference, not an assumed default. Verify current model IDs,
-  prices, schema support and SDK options against official documentation at that time.
-  Agreed 2026-11-05: providers OpenAI and Google (Anthropic dropped: paid only);
-  candidates a Luna model and a Gemini Flash model, exact IDs and free-tier quota
-  to be confirmed at E3.2 start; spending cap 5 USD for the whole stage, stopping
-  to ask before exceeding it.
+- **Model: OpenAI `gpt-6-luna`, decided 2026-11-05 to keep selection simple.** It is
+  economical (0.10/0.50 USD per million input/output tokens) and supports strict
+  structured output; a probe call worked. Anthropic was dropped as paid only. Gemini
+  Flash has free-tier quota that could not be confirmed and timed out at 60 s on its
+  only probe call, so it is tried only if Luna fails the critical evals. Spending cap:
+  5 USD for the whole stage, stopping to ask before exceeding it.
 - Use provider-supported structured output, reuse E2 value models where compatible,
   and validate locally. A valid schema does not guarantee a correct interpretation.
   Pin only SDKs actually used and check compatibility with Python dependencies.
-- Configure `SCREENING_PROVIDER` and `SCREENING_MODEL`, with credentials from the
-  chosen provider's environment variable. Changing provider needs an adapter, not
-  just a model string. Missing credentials leave health/static pages available and
+- Configure `SCREENING_MODEL` (default `gpt-6-luna`), with the credential from
+  `OPENAI_API_KEY`. Changing provider needs an adapter, not just a model string.
+  Missing credentials leave health/static pages available and
   return a clear chat error. Do not log credentials or hidden model reasoning.
 - Normal answered turns use interpretation followed by reply generation after
   Python chooses an action. Closing also needs a summary. These are design choices,
@@ -188,7 +186,7 @@ function before completing E3.1 and review each block before starting the next.
 | Block | Scope | Done when |
 |---|---|---|
 | **E3.1 Coordination** | Actions, minimal storage extensions, turn phases, close and retry | Fake-LLM scenarios and failure/concurrency checks pass without losing or duplicating stored work |
-| **E3.2 Real LLM and selection** | Candidate models, SDK adapters, extraction, replies, summary, ES/EN/guardrails, runner | Full conversations work; critical cases pass; measured quality/cost/latency justify the chosen model |
+| **E3.2 Real LLM** | OpenAI adapter, extraction, replies, summary, ES/EN/guardrails, eval runner | Full conversations work; critical cases pass; quality, cost and latency are measured |
 | **E3.3 Web chat** | Endpoints, public projection, chat, session/resume and visible errors | A full browser screening works, including reload, retry and closed state |
 | **E3.4 Validation and closure** | Single reminder, remaining evals, examples and documentation | Agreed scenarios pass; results, limitations and sample conversations are saved |
 
@@ -196,16 +194,11 @@ Real calls require the relevant provider credentials. Agree a small spending cap
 before running paid comparisons; this plan does not authorize unlimited API usage.
 No real candidate data is needed: use synthetic cases. No E4 interface in these blocks.
 
-## Model comparison and evals
+## Evals
 
-Use two economical candidates initially and at most one additional reference if
-needed. Confirm the shortlist, access and current prices at E3.2 start. Provider
-adapters only need the interpretation/reply/summary contract; do not build a plugin
-registry. Retain the chosen integration for the product and reproducible comparison
-instructions. No automatic routing between models or provider failover is required.
-
-Use the same scenario inputs, expected facts and application rules for all models;
-provider-specific schema formatting is allowed. Start with 20-30 synthetic cases,
+One adapter implements the interpretation/reply/summary contract; no plugin registry,
+routing or failover. Use fixed scenario inputs, expected facts and application rules
+so that runs are reproducible and comparable. Start with 20-30 synthetic cases,
 including held-out variants not used to tune prompts. Repeat critical ambiguous
 cases three times to observe variability. Record model/version/settings, prompts,
 scenario results, per-field correctness, false rejection/qualification, unnecessary
@@ -216,8 +209,7 @@ A model passes only with no observed false rejection/qualification or invented
 critical facts in the fixed critical cases, and correct expected states, corrections
 and summary facts. Do not count excessive `pending_review` as success. This is a
 small project acceptance set, not a statistical claim about production reliability.
-Choose among passing models by cost, latency and integration effort. If none passes,
-inspect prompts/extraction failures before increasing model size. The full historical
+If Luna fails, inspect prompts/extraction failures before trying another model. The full historical
 context is saved; measure the cost of resending it rather than assuming free memory.
 
 Critical E3.2 cases: a qualified path with early information and corrections; no
@@ -246,7 +238,7 @@ must be explicitly reflected in the design and roadmap.
 ## Closure
 
 - [x] E3.1: next action, turn recovery and atomic storage extensions verified.
-- [ ] E3.2: complete runner conversations, critical evals and documented model choice.
+- [ ] E3.2: complete runner conversations, critical evals and documented model rationale.
 - [ ] E3.3: browser chat, resume, public responses and failure paths verified.
 - [ ] E3.4: reminder, remaining evals, results and sample conversations recorded.
 - [ ] Existing E2 tests and new tests pass without network; no screening rule changed.
