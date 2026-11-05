@@ -1,0 +1,2190 @@
+{
+ "started_at": "2026-11-05T13:58:22.997920+00:00",
+ "model": "gpt-6-luna",
+ "sdk": "3.46.0",
+ "settings": {
+  "interpretation_effort": "low",
+  "writing_effort": "none",
+  "timeout_seconds": 30,
+  "max_retries": 1,
+  "max_output_tokens": 3000
+ },
+ "prompts_hash": "eb87c2166148cfc1",
+ "arguments": {
+  "repeat": 1,
+  "only": "qualified_in_order_with_name_correction,guadalajara_unresolved_reaches_review,no_license,stop_job_question_then_explicit_continuation,switch_to_english_all_the_way_to_close",
+  "held_out": false
+ },
+ "stopped_by_budget": false,
+ "totals": {
+  "runs": 5,
+  "passed": 5,
+  "false_rejection": 0,
+  "false_qualification": 0,
+  "unnecessary_review": 0,
+  "interpretation_unusable": 0,
+  "turns": 36,
+  "input_tokens": 205805,
+  "cached_tokens": 158625,
+  "output_tokens": 5339,
+  "reasoning_tokens": 972,
+  "cost_usd": 0.008973749999999994,
+  "turn_seconds_median": 3.9924999999999997,
+  "turn_seconds_max": 5.985,
+  "seconds_by_step": {
+   "interpret": 2.36,
+   "reply": 1.45,
+   "summary": 1.65
+  }
+ },
+ "runs": [
+  {
+   "scenario": "qualified_in_order_with_name_correction",
+   "held_out": false,
+   "closed": true,
+   "outcome": "qualified",
+   "outcome_reasons": [
+    "screening_passed"
+   ],
+   "language": "es",
+   "last_question_field": "start_timing",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "mi nombre completo es Pedro Sanz Molina",
+     "normalized": "Pedro Sanz Molina",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Sí, lo tengo",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "En Valencia",
+     "normalized": {
+      "identified": [
+       {
+        "country": "ES",
+        "locality": "valencia"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": "Jornada parcial y fines de semana",
+     "normalized": {
+      "options": [
+       "part_time",
+       "weekends"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": "Horario flexible, menos los martes por la tarde",
+     "normalized": {
+      "options": [
+       "flexible"
+      ],
+      "notes": "Excepto los martes por la tarde"
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": "Tres años en Just Eat",
+     "normalized": {
+      "years": 3.0,
+      "platforms": [
+       "Just Eat"
+      ]
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": "El 15 de enero de 2027",
+     "normalized": {
+      "kind": "date",
+      "value": "2027-01-15"
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Pedro Sanz Molina.\nCarné de conducir: sí.\nUbicación: Valencia.\nDisponibilidad: jornada parcial y fines de semana.\nHorario preferido: flexible; excepto los martes por la tarde.\nExperiencia en reparto: 3 años en Just Eat.\nInicio: 15 de enero de 2027.\nResultado: Screening superado. Motivo: screening superado.\nDudas pendientes: ninguna. Preguntas para el equipo: ninguna.",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Pedro Sanz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente el carnet de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "Sí, lo tengo. Por cierto, mi nombre completo es Pedro Sanz Molina."
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "En Valencia"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Prefieres trabajar a tiempo completo, a tiempo parcial o los fines de semana?"
+    },
+    {
+     "role": "candidate",
+     "text": "Jornada parcial y fines de semana"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Prefieres trabajar por la mañana, por la tarde, por la noche o tienes disponibilidad flexible?"
+    },
+    {
+     "role": "candidate",
+     "text": "Horario flexible, menos los martes por la tarde"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Cuánto tiempo has trabajado en reparto y con qué plataformas, empresas o negocios locales?"
+    },
+    {
+     "role": "candidate",
+     "text": "Tres años en Just Eat"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Cuándo podrías empezar?"
+    },
+    {
+     "role": "candidate",
+     "text": "El 15 de enero de 2027"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Pedro. Tu candidatura ha quedado registrada para que el equipo de selección la revise."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.633,
+    3.315,
+    3.361,
+    4.72,
+    3.722,
+    3.001,
+    4.937
+   ],
+   "turn_states": [
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "driving_license",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "work_locations",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "availability",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "preferred_schedule",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "delivery_experience",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "start_timing",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": true,
+     "has_summary": true,
+     "pending_questions": 0,
+     "last_question": [
+      "start_timing",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    }
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3467,
+     "cached": 3464,
+     "output": 81,
+     "reasoning": 0,
+     "seconds": 2.305
+    },
+    {
+     "step": "reply",
+     "input": 1785,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 1.242
+    },
+    {
+     "step": "interpret",
+     "input": 3528,
+     "cached": 2966,
+     "output": 104,
+     "reasoning": 0,
+     "seconds": 2.114
+    },
+    {
+     "step": "reply",
+     "input": 1844,
+     "cached": 1399,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.106
+    },
+    {
+     "step": "interpret",
+     "input": 3576,
+     "cached": 2966,
+     "output": 92,
+     "reasoning": 0,
+     "seconds": 1.671
+    },
+    {
+     "step": "reply",
+     "input": 1920,
+     "cached": 1399,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 1.621
+    },
+    {
+     "step": "interpret",
+     "input": 3664,
+     "cached": 2966,
+     "output": 91,
+     "reasoning": 0,
+     "seconds": 1.795
+    },
+    {
+     "step": "reply",
+     "input": 1931,
+     "cached": 1399,
+     "output": 24,
+     "reasoning": 0,
+     "seconds": 2.823
+    },
+    {
+     "step": "interpret",
+     "input": 3754,
+     "cached": 2966,
+     "output": 97,
+     "reasoning": 0,
+     "seconds": 1.988
+    },
+    {
+     "step": "reply",
+     "input": 1962,
+     "cached": 1399,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 1.636
+    },
+    {
+     "step": "interpret",
+     "input": 3842,
+     "cached": 2966,
+     "output": 91,
+     "reasoning": 0,
+     "seconds": 1.774
+    },
+    {
+     "step": "reply",
+     "input": 1998,
+     "cached": 1399,
+     "output": 10,
+     "reasoning": 0,
+     "seconds": 1.158
+    },
+    {
+     "step": "interpret",
+     "input": 3915,
+     "cached": 2966,
+     "output": 137,
+     "reasoning": 42,
+     "seconds": 2.2
+    },
+    {
+     "step": "reply",
+     "input": 1991,
+     "cached": 1399,
+     "output": 22,
+     "reasoning": 0,
+     "seconds": 1.068
+    },
+    {
+     "step": "summary",
+     "input": 832,
+     "cached": 0,
+     "output": 96,
+     "reasoning": 0,
+     "seconds": 1.61
+    }
+   ],
+   "cost_usd": 0.0017880399999999999,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "no_license",
+   "held_out": false,
+   "closed": true,
+   "outcome": "disqualified",
+   "outcome_reasons": [
+    "no_driving_license"
+   ],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Carlos Pérez Mora",
+     "normalized": "Carlos Pérez Mora",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "No, no tengo carnet",
+     "normalized": false,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Carlos Pérez Mora.\nCarnet de conducir: no.\nResultado: Descalificado. Motivo: no tiene carnet de conducir.\nDudas pendientes: lugares de trabajo, disponibilidad, horario preferido, experiencia en reparto y fecha de inicio: no recogido.\nPreguntas para el equipo: ninguna.",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Carlos Pérez Mora"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente carnet de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "No, no tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Carlos. Para este puesto hace falta tener carnet de conducir ahora mismo, por lo que tu candidatura no puede seguir adelante."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    4.899,
+    5.359
+   ],
+   "turn_states": [
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "driving_license",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": true,
+     "has_summary": true,
+     "pending_questions": 0,
+     "last_question": [
+      "driving_license",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    }
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3467,
+     "cached": 3464,
+     "output": 107,
+     "reasoning": 24,
+     "seconds": 2.999
+    },
+    {
+     "step": "reply",
+     "input": 1785,
+     "cached": 1399,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.786
+    },
+    {
+     "step": "interpret",
+     "input": 3515,
+     "cached": 2966,
+     "output": 111,
+     "reasoning": 29,
+     "seconds": 2.16
+    },
+    {
+     "step": "reply",
+     "input": 1813,
+     "cached": 1399,
+     "output": 30,
+     "reasoning": 0,
+     "seconds": 1.389
+    },
+    {
+     "step": "summary",
+     "input": 669,
+     "cached": 0,
+     "output": 66,
+     "reasoning": 0,
+     "seconds": 1.735
+    }
+   ],
+   "cost_usd": 0.00045738000000000007,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "guadalajara_unresolved_reaches_review",
+   "held_out": false,
+   "closed": true,
+   "outcome": "pending_review",
+   "outcome_reasons": [
+    "coverage_unresolved"
+   ],
+   "language": "es",
+   "last_question_field": "start_timing",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Luis Romero Vega",
+     "normalized": "Luis Romero Vega",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Sí, tengo carnet de conducir",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "Pues eso, Guadalajara",
+     "normalized": {
+      "identified": [],
+      "unresolved": [
+       "Guadalajara"
+      ]
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 2
+    },
+    "availability": {
+     "raw": "Jornada completa",
+     "normalized": {
+      "options": [
+       "full_time"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": "Por las mañanas",
+     "normalized": {
+      "options": [
+       "morning"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": "Dos años en Glovo",
+     "normalized": {
+      "years": 2.0,
+      "platforms": [
+       "Glovo"
+      ]
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": "Puedo empezar el 1 de diciembre de 2026",
+     "normalized": {
+      "kind": "date",
+      "value": "2026-12-01"
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Luis Romero Vega\nCarnet de conducir: sí\nDisponibilidad: jornada completa\nHorario preferido: mañana\nExperiencia en reparto: 2 años, Glovo\nInicio: 1 de diciembre de 2026\nResultado: Pendiente de revisión. Motivo: cobertura sin confirmar para Guadalajara.\nDudas pendientes: cobertura de Guadalajara sin confirmar.\nPreguntas para el equipo: ninguna",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Luis Romero Vega"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente carnet de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "Sí, tengo carnet de conducir"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "En Guadalajara"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias por aclararlo. ¿Te refieres a Guadalajara, España, o a Guadalajara, México?"
+    },
+    {
+     "role": "candidate",
+     "text": "Guadalajara, ya te lo he dicho"
+    },
+    {
+     "role": "assistant",
+     "text": "Entiendo que resulta frustrante repetirlo; necesito distinguir cuál Guadalajara: ¿la de España o la de México?"
+    },
+    {
+     "role": "candidate",
+     "text": "Pues eso, Guadalajara"
+    },
+    {
+     "role": "assistant",
+     "text": "Entiendo que es frustrante repetirlo; la ciudad queda pendiente de aclarar. ¿Qué disponibilidad tienes: jornada completa, parcial o fines de semana?"
+    },
+    {
+     "role": "candidate",
+     "text": "Jornada completa"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Prefieres trabajar por la mañana, por la tarde, por la noche o tienes flexibilidad de horario?"
+    },
+    {
+     "role": "candidate",
+     "text": "Por las mañanas"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Cuánto tiempo has trabajado en reparto y para qué plataformas, empresas o negocios locales? También puedes decirme si no tienes experiencia."
+    },
+    {
+     "role": "candidate",
+     "text": "Dos años en Glovo"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Para cuándo podrías empezar?"
+    },
+    {
+     "role": "candidate",
+     "text": "Puedo empezar el 1 de diciembre de 2026"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Luis. El equipo de selección debe revisar tu candidatura porque queda por aclarar la ciudad en la que te gustaría trabajar."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.628,
+    3.902,
+    3.926,
+    5.49,
+    4.733,
+    3.523,
+    2.99,
+    3.036,
+    5.985
+   ],
+   "turn_states": [
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "driving_license",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "work_locations",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "work_locations",
+      "clarification"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 1,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "work_locations",
+      "clarification"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 2,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "availability",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 2,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "preferred_schedule",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 2,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "delivery_experience",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 2,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "start_timing",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 2,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": true,
+     "has_summary": true,
+     "pending_questions": 0,
+     "last_question": [
+      "start_timing",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 2,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    }
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3467,
+     "cached": 3464,
+     "output": 81,
+     "reasoning": 0,
+     "seconds": 2.506
+    },
+    {
+     "step": "reply",
+     "input": 1785,
+     "cached": 1399,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.988
+    },
+    {
+     "step": "interpret",
+     "input": 3517,
+     "cached": 2966,
+     "output": 116,
+     "reasoning": 33,
+     "seconds": 2.533
+    },
+    {
+     "step": "reply",
+     "input": 1831,
+     "cached": 1399,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.289
+    },
+    {
+     "step": "interpret",
+     "input": 3561,
+     "cached": 2966,
+     "output": 93,
+     "reasoning": 0,
+     "seconds": 2.056
+    },
+    {
+     "step": "reply",
+     "input": 1918,
+     "cached": 1399,
+     "output": 24,
+     "reasoning": 0,
+     "seconds": 1.783
+    },
+    {
+     "step": "interpret",
+     "input": 3642,
+     "cached": 2966,
+     "output": 178,
+     "reasoning": 79,
+     "seconds": 3.038
+    },
+    {
+     "step": "reply",
+     "input": 1916,
+     "cached": 1399,
+     "output": 27,
+     "reasoning": 0,
+     "seconds": 2.349
+    },
+    {
+     "step": "interpret",
+     "input": 3705,
+     "cached": 2966,
+     "output": 142,
+     "reasoning": 48,
+     "seconds": 3.148
+    },
+    {
+     "step": "reply",
+     "input": 1897,
+     "cached": 1399,
+     "output": 35,
+     "reasoning": 0,
+     "seconds": 1.519
+    },
+    {
+     "step": "interpret",
+     "input": 3761,
+     "cached": 2966,
+     "output": 124,
+     "reasoning": 38,
+     "seconds": 1.974
+    },
+    {
+     "step": "reply",
+     "input": 1941,
+     "cached": 1399,
+     "output": 26,
+     "reasoning": 0,
+     "seconds": 1.394
+    },
+    {
+     "step": "interpret",
+     "input": 3839,
+     "cached": 2966,
+     "output": 85,
+     "reasoning": 0,
+     "seconds": 1.652
+    },
+    {
+     "step": "reply",
+     "input": 1958,
+     "cached": 1399,
+     "output": 30,
+     "reasoning": 0,
+     "seconds": 1.237
+    },
+    {
+     "step": "interpret",
+     "input": 3924,
+     "cached": 2966,
+     "output": 91,
+     "reasoning": 0,
+     "seconds": 1.821
+    },
+    {
+     "step": "reply",
+     "input": 1986,
+     "cached": 1399,
+     "output": 11,
+     "reasoning": 0,
+     "seconds": 1.122
+    },
+    {
+     "step": "interpret",
+     "input": 3999,
+     "cached": 2966,
+     "output": 140,
+     "reasoning": 42,
+     "seconds": 2.723
+    },
+    {
+     "step": "reply",
+     "input": 1972,
+     "cached": 1399,
+     "output": 30,
+     "reasoning": 0,
+     "seconds": 1.47
+    },
+    {
+     "step": "summary",
+     "input": 798,
+     "cached": 0,
+     "output": 85,
+     "reasoning": 0,
+     "seconds": 1.7
+    }
+   ],
+   "cost_usd": 0.00223223,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "switch_to_english_all_the_way_to_close",
+   "held_out": false,
+   "closed": true,
+   "outcome": "qualified",
+   "outcome_reasons": [
+    "screening_passed"
+   ],
+   "language": "en",
+   "last_question_field": "start_timing",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "John Carter Smith",
+     "normalized": "John Carter Smith",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Yes, I have a driving licence.",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "I want to work in Madrid.",
+     "normalized": {
+      "identified": [
+       {
+        "country": "ES",
+        "locality": "madrid"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": "Full time.",
+     "normalized": {
+      "options": [
+       "full_time"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": "Mornings.",
+     "normalized": {
+      "options": [
+       "morning"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": "Two years with Uber Eats.",
+     "normalized": {
+      "years": 2.0,
+      "platforms": [
+       "Uber Eats"
+      ]
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": "I can start on December 1st, 2026.",
+     "normalized": {
+      "kind": "date",
+      "value": "2026-12-01"
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: John Carter Smith\nCarné de conducir: Sí\nLugar de trabajo: Madrid\nDisponibilidad: jornada completa\nHorario preferido: mañana\nExperiencia en reparto: 2 años, Uber Eats\nInicio: 1 de diciembre de 2026\nResultado: Screening superado. Motivo: screening superado.\nDudas pendientes: ninguna. Preguntas para el equipo: ninguna.",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Can we continue in English, please? My name is John Carter Smith."
+    },
+    {
+     "role": "assistant",
+     "text": "Of course, we can continue in English. Do you currently hold a driving licence?"
+    },
+    {
+     "role": "candidate",
+     "text": "Yes, I have a driving licence."
+    },
+    {
+     "role": "assistant",
+     "text": "Which city would you like to work in?"
+    },
+    {
+     "role": "candidate",
+     "text": "I want to work in Madrid."
+    },
+    {
+     "role": "assistant",
+     "text": "What kind of availability are you looking for: full-time, part-time, weekends, or a combination?"
+    },
+    {
+     "role": "candidate",
+     "text": "Full time."
+    },
+    {
+     "role": "assistant",
+     "text": "What schedule do you prefer: mornings, afternoons, evenings, or a flexible schedule?"
+    },
+    {
+     "role": "candidate",
+     "text": "Mornings."
+    },
+    {
+     "role": "assistant",
+     "text": "How long have you worked in delivery, and with which platforms, companies, or local businesses? You can also say if you have no delivery experience."
+    },
+    {
+     "role": "candidate",
+     "text": "Two years with Uber Eats."
+    },
+    {
+     "role": "assistant",
+     "text": "When could you start?"
+    },
+    {
+     "role": "candidate",
+     "text": "I can start on December 1st, 2026."
+    },
+    {
+     "role": "assistant",
+     "text": "Thank you, John. Your application has been recorded for the selection team to review."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    4.494,
+    4.245,
+    3.933,
+    4.558,
+    4.052,
+    4.409,
+    5.22
+   ],
+   "turn_states": [
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "driving_license",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "work_locations",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "availability",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "preferred_schedule",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "delivery_experience",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "start_timing",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": true,
+     "has_summary": true,
+     "pending_questions": 0,
+     "last_question": [
+      "start_timing",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    }
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3478,
+     "cached": 3475,
+     "output": 127,
+     "reasoning": 44,
+     "seconds": 2.961
+    },
+    {
+     "step": "reply",
+     "input": 1796,
+     "cached": 1399,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 1.425
+    },
+    {
+     "step": "interpret",
+     "input": 3538,
+     "cached": 2966,
+     "output": 129,
+     "reasoning": 45,
+     "seconds": 2.514
+    },
+    {
+     "step": "reply",
+     "input": 1852,
+     "cached": 1399,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 1.688
+    },
+    {
+     "step": "interpret",
+     "input": 3587,
+     "cached": 2966,
+     "output": 95,
+     "reasoning": 0,
+     "seconds": 1.934
+    },
+    {
+     "step": "reply",
+     "input": 1933,
+     "cached": 1399,
+     "output": 25,
+     "reasoning": 0,
+     "seconds": 1.894
+    },
+    {
+     "step": "interpret",
+     "input": 3679,
+     "cached": 2966,
+     "output": 119,
+     "reasoning": 34,
+     "seconds": 2.102
+    },
+    {
+     "step": "reply",
+     "input": 1927,
+     "cached": 1399,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 2.353
+    },
+    {
+     "step": "interpret",
+     "input": 3749,
+     "cached": 2966,
+     "output": 84,
+     "reasoning": 0,
+     "seconds": 2.146
+    },
+    {
+     "step": "reply",
+     "input": 1943,
+     "cached": 1399,
+     "output": 34,
+     "reasoning": 0,
+     "seconds": 1.797
+    },
+    {
+     "step": "interpret",
+     "input": 3837,
+     "cached": 2966,
+     "output": 178,
+     "reasoning": 45,
+     "seconds": 3.319
+    },
+    {
+     "step": "reply",
+     "input": 1986,
+     "cached": 1399,
+     "output": 9,
+     "reasoning": 0,
+     "seconds": 0.974
+    },
+    {
+     "step": "interpret",
+     "input": 3910,
+     "cached": 2966,
+     "output": 151,
+     "reasoning": 53,
+     "seconds": 2.356
+    },
+    {
+     "step": "reply",
+     "input": 1981,
+     "cached": 1399,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 1.027
+    },
+    {
+     "step": "summary",
+     "input": 813,
+     "cached": 0,
+     "output": 85,
+     "reasoning": 0,
+     "seconds": 1.724
+    }
+   ],
+   "cost_usd": 0.0017611400000000002,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "stop_job_question_then_explicit_continuation",
+   "held_out": false,
+   "closed": true,
+   "outcome": "qualified",
+   "outcome_reasons": [
+    "screening_passed"
+   ],
+   "language": "es",
+   "last_question_field": "start_timing",
+   "pending_questions": [
+    "¿Cuánto se paga al mes?"
+   ],
+   "fields": {
+    "full_name": {
+     "raw": "Luis Romero Vega",
+     "normalized": "Luis Romero Vega",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "Ya lo tengo, me lo dieron la semana pasada",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": "En Madrid",
+     "normalized": {
+      "identified": [
+       {
+        "country": "ES",
+        "locality": "madrid"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": "Jornada completa",
+     "normalized": {
+      "options": [
+       "full_time"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": "Por las mañanas",
+     "normalized": {
+      "options": [
+       "morning"
+      ],
+      "notes": null
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": "Dos años en Glovo",
+     "normalized": {
+      "years": 2.0,
+      "platforms": [
+       "Glovo"
+      ]
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": "Puedo empezar el 1 de diciembre de 2026",
+     "normalized": {
+      "kind": "date",
+      "value": "2026-12-01"
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Luis Romero Vega.\nCarné de conducir: sí.\nLugar de trabajo: Madrid.\nDisponibilidad: jornada completa. Horario preferido: mañana.\nExperiencia en reparto: 2 años en Glovo.\nInicio: 1 de diciembre de 2026.\nResultado: Screening superado.\nDudas pendientes: ninguna. Preguntas para el equipo: ¿Cuánto se paga al mes?",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Luis Romero Vega"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente carnet de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "Me lo estoy sacando"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias por aclararlo. ¿Tienes ya el carnet de conducir o todavía no lo tienes?"
+    },
+    {
+     "role": "candidate",
+     "text": "Ya lo tengo, me lo dieron la semana pasada"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "Tengo que dejarlo por ahora, luego sigo"
+    },
+    {
+     "role": "assistant",
+     "text": "Entendido, Luis. Puedes retomar la candidatura y continuar cuando quieras."
+    },
+    {
+     "role": "candidate",
+     "text": "¿Cuánto se paga al mes?"
+    },
+    {
+     "role": "assistant",
+     "text": "No tengo ese dato, pero lo dejo anotado para el equipo. Puedes retomar la candidatura cuando quieras."
+    },
+    {
+     "role": "candidate",
+     "text": "Vale, ya puedo seguir"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias por retomar la candidatura, Luis. ¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "En Madrid"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tendrías disponibilidad a tiempo completo, a tiempo parcial o los fines de semana?"
+    },
+    {
+     "role": "candidate",
+     "text": "Jornada completa"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Prefieres trabajar por la mañana, por la tarde, por la noche o tienes flexibilidad?"
+    },
+    {
+     "role": "candidate",
+     "text": "Por las mañanas"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Cuánto tiempo has trabajado en reparto y con qué plataformas, empresas o negocios locales? Si no tienes experiencia, también puedes decírmelo."
+    },
+    {
+     "role": "candidate",
+     "text": "Dos años en Glovo"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Cuándo podrías empezar?"
+    },
+    {
+     "role": "candidate",
+     "text": "Puedo empezar el 1 de diciembre de 2026"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Luis. Tu candidatura queda registrada para que el equipo de selección la revise. No tengo el dato del sueldo mensual; lo dejo anotado para el equipo."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.898,
+    4.193,
+    3.311,
+    4.552,
+    3.642,
+    4.218,
+    4.178,
+    3.387,
+    3.43,
+    3.498,
+    5.231
+   ],
+   "turn_states": [
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "driving_license",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 0,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "driving_license",
+      "clarification"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 1,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "work_locations",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 1,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": true,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 0,
+     "last_question": [
+      "work_locations",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 1,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": true,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 1,
+     "last_question": [
+      "work_locations",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 1,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 1,
+     "last_question": [
+      "work_locations",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 1,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 1,
+     "last_question": [
+      "availability",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 1,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 1,
+     "last_question": [
+      "preferred_schedule",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 1,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 1,
+     "last_question": [
+      "delivery_experience",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 1,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": false,
+     "has_summary": false,
+     "pending_questions": 1,
+     "last_question": [
+      "start_timing",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 1,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    },
+    {
+     "stop_requested": false,
+     "closed": true,
+     "has_summary": true,
+     "pending_questions": 1,
+     "last_question": [
+      "start_timing",
+      "initial"
+     ],
+     "clarifications": {
+      "full_name": 0,
+      "driving_license": 1,
+      "work_locations": 0,
+      "availability": 0,
+      "preferred_schedule": 0,
+      "delivery_experience": 0,
+      "start_timing": 0
+     }
+    }
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3467,
+     "cached": 3464,
+     "output": 81,
+     "reasoning": 0,
+     "seconds": 2.136
+    },
+    {
+     "step": "reply",
+     "input": 1785,
+     "cached": 1782,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.681
+    },
+    {
+     "step": "interpret",
+     "input": 3516,
+     "cached": 2966,
+     "output": 82,
+     "reasoning": 0,
+     "seconds": 2.332
+    },
+    {
+     "step": "reply",
+     "input": 1842,
+     "cached": 1399,
+     "output": 23,
+     "reasoning": 0,
+     "seconds": 1.804
+    },
+    {
+     "step": "interpret",
+     "input": 3583,
+     "cached": 2966,
+     "output": 119,
+     "reasoning": 32,
+     "seconds": 2.129
+    },
+    {
+     "step": "reply",
+     "input": 1892,
+     "cached": 1399,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.069
+    },
+    {
+     "step": "interpret",
+     "input": 3629,
+     "cached": 2966,
+     "output": 105,
+     "reasoning": 41,
+     "seconds": 2.977
+    },
+    {
+     "step": "reply",
+     "input": 1847,
+     "cached": 1399,
+     "output": 19,
+     "reasoning": 0,
+     "seconds": 1.527
+    },
+    {
+     "step": "interpret",
+     "input": 3680,
+     "cached": 2966,
+     "output": 126,
+     "reasoning": 54,
+     "seconds": 2.304
+    },
+    {
+     "step": "reply",
+     "input": 1867,
+     "cached": 1399,
+     "output": 26,
+     "reasoning": 0,
+     "seconds": 1.225
+    },
+    {
+     "step": "interpret",
+     "input": 3736,
+     "cached": 2966,
+     "output": 143,
+     "reasoning": 79,
+     "seconds": 3.098
+    },
+    {
+     "step": "reply",
+     "input": 1889,
+     "cached": 1399,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 1.036
+    },
+    {
+     "step": "interpret",
+     "input": 3784,
+     "cached": 2966,
+     "output": 133,
+     "reasoning": 40,
+     "seconds": 2.974
+    },
+    {
+     "step": "reply",
+     "input": 1924,
+     "cached": 1399,
+     "output": 22,
+     "reasoning": 0,
+     "seconds": 1.086
+    },
+    {
+     "step": "interpret",
+     "input": 3869,
+     "cached": 2966,
+     "output": 122,
+     "reasoning": 36,
+     "seconds": 2.195
+    },
+    {
+     "step": "reply",
+     "input": 1943,
+     "cached": 1399,
+     "output": 24,
+     "reasoning": 0,
+     "seconds": 1.072
+    },
+    {
+     "step": "interpret",
+     "input": 3945,
+     "cached": 2966,
+     "output": 128,
+     "reasoning": 41,
+     "seconds": 2.123
+    },
+    {
+     "step": "reply",
+     "input": 1960,
+     "cached": 1399,
+     "output": 33,
+     "reasoning": 0,
+     "seconds": 1.218
+    },
+    {
+     "step": "interpret",
+     "input": 4033,
+     "cached": 2966,
+     "output": 145,
+     "reasoning": 52,
+     "seconds": 2.422
+    },
+    {
+     "step": "reply",
+     "input": 1999,
+     "cached": 1399,
+     "output": 10,
+     "reasoning": 0,
+     "seconds": 0.992
+    },
+    {
+     "step": "interpret",
+     "input": 4108,
+     "cached": 2966,
+     "output": 139,
+     "reasoning": 41,
+     "seconds": 2.313
+    },
+    {
+     "step": "reply",
+     "input": 1998,
+     "cached": 1399,
+     "output": 37,
+     "reasoning": 0,
+     "seconds": 1.336
+    },
+    {
+     "step": "summary",
+     "input": 825,
+     "cached": 0,
+     "output": 85,
+     "reasoning": 0,
+     "seconds": 1.472
+    }
+   ],
+   "cost_usd": 0.0027349600000000007,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  }
+ ]
+}

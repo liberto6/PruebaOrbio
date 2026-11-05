@@ -8,7 +8,7 @@ High-level plan for Phase 2. Each stage is detailed only when it starts. Source 
 - Screening agent following the Phase 1 design, collecting the 7 fields.
 - Recruiter tool with the functions set in Phase 1.
 - Core requirements and deliverables from the assignment, plus the live presentation.
-- Bonus: ES/EN, one reminder, basic guardrails, tests and evals.
+- Bonus: ES/EN, one reminder, basic guardrails, tests and evals; ATS integration design only.
 
 **Out:** login and permissions, WhatsApp, real deployment. Voice and other bonus features are reviewed after E4, defaulting to no. The demo runs locally, and the README and presentation say so.
 
@@ -27,6 +27,8 @@ High-level plan for Phase 2. Each stage is detailed only when it starts. Source 
 | **E2. Rules and persistence** | Code validates and decides without an LLM | Field rules, coverage catalog, clarification limit, 4 outcomes, storage | Tests cover every Phase 1 rule and outcome; saved JSON keeps all keys | Data model and JSON shape |
 | **E3. Conversational agent** | Natural conversation from the web chat | LLM, extraction, re-asking, context, summary, failures, ES/EN, guardrails, reminder, resume, evals | A full conversation works in the browser; Phase 1 scenarios reach the expected outcome | LLM model (compare as soon as interpretation works), prompts, scenarios |
 | **E4. Recruiter tool** | Recruiters work with the agent's output | List in folders by recruiter decision, detail with conversation and summary, incomplete candidates, recruiter decision | Full path from candidate to recruiter decision; bonus review done | Screens and listing data |
+| **E4.5. Agent tone** | More attentive, concise replies | Writing prompt, saved reply context and five existing acceptance conversations | Focused test and suite pass; five dialogues meet the brief's criteria | [Scope fixed in the brief](e4-5-agent-tone.md); no additional bonus |
+| **E4.6. ATS integration design** | Specify an external ATS connection | Proposed OpenAPI contract and short synchronization explanation | Contract validated and one worked flow reviewed; no implementation | [Scope fixed in the brief](e4-6-ats-integration-design.md) |
 | **E5. Delivery** | Ready to submit and defend | Code freeze, README, sample conversations, video, presentation script | Clean-clone install works from the README; 5-10 min video recorded; live demo rehearsed | Public or private repository, demo script, fallback if the LLM fails |
 
 Order is linear. E4 may start alongside E3 with sample data once E2 is done.
@@ -47,7 +49,21 @@ See [E4 plan and evidence](e4-recruiter-tool.md), [E3 plan and evidence](e3-conv
 The roadmap's "every Phase 1 rule" covers E2's deterministic rules only; E3 must
 prove the conversational behaviour through its scenarios.
 
-Next: E5, delivery; its plan is not written yet. No additional bonus is included. The
+Current task: [E4.6 — ATS integration design](e4-6-ats-integration-design.md). The brief
+is written; the proposed API specification and flow explanation remain pending.
+This is design only, with no connector or runtime changes.
+
+[E4.5 — Agent tone](e4-5-agent-tone.md) is **closed by user decision with known limits**.
+`python -m pytest` reports 737 passed. The user replaced the tone rules with one simple
+acknowledgement before each question. In that final cycle of the five real-model conversations, the
+runner reports 5/5 and screening results are as expected, but manual review fails two dialogues: a
+correction gets no acknowledgement, and a job question is mentioned when not asked, a defect also
+seen in E3. [The user decided](e4-5-agent-tone.md#user-decision-closed-with-known-limits) to accept
+these limits and not change the agent further for now. The recruiter detail now shows “Datos
+recogidos” only when an application has no summary. A separately authorized [location-question follow-up](e4-5-agent-tone.md#scoped-follow-up-work-location-question)
+now instructs the reply to introduce Spain/Mexico and ask desired city/country together;
+coverage rules are unchanged and the revised prompt has no new real-model validation.
+E5 follows; its plan is not written yet. The ATS design is the only newly selected bonus. The
 [E4 limits](e4-recruiter-tool.md#e4-evidence-2026-11-05) remain recorded. The user confirmed E3 complete and [decided](e3-conversational-agent.md#product-decision-a-bare-yes-after-the-reminder)
 that a bare "Sí" after the reminder does not count as a licence.
 [E3.4 evidence and limits](e3-conversational-agent.md#e34-evidence-2026-11-05)

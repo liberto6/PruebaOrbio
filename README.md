@@ -7,7 +7,10 @@ Read the [assignment](docs/assignment.html), [process design](docs/design/proces
 [roadmap](docs/planning/build-roadmap.md), [E1 checklist](docs/planning/e1-foundations.md),
 [E2 plan](docs/planning/e2-rules-and-persistence.md),
 [E3 plan](docs/planning/e3-conversational-agent.md)
-and [E4 plan](docs/planning/e4-recruiter-tool.md). E5 is next.
+and [E4 plan](docs/planning/e4-recruiter-tool.md).
+[E4.5 — Agent tone](docs/planning/e4-5-agent-tone.md) is closed by user decision with
+known limits. The active brief is
+[E4.6 — ATS integration design](docs/planning/e4-6-ats-integration-design.md), before E5.
 
 ## Windows setup (PowerShell)
 
@@ -113,6 +116,14 @@ Latest results, the rationale for the model and the known limits are in the
 
 ## Verification recorded on 2026-11-05
 
+- Recruiter detail after limiting “Datos recogidos” to applications without a summary: `npm run build`
+  passed. In real Chrome, with a temporary database and no model calls, a closed application shows
+  the summary and conversation without that card, and an incomplete one keeps it (1 of 7, all seven
+  rows). No summary-failure case or narrow width was checked.
+- `python -m pytest` after the E4.5 prompt change: 737 passed. Five real-model conversations, run
+  three times in all: the runner reports 5/5 each time, but manual review of the final run fails two
+  of the five. Screening outcomes and saved data are as expected. See the
+  [E4.5 final cycle](docs/planning/e4-5-agent-tone.md#final-cycle-the-users-acknowledgement-rule).
 - `python -m pytest` after E4: 736 passed. `npm run build` passed. Recruiter screen checks in
   real Chrome, with a temporary database and a fake model, and what was not checked: see the
   [E4 evidence](docs/planning/e4-recruiter-tool.md#e4-evidence-2026-11-05).
@@ -149,4 +160,18 @@ versions are resolved by pip and are not a full environment lock.
 
 ## Next work
 
-[E4](docs/planning/e4-recruiter-tool.md) is complete. E5 completes delivery.
+[E4](docs/planning/e4-recruiter-tool.md) is complete.
+[E4.5 — Agent tone](docs/planning/e4-5-agent-tone.md) is closed by [user decision](docs/planning/e4-5-agent-tone.md#user-decision-closed-with-known-limits)
+with known limits: replies now receive the saved fields and pending questions and usually open
+with a brief acknowledgement, but a correction can go unacknowledged and a job question can come
+up when not asked. [E4.6 — ATS integration design](docs/planning/e4-6-ats-integration-design.md)
+is now planned: a proposed API specification and integration explanation, without
+building a connector or changing the running application. E5 completes delivery.
+
+A [scoped location-question change](docs/planning/e4-5-agent-tone.md#scoped-follow-up-work-location-question)
+now instructs the agent to mention delivery areas in Spain and Mexico and ask for the
+desired city and country together. Coverage rules are unchanged. This prompt change
+has not been validated with the real model.
+
+The recruiter detail now shows “Datos recogidos” only when an application has no summary, such as
+an incomplete one. Otherwise the internal summary is the single view of the collected data.

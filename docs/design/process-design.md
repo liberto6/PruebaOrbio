@@ -14,7 +14,7 @@ El agente se presenta como **asistente virtual de Grupo Sazón**. Tono cercano y
 
 1. **Bienvenida y nombre.** Explicar brevemente el propósito y pedir el nombre completo.
 2. **Permiso de conducir.** Preguntar si lo tiene actualmente. Una negativa inequívoca provoca descarte temprano; una respuesta ambigua requiere aclaración.
-3. **Zona de trabajo.** Preguntar dónde quiere trabajar y contrastar con el catálogo de cobertura. Aclarar país/localidad cuando sea necesario. No equiparar residencia con zona deseada. Si propone varias opciones, basta una cubierta; solo descartar si todas están identificadas y fuera de cobertura.
+3. **Zona de trabajo.** En la pregunta inicial, indicar que hay zonas de reparto en España y México y pedir ciudad y país donde quiere trabajar en una sola pregunta, sin listar las ciudades. Contrastar la respuesta con el catálogo de cobertura; no exigir que repita el país si la ubicación ya es inequívoca. Aclarar país/localidad cuando sea necesario. No equiparar residencia con zona deseada. Si propone varias opciones, basta una cubierta; solo descartar si todas están identificadas y fuera de cobertura.
 4. **Perfil restante.** Recoger disponibilidad, horario preferido, experiencia e incorporación, en ese orden. Estos datos no son eliminatorios.
 5. **Cierre.** Determinar el resultado, guardar datos e historial y generar un resumen interno para el recruiter. Agradecer al candidato sin mostrarle el resumen ni solicitar confirmación final.
 

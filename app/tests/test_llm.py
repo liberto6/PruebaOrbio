@@ -354,6 +354,30 @@ def test_reply_returns_stripped_text_with_its_effort_and_action():
     assert "text" not in request
 
 
+def test_reply_receives_every_saved_field_state_and_the_pending_questions():
+    states = new_snapshot("app", NOW).fields.model_dump()
+    states["full_name"].update(raw="Pedro Sanz Molina", normalized="Pedro Sanz Molina", status="resolved")
+    states["driving_license"].update(raw="No tengo carnet", normalized=False, status="resolved")
+    states["work_locations"].update(raw="Por ahí", status="unresolved", reason="no_place")
+    client = FakeClient(response("Hola"))
+    OpenAILLM(client, "m").write_reply(
+        context(
+            messages=("Pedro Sanz", "Perdona, soy Pedro Sanz Molina"),
+            fields=CandidateFields.model_validate(states),
+            pending_questions=["¿Cuánto pagan?"],
+        ),
+        Action(kind="clarify", field="work_locations", attempt=1),
+    )
+    sent = json.loads(client.requests[0]["input"])
+    assert sent["saved_fields"] == {
+        **{name: {"status": "missing", "normalized": None} for name in CandidateFields.model_fields},
+        "full_name": {"status": "resolved", "normalized": "Pedro Sanz Molina"},
+        "driving_license": {"status": "resolved", "normalized": False},
+        "work_locations": {"status": "unresolved", "normalized": None},
+    }
+    assert sent["pending_questions"] == ["¿Cuánto pagan?"]
+
+
 def test_summary_receives_saved_facts_but_not_the_conversation():
     client = FakeClient(response("Resumen"))
     summary = OpenAILLM(client, "m").write_summary(
