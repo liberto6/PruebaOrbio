@@ -1,0 +1,740 @@
+openapi: 3.1.0
+info:
+  title: Grupo Sazón ATS integration API (proposed)
+  version: 0.1.0-proposed
+  description: |
+    **PROPOSED, NOT IMPLEMENTED.** This is a design for connecting an external ATS. It
+    is not the application's generated OpenAPI document, none of these routes exist in
+    the demo and the examples cannot be run against it. All example data is synthetic.
+    No particular ATS is targeted and no compatibility with a real one is claimed.
+
+    The API exposes the latest state of each application, not an event history. Delivery
+    is at least once: a connector must upsert by application `id`. Synchronization rules,
+    a worked example and the requirements this design places on a future implementation
+    are in `ats-integration.md`.
+servers:
+  - url: https://grupo-sazon.example
+    description: Placeholder host. HTTPS is required.
+tags:
+  - name: applications
+    description: Screening applications and the recruiter decision.
+security:
+  - atsBearer: []
+paths:
+  /api/ats/v1/applications:
+    get:
+      operationId: listApplicationChanges
+      tags: [applications]
+      summary: List applications created or updated since a checkpoint
+      description: |
+        Returns items ordered by `updated_at` ascending, then `id` ascending, comparing
+        timestamps as instants. Without `updated_since` or `cursor` it starts the initial
+        import, which includes every application, even one with only the greeting.
+
+        A record that changes during pagination moves forward in this order, so it may be
+        returned again but is not skipped. Advance the checkpoint only after a whole run
+        succeeds, using the largest `updated_at` returned by this operation.
+      security:
+        - atsBearer: [applications:read]
+      parameters:
+        - name: updated_since
+          in: query
+          description: >-
+            Inclusive lower bound on `updated_at`: send the stored checkpoint unchanged.
+            Boundary records are returned again. Not allowed together with `cursor`.
+          schema:
+            $ref: "#/components/schemas/Timestamp"
+          example: "2026-11-05T09:00:00.000000Z"
+        - name: limit
+          in: query
+          description: Maximum items in this page. A value out of range returns 422.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: cursor
+          in: query
+          description: >-
+            Opaque `next_cursor` from the previous page. It carries the position and lower
+            bound of the run; do not parse or build it.
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: One page. The run has ended when `next_cursor` is null.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationPage"
+              examples:
+                first_page:
+                  summary: Request with updated_since and limit=2; more pages remain
+                  value:
+                    items:
+                      - id: a1f0c3d2e4b5469788a1b2c3d4e5f601
+                        updated_at: "2026-11-05T09:10:00.000000Z"
+                        outcome: qualified
+                        recruiter_decision: unreviewed
+                      - id: b2e1d4c3f5a6478899b2c3d4e5f60712
+                        updated_at: "2026-11-05T09:12:30.250000Z"
+                        outcome: incomplete
+                        recruiter_decision: unreviewed
+                    next_cursor: opaque-cursor-1
+                last_page:
+                  summary: Request with cursor; equal timestamps are ordered by id
+                  value:
+                    items:
+                      - id: c3d2e5f4a6b7489a8ac3d4e5f6071823
+                        updated_at: "2026-11-05T09:15:00.000000Z"
+                        outcome: pending_review
+                        recruiter_decision: unreviewed
+                      - id: d4c3f6a5b7c849ab9bd4e5f607182934
+                        updated_at: "2026-11-05T09:15:00.000000Z"
+                        outcome: disqualified
+                        recruiter_decision: unreviewed
+                    next_cursor: null
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: >-
+            Invalid parameters (`invalid_request`, do not retry unchanged), or an invalid or
+            expired cursor (`invalid_cursor`, restart the run from the stored checkpoint).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalid_request:
+                  value:
+                    code: invalid_request
+                    notice: The request parameters are not valid.
+                invalid_cursor:
+                  value:
+                    code: invalid_cursor
+                    notice: This cursor is not valid. Restart from your checkpoint.
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/ats/v1/applications/{id}:
+    get:
+      operationId: getApplication
+      tags: [applications]
+      summary: Read the saved screening data, result and recruiter decision
+      description: >-
+        Returns the latest state, which may be newer than the list item that led here. Never
+        use this `updated_at` as the checkpoint. Transcripts, hidden reasoning, turn or retry
+        metadata and technical diagnostics are not part of this integration.
+      security:
+        - atsBearer: [applications:read]
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+      responses:
+        "200":
+          description: The application.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationDetail"
+              examples:
+                qualified_zero_experience_unknown_start:
+                  summary: Closed. Zero experience and unknown start timing are resolved answers
+                  value:
+                    id: a1f0c3d2e4b5469788a1b2c3d4e5f601
+                    created_at: "2026-11-05T09:05:00.000000Z"
+                    updated_at: "2026-11-05T09:10:00.000000Z"
+                    closed_at: "2026-11-05T09:10:00.000000Z"
+                    outcome: qualified
+                    outcome_reasons: [screening_passed]
+                    fields:
+                      full_name: {raw: Ana Ruiz, normalized: Ana Ruiz, status: resolved, reason: null}
+                      driving_license: {raw: "sí, tengo carnet", normalized: true, status: resolved, reason: null}
+                      work_locations:
+                        raw: en Madrid
+                        normalized: {identified: [{country: ES, locality: madrid}], unresolved: []}
+                        status: resolved
+                        reason: null
+                      availability:
+                        raw: a tiempo parcial
+                        normalized: {options: [part_time], notes: null}
+                        status: resolved
+                        reason: null
+                      preferred_schedule:
+                        raw: por las tardes, menos los martes
+                        normalized: {options: [afternoon], notes: menos los martes}
+                        status: resolved
+                        reason: null
+                      delivery_experience:
+                        raw: nunca he hecho reparto
+                        normalized: {years: 0, platforms: []}
+                        status: resolved
+                        reason: null
+                      start_timing:
+                        raw: aún no lo sé
+                        normalized: {kind: unknown, value: null}
+                        status: resolved
+                        reason: null
+                    pending_questions: ["¿Cuánto se paga por hora?"]
+                    summary: "Resultado: screening superado. Ana Ruiz, Madrid, sin experiencia."
+                    recruiter_decision: unreviewed
+                incomplete_greeting_only:
+                  summary: Open, only the greeting was sent. Nothing collected and no summary
+                  value:
+                    id: b2e1d4c3f5a6478899b2c3d4e5f60712
+                    created_at: "2026-11-05T09:12:30.250000Z"
+                    updated_at: "2026-11-05T09:12:30.250000Z"
+                    closed_at: null
+                    outcome: incomplete
+                    outcome_reasons: []
+                    fields:
+                      full_name: {raw: null, normalized: null, status: missing, reason: null}
+                      driving_license: {raw: null, normalized: null, status: missing, reason: null}
+                      work_locations: {raw: null, normalized: null, status: missing, reason: null}
+                      availability: {raw: null, normalized: null, status: missing, reason: null}
+                      preferred_schedule: {raw: null, normalized: null, status: missing, reason: null}
+                      delivery_experience: {raw: null, normalized: null, status: missing, reason: null}
+                      start_timing: {raw: null, normalized: null, status: missing, reason: null}
+                    pending_questions: []
+                    summary: null
+                    recruiter_decision: unreviewed
+                pending_review_unresolved:
+                  summary: Closed. An unresolved field and a place whose coverage is unresolved
+                  value:
+                    id: c3d2e5f4a6b7489a8ac3d4e5f6071823
+                    created_at: "2026-11-05T09:08:00.000000Z"
+                    updated_at: "2026-11-05T09:15:00.000000Z"
+                    closed_at: "2026-11-05T09:15:00.000000Z"
+                    outcome: pending_review
+                    outcome_reasons: [start_timing_unresolved, coverage_unresolved]
+                    fields:
+                      full_name: {raw: Luis Gómez, normalized: Luis Gómez, status: resolved, reason: null}
+                      driving_license: {raw: sí, normalized: true, status: resolved, reason: null}
+                      work_locations:
+                        raw: Pues eso, Guadalajara
+                        normalized: {identified: [], unresolved: [Guadalajara]}
+                        status: resolved
+                        reason: null
+                      availability:
+                        raw: jornada completa
+                        normalized: {options: [full_time], notes: null}
+                        status: resolved
+                        reason: null
+                      preferred_schedule:
+                        raw: me da igual
+                        normalized: {options: [flexible], notes: null}
+                        status: resolved
+                        reason: null
+                      delivery_experience:
+                        raw: dos años y medio en Glovo
+                        normalized: {years: 2.5, platforms: [Glovo]}
+                        status: resolved
+                        reason: null
+                      start_timing: {raw: ya veremos, normalized: null, status: unresolved, reason: ambiguous}
+                    pending_questions: []
+                    summary: "Resultado: pendiente de revisión. Falta aclarar zona e inicio."
+                    recruiter_decision: unreviewed
+                disqualified_false_and_missing:
+                  summary: Closed early. A false licence is an answer; later fields stay missing
+                  value:
+                    id: d4c3f6a5b7c849ab9bd4e5f607182934
+                    created_at: "2026-11-05T09:14:00.000000Z"
+                    updated_at: "2026-11-05T09:15:00.000000Z"
+                    closed_at: "2026-11-05T09:15:00.000000Z"
+                    outcome: disqualified
+                    outcome_reasons: [no_driving_license]
+                    fields:
+                      full_name: {raw: Marta Díaz, normalized: Marta Díaz, status: resolved, reason: null}
+                      driving_license: {raw: no tengo carnet, normalized: false, status: resolved, reason: null}
+                      work_locations: {raw: null, normalized: null, status: missing, reason: null}
+                      availability: {raw: null, normalized: null, status: missing, reason: null}
+                      preferred_schedule: {raw: null, normalized: null, status: missing, reason: null}
+                      delivery_experience: {raw: null, normalized: null, status: missing, reason: null}
+                      start_timing: {raw: null, normalized: null, status: missing, reason: null}
+                    pending_questions: []
+                    summary: "Resultado: descalificada. Marta Díaz no tiene carnet de conducir."
+                    recruiter_decision: unreviewed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /api/ats/v1/applications/{id}/decision:
+    patch:
+      operationId: setRecruiterDecision
+      tags: [applications]
+      summary: Set the recruiter decision
+      description: |
+        Any of the three decisions may replace any other, on open or closed applications.
+        Only `recruiter_decision` and `updated_at` change: screening data and result are
+        preserved. Concurrent writes follow the last committed write.
+
+        Every successful write moves `updated_at`, even with the same value, so the record
+        is listed again. Send a decision only when the ATS decision really changed. Resending
+        the same value has the same business effect, but this is not exactly-once. After a
+        lost response or a 500 or 503, read the application: if it already has the intended
+        decision, stop; otherwise send it again.
+      security:
+        - atsBearer: [applications:write]
+      parameters:
+        - $ref: "#/components/parameters/ApplicationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecisionRequest"
+            example:
+              recruiter_decision: advance
+      responses:
+        "200":
+          description: >-
+            The decision was committed. This `updated_at` is never the checkpoint.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationItem"
+              example:
+                id: a1f0c3d2e4b5469788a1b2c3d4e5f601
+                updated_at: "2026-11-05T09:20:00.000000Z"
+                outcome: qualified
+                recruiter_decision: advance
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          description: The body is invalid (`invalid_request`). Do not retry unchanged.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: invalid_request
+                notice: The request body is not valid.
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+components:
+  securitySchemes:
+    atsBearer:
+      type: http
+      scheme: bearer
+      description: >-
+        Server-to-server bearer credential over HTTPS. Reads need the `applications:read`
+        permission and decision writes `applications:write`. Token provisioning is outside
+        this design. This does not secure or change the current local application.
+  parameters:
+    ApplicationId:
+      name: id
+      in: path
+      required: true
+      description: Grupo Sazón application id. It identifies an application, not a verified person.
+      schema:
+        type: string
+        minLength: 1
+      example: a1f0c3d2e4b5469788a1b2c3d4e5f601
+  responses:
+    Unauthorized:
+      description: Missing or invalid credential. Do not retry until it is fixed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: unauthorized
+            notice: A valid credential is required.
+    Forbidden:
+      description: The credential lacks the required permission. Do not retry until it is fixed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: forbidden
+            notice: This credential cannot perform this operation.
+    NotFound:
+      description: Unknown application id. Do not retry.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: application_not_found
+            notice: Application not found.
+    InternalError:
+      description: Unexpected failure. Retry with backoff; reconcile a decision write first.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: internal_error
+            notice: There was a technical problem. Please try again.
+    ServiceUnavailable:
+      description: Temporary failure. Retry with backoff; reconcile a decision write first.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: service_unavailable
+            notice: The service is not available right now. Please try again.
+  schemas:
+    Timestamp:
+      type: string
+      format: date-time
+      pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$'
+      description: UTC with exactly six fractional digits, never rounded.
+      example: "2026-11-05T09:10:00.000000Z"
+    NonBlankString:
+      type: string
+      pattern: '\S'
+    Outcome:
+      type: string
+      enum: [incomplete, qualified, disqualified, pending_review]
+      description: >-
+        Screening result, set only when screening closes. `incomplete` means still open,
+        even if every field is already collected or the candidate asked to stop. A closed
+        application is never `incomplete`.
+    RecruiterDecision:
+      type: string
+      enum: [unreviewed, advance, rejected]
+      description: The recruiter's judgement, independent of the screening outcome.
+    ApplicationItem:
+      type: object
+      additionalProperties: false
+      required: [id, updated_at, outcome, recruiter_decision]
+      properties:
+        id:
+          type: string
+          minLength: 1
+          description: Stable application id. Upsert by it and never merge people by name.
+        updated_at:
+          allOf:
+            - $ref: "#/components/schemas/Timestamp"
+          description: >-
+            Moves on every saved change, including recruiter decisions and conversation
+            activity this API does not expose, so a listed record may look unchanged.
+        outcome:
+          $ref: "#/components/schemas/Outcome"
+        recruiter_decision:
+          $ref: "#/components/schemas/RecruiterDecision"
+    ApplicationPage:
+      type: object
+      additionalProperties: false
+      required: [items, next_cursor]
+      properties:
+        items:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/ApplicationItem"
+        next_cursor:
+          type: [string, "null"]
+          description: >-
+            Send it to read the next page; null ends the run. The next page may be empty.
+    ApplicationDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - created_at
+        - updated_at
+        - closed_at
+        - outcome
+        - outcome_reasons
+        - fields
+        - pending_questions
+        - summary
+        - recruiter_decision
+      properties:
+        id:
+          type: string
+          minLength: 1
+        created_at:
+          $ref: "#/components/schemas/Timestamp"
+        updated_at:
+          $ref: "#/components/schemas/Timestamp"
+        closed_at:
+          anyOf:
+            - type: "null"
+            - $ref: "#/components/schemas/Timestamp"
+          description: >-
+            Null while open. After closure only `recruiter_decision` and `updated_at` change.
+        outcome:
+          $ref: "#/components/schemas/Outcome"
+        outcome_reasons:
+          type: array
+          items:
+            type: string
+          description: >-
+            Empty while `incomplete`. Otherwise: `screening_passed` for `qualified`;
+            `no_driving_license` and/or `location_not_covered` for `disqualified`;
+            `<field>_unresolved` and/or `coverage_unresolved` for `pending_review`.
+        fields:
+          $ref: "#/components/schemas/ScreeningFields"
+        pending_questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/NonBlankString"
+          description: Job questions the candidate asked, saved for the recruiter.
+        summary:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/NonBlankString"
+          description: Saved internal summary. Null exactly when the outcome is `incomplete`.
+        recruiter_decision:
+          $ref: "#/components/schemas/RecruiterDecision"
+    DecisionRequest:
+      type: object
+      additionalProperties: false
+      required: [recruiter_decision]
+      properties:
+        recruiter_decision:
+          $ref: "#/components/schemas/RecruiterDecision"
+    ScreeningFields:
+      type: object
+      additionalProperties: false
+      description: >-
+        The seven screening fields. While an application is open, any of them may still
+        change, including going back to `unresolved`.
+      required:
+        - full_name
+        - driving_license
+        - work_locations
+        - availability
+        - preferred_schedule
+        - delivery_experience
+        - start_timing
+      properties:
+        full_name:
+          allOf:
+            - $ref: "#/components/schemas/FieldState"
+          properties:
+            normalized:
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/NonBlankString"
+        driving_license:
+          allOf:
+            - $ref: "#/components/schemas/FieldState"
+          properties:
+            normalized:
+              type: [boolean, "null"]
+              description: "`false` is a stated answer; null is not an answer."
+        work_locations:
+          allOf:
+            - $ref: "#/components/schemas/FieldState"
+          properties:
+            normalized:
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/WorkLocations"
+        availability:
+          allOf:
+            - $ref: "#/components/schemas/FieldState"
+          properties:
+            normalized:
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/Availability"
+        preferred_schedule:
+          allOf:
+            - $ref: "#/components/schemas/FieldState"
+          properties:
+            normalized:
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/PreferredSchedule"
+        delivery_experience:
+          allOf:
+            - $ref: "#/components/schemas/FieldState"
+          properties:
+            normalized:
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/DeliveryExperience"
+        start_timing:
+          allOf:
+            - $ref: "#/components/schemas/FieldState"
+          properties:
+            normalized:
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/StartTiming"
+    FieldState:
+      type: object
+      additionalProperties: false
+      description: >-
+        One field's state. `missing` means nothing was collected; `unresolved` keeps the raw
+        evidence and a reason, with no normalized value; `resolved` has raw evidence and a
+        normalized value.
+      required: [raw, normalized, status, reason]
+      properties:
+        raw:
+          description: Evidence taken from the candidate's answer.
+        normalized:
+          description: The validated value; its shape depends on the field.
+        status:
+          type: string
+          enum: [missing, resolved, unresolved]
+        reason:
+          description: >-
+            Why the field is unresolved. An open code, not a closed set: new values can
+            appear, so do not branch on it. Treat any value as "needs review".
+      oneOf:
+        - properties:
+            status: {const: missing}
+            raw: {type: "null"}
+            normalized: {type: "null"}
+            reason: {type: "null"}
+        - properties:
+            status: {const: unresolved}
+            raw: {$ref: "#/components/schemas/NonBlankString"}
+            normalized: {type: "null"}
+            reason: {$ref: "#/components/schemas/NonBlankString"}
+        - properties:
+            status: {const: resolved}
+            raw: {$ref: "#/components/schemas/NonBlankString"}
+            normalized: {not: {type: "null"}}
+            reason:
+              oneOf:
+                - type: "null"
+                - $ref: "#/components/schemas/NonBlankString"
+    WorkLocations:
+      type: object
+      additionalProperties: false
+      description: >-
+        At least one list is non-empty. Places in `unresolved` are kept as stated, and may
+        leave coverage open even when the field's status is `resolved`.
+      required: [identified, unresolved]
+      properties:
+        identified:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [country, locality]
+            properties:
+              country:
+                $ref: "#/components/schemas/NonBlankString"
+              locality:
+                $ref: "#/components/schemas/NonBlankString"
+        unresolved:
+          type: array
+          items:
+            $ref: "#/components/schemas/NonBlankString"
+      anyOf:
+        - properties:
+            identified: {minItems: 1}
+        - properties:
+            unresolved: {minItems: 1}
+    Availability:
+      type: object
+      additionalProperties: false
+      description: "`options` may be empty only when `notes` keeps the restriction."
+      required: [options, notes]
+      properties:
+        options:
+          type: array
+          items:
+            type: string
+            enum: [full_time, part_time, weekends]
+        notes:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/NonBlankString"
+      anyOf:
+        - properties:
+            options: {minItems: 1}
+        - properties:
+            notes: {type: string}
+    PreferredSchedule:
+      type: object
+      additionalProperties: false
+      description: "`options` may be empty only when `notes` keeps the restriction."
+      required: [options, notes]
+      properties:
+        options:
+          type: array
+          items:
+            type: string
+            enum: [morning, afternoon, evening, flexible]
+        notes:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/NonBlankString"
+      anyOf:
+        - properties:
+            options: {minItems: 1}
+        - properties:
+            notes: {type: string}
+    DeliveryExperience:
+      type: object
+      additionalProperties: false
+      description: "`years: 0` with no platforms is stated zero experience, not missing data."
+      required: [years, platforms]
+      properties:
+        years:
+          type: number
+          minimum: 0
+          description: May be fractional; months are converted to years.
+        platforms:
+          type: array
+          items:
+            $ref: "#/components/schemas/NonBlankString"
+    StartTiming:
+      type: object
+      additionalProperties: false
+      description: "`kind: unknown` is the candidate stating they do not know, not missing data."
+      required: [kind, value]
+      properties:
+        kind:
+          type: string
+          enum: [date, period, condition, unknown]
+        value:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/NonBlankString"
+      oneOf:
+        - properties:
+            kind: {const: unknown}
+            value: {type: "null"}
+        - properties:
+            kind: {const: date}
+            value: {type: string, format: date}
+        - properties:
+            kind: {enum: [period, condition]}
+            value: {type: string}
+    Error:
+      type: object
+      additionalProperties: false
+      required: [code, notice]
+      description: Error body, with the same shape as the current API. No internal exception details.
+      properties:
+        code:
+          type: string
+          enum:
+            - invalid_request
+            - invalid_cursor
+            - unauthorized
+            - forbidden
+            - application_not_found
+            - internal_error
+            - service_unavailable
+          description: Stable code for program logic.
+        notice:
+          type: string
+          description: Human-readable text. Do not parse it.

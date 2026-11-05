@@ -1,7 +1,8 @@
 # E4.6 — ATS integration design
 
-**Status: planned, 2026-11-05. Design work pending.** Implements the assignment bonus
-scope: “API spec for connecting to an ATS (design only, no need to build)”. Sources:
+**Status: delivered, 2026-11-05. Design only, nothing implemented.** Artifacts:
+[`ats-api.yaml`](../design/ats-api.yaml) and [`ats-integration.md`](../design/ats-integration.md).
+See the [evidence](#evidence-2026-11-05). Implements the assignment bonus scope: “API spec for connecting to an ATS (design only, no need to build)”. Sources:
 [assignment](../assignment.html), [process design](../design/process-design.md),
 [roadmap](build-roadmap.md) and [E4 contracts](e4-recruiter-tool.md).
 This is an independent documentation task; E4.5 is closed separately, with known limits.
@@ -91,16 +92,16 @@ security implementation remain explicit limits, not additional work in this bonu
 
 This is design verification, not backend TDD or integration testing:
 
-- [ ] Both artifacts exist and clearly distinguish proposed behaviour from the demo.
-- [ ] The OpenAPI document parses and passes one available OpenAPI validator; record
+- [x] Both artifacts exist and clearly distinguish proposed behaviour from the demo.
+- [x] The OpenAPI document parses and passes one available OpenAPI validator; record
   the tool/version and result. Validate references and example/schema consistency.
   Do not add application dependencies or build a validation framework.
-- [ ] Walk through one synthetic application: retrieval, ATS upsert, decision update
+- [x] Walk through one synthetic application: retrieval, ATS upsert, decision update
   and subsequent read. Include one failed-page retry in that same example to explain
   checkpoint recovery; no extensive failure matrix.
-- [ ] Manually check the four outcome values, three decision values, seven field
+- [x] Manually check the four outcome values, three decision values, seven field
   shapes, null handling and incomplete summary against the current code/contracts.
-- [ ] Record concise evidence and limits here; link the artifacts from the README
+- [x] Record concise evidence and limits here; link the artifacts from the README
   and update roadmap/AGENTS.md. No pytest rerun, frontend build, real ATS call or LLM
   evaluation is required for documentation-only delivery.
 
@@ -108,6 +109,49 @@ Stop when this contract and worked flow are coherent and validated. No claim of
 compatibility with a real ATS until a connector is implemented and tested. E5 can
 present this as a design bonus; no extra demo application or video is required.
 
-Planning evidence: inspected the assignment, current recruiter operations and stored
-screening contracts. Only this brief and planning links are delivered now; the API
-specification and integration explanation remain to be written.
+## Evidence, 2026-11-05
+
+**Language.** Both artifacts are in English, like the code, README and planning documents:
+an API contract is a technical artifact, not product copy or the Phase 1 process design.
+Synthetic candidate answers in the examples stay in Spanish, as the product would save them.
+
+**Validator.** `@stoplight/spectral-cli` 6.17.0 with `spectral:oas`, installed outside the
+repository: 0 errors, 4 warnings. One is the absent `info.contact`, not invented. Three are
+`oas3-operation-security-defined`, about the permission names on the bearer scheme, which
+OpenAPI 3.1 allows as role names. Nine deliberately broken copies were all caught: eight
+invalid examples through `oas3-valid-media-example` and one broken reference through `invalid-ref`.
+
+**Examples against the models.** A throwaway script, run from `app/`, loaded the four detail
+examples through `CandidateFields` and `CandidateSnapshot`, all valid. It adds
+`clarifications_asked`, which the contract leaves out and the model requires. For the closed
+examples, `evaluate` returned the stated outcome and reasons. Enums and field order were compared
+with `rules.py` and `main.py`. The diagram parses with Mermaid 11.17.2. The read-aloud
+section has 120 words.
+
+**Walkthrough.** The worked example was followed by hand against the contract: pagination,
+tie by id, failed page, unmoved checkpoint, re-delivery, decision, boundary re-delivery, no echo.
+
+**Checked against the code.** Reading the code, and a throwaway run with a temporary database
+and no model calls for serialization and repeated decisions:
+
+- `set_recruiter_decision` moves `updated_at` on every save, even with the same value, and keeps
+  `revision`. The three decisions replace one another on open and closed applications.
+- Opening the chat creates a greeting-only record: all fields missing, `incomplete`, no reasons.
+- The saved outcome changes only at closure. So `incomplete`, open, null summary and empty
+  reasons always go together, and `<field>_missing` from `evaluate` is never saved.
+- `reason` is an open string, partly written by the model. `alternatives_offered` is one possible
+  value and can remain on a closed `pending_review`; the contract does not enumerate it.
+- Left out as turn or retry metadata: `clarifications_asked`, `revision`, `stop_requested`,
+  `language`, `reminder_sent`, `last_question_field`, `last_question_kind`,
+  `location_alternatives_offered` and the messages.
+
+**Proposal beyond the code.** The brief's pagination needs behaviour the demo lacks. The current
+code stays unchanged, and the requirements are listed in the
+[explanation](../design/ats-integration.md#what-a-future-implementation-must-add): order by instant
+then id, since the stored text is not time-ordered; `updated_at` never decreasing in commit order,
+since `create_application` takes it before its transaction; a fixed timestamp format; an
+allowlist; and authentication.
+
+**Limits.** No connector, mock server or real ATS call, so nothing proves that the design works
+in operation or suits a given vendor. Spectral checks structure and examples, not the prose
+rules. No pytest rerun or frontend build: no application file changed. Next stage: E5.

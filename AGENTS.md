@@ -2,10 +2,11 @@
 
 Build the local Grupo Sazón screening agent and recruiter tool. Read sources in
 order: [assignment](docs/assignment.html), [process design](docs/design/process-design.md),
-[roadmap](docs/planning/build-roadmap.md), then the active stage plan:
-[E4.6 — ATS integration design](docs/planning/e4-6-ats-integration-design.md).
-E4 is complete; E4.6 is design only. E4.5 is closed by user decision with known
-limits: do not change the agent further or spend on model runs without a new request.
+[roadmap](docs/planning/build-roadmap.md), then the active stage plan. The next stage
+is E5 (Delivery), whose plan is not written yet. E4 is complete.
+[E4.6 — ATS integration design](docs/planning/e4-6-ats-integration-design.md) is delivered,
+design only. E4.5 is closed by user decision with known limits: do not change the agent
+further or spend on model runs without a new request.
 
 - Inspect existing work before editing; implement only the requested stage.
 - Application code, dependencies and tests live in `app/`. Run Python setup,
@@ -19,9 +20,9 @@ limits: do not change the agent further or spend on model runs without a new req
   live in `app/evals/`, outside pytest; they need credentials and cost money.
 - Code, README and commits are English; product copy and process design are Spanish.
 - Recruiter routes are unauthenticated: local demo only. Authentication, Docker, CI,
-  deployment, WhatsApp, voice and bonus implementations remain excluded. E4.6 adds
-  only an ATS API design, including proposed security, not runtime changes. Preserve the completed
-  E3 screening and E4 recruiter behaviour.
+  deployment, WhatsApp, voice and bonus implementations remain excluded. The ATS API in
+  `docs/design/` is a proposal, including its security: it is not implemented. Preserve the
+  completed E3 screening and E4 recruiter behaviour.
 - Use [README](README.md) for setup and checks. Run relevant checks and update the
   active stage checklist and roadmap with actual evidence, limits and next steps.
 - A stage is not finished until the stage plan, roadmap, README and this file

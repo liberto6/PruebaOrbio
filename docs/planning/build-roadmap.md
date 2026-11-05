@@ -49,9 +49,10 @@ See [E4 plan and evidence](e4-recruiter-tool.md), [E3 plan and evidence](e3-conv
 The roadmap's "every Phase 1 rule" covers E2's deterministic rules only; E3 must
 prove the conversational behaviour through its scenarios.
 
-Current task: [E4.6 — ATS integration design](e4-6-ats-integration-design.md). The brief
-is written; the proposed API specification and flow explanation remain pending.
-This is design only, with no connector or runtime changes.
+[E4.6 — ATS integration design](e4-6-ats-integration-design.md) is delivered as a proposal:
+the [OpenAPI contract](../design/ats-api.yaml) passes Spectral with 0 errors and 4 reviewed
+warnings, and the [explanation](../design/ats-integration.md) has one worked flow. Nothing is
+implemented, and no connector, runtime change or real ATS call exists. Next stage: E5.
 
 [E4.5 — Agent tone](e4-5-agent-tone.md) is **closed by user decision with known limits**.
 `python -m pytest` reports 737 passed. The user replaced the tone rules with one simple

@@ -9,8 +9,9 @@ Read the [assignment](docs/assignment.html), [process design](docs/design/proces
 [E3 plan](docs/planning/e3-conversational-agent.md)
 and [E4 plan](docs/planning/e4-recruiter-tool.md).
 [E4.5 — Agent tone](docs/planning/e4-5-agent-tone.md) is closed by user decision with
-known limits. The active brief is
-[E4.6 — ATS integration design](docs/planning/e4-6-ats-integration-design.md), before E5.
+known limits. [E4.6 — ATS integration design](docs/planning/e4-6-ats-integration-design.md)
+is delivered as a proposal only: the [OpenAPI contract](docs/design/ats-api.yaml) and its
+[explanation](docs/design/ats-integration.md). Next is E5.
 
 ## Windows setup (PowerShell)
 
@@ -116,6 +117,10 @@ Latest results, the rationale for the model and the known limits are in the
 
 ## Verification recorded on 2026-11-05
 
+- ATS design, documentation only: Spectral 6.17.0 reports 0 errors and 4 reviewed warnings on the
+  [proposed contract](docs/design/ats-api.yaml), and its examples load through the real models. Not
+  implemented and not tested against any ATS. See the
+  [evidence](docs/planning/e4-6-ats-integration-design.md#evidence-2026-11-05).
 - `python -m pytest` after adding the single offer of covered cities: 753 passed. Nine focused
   real-model conversations, once each: the runner reports 9/9 and all were read. One English close
   added an unrequested invitation to apply again. See the
@@ -169,8 +174,9 @@ versions are resolved by pip and are not a full environment lock.
 with known limits: replies now receive the saved fields and pending questions and usually open
 with a brief acknowledgement, but a correction can go unacknowledged and a job question can come
 up when not asked. [E4.6 — ATS integration design](docs/planning/e4-6-ats-integration-design.md)
-is now planned: a proposed API specification and integration explanation, without
-building a connector or changing the running application. E5 completes delivery.
+is delivered: a [proposed API contract](docs/design/ats-api.yaml) and
+[integration explanation](docs/design/ats-integration.md), with no connector and no change to the
+running application. Next is E5, which completes delivery; its plan is not written yet.
 
 A [scoped location-question change](docs/planning/e4-5-agent-tone.md#scoped-follow-up-work-location-question)
 now instructs the agent to mention delivery areas in Spain and Mexico and ask for the
