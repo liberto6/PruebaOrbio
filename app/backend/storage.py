@@ -221,6 +221,22 @@ def load_application(db_path, application_id: str) -> StoredApplication:
         return _read_stored(connection, application_id)
 
 
+def list_applications(
+    db_path, outcome: str | None = None, recruiter_decision: str | None = None
+) -> list[CandidateSnapshot]:
+    """Matching snapshots, newest first then by id. Conversations are not read."""
+    with _transaction(db_path) as connection:
+        rows = connection.execute(
+            "SELECT snapshot FROM applications"
+            " WHERE (:outcome IS NULL OR outcome = :outcome)"
+            " AND (:decision IS NULL OR recruiter_decision = :decision)",
+            {"outcome": outcome, "decision": recruiter_decision},
+        ).fetchall()
+    snapshots = [CandidateSnapshot.model_validate_json(row[0]) for row in rows]
+    # Sorted as instants: the stored text omits the fraction of a whole second, so it misorders.
+    return sorted(snapshots, key=lambda snapshot: (-snapshot.created_at.timestamp(), snapshot.id))
+
+
 def load_turn(db_path, application_id: str, request_id: str) -> Turn:
     with _transaction(db_path) as connection:
         _read_snapshot(connection, application_id)

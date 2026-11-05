@@ -113,4 +113,91 @@ button {
 }
 button.secondary { background: transparent; color: var(--accent); }
 button:disabled { opacity: .5; cursor: default; }
+.switch-view {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  color: var(--accent);
+  text-decoration: none;
+}
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Recruiter: list and detail side by side on desktop, one at a time on narrow widths. */
+.recruiter { display: flex; flex-direction: column; min-height: 100dvh; }
+.workspace { display: block; padding: 0; overflow: visible; }
+.pane { padding: 16px; }
+.pane:focus, .decision:focus { outline: none; }
+.has-selection .list-pane, .recruiter:not(.has-selection) .detail-pane { display: none; }
+
+.recruiter h1 { margin: 0; font-size: 1.375rem; overflow-wrap: anywhere; }
+.recruiter h2 { margin: 24px 0 8px; font-size: 1rem; }
+.recruiter ul:not(.applications) { margin: 0; padding-left: 20px; overflow-wrap: anywhere; }
+.recruiter label { display: flex; flex-direction: column; gap: 4px; font-size: .875rem; }
+select {
+  min-height: 40px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}
+
+.filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-bottom: 12px; }
+.problem { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin: 12px 0; }
+
+.applications { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.application {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  border-color: var(--line);
+  background: var(--surface);
+  color: inherit;
+  text-align: left;
+  font-size: .875rem;
+  overflow-wrap: anywhere;
+}
+.application strong { font-size: 1rem; }
+.application[aria-current] { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
+
+.back { margin-bottom: 12px; }
+.decision {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.recruiter dl { margin: 0; }
+.field { padding: 8px 0; border-top: 1px solid var(--line); }
+.field dt { color: var(--muted); font-size: .875rem; }
+.field dd { margin: 0; overflow-wrap: anywhere; }
+.recruiter small { display: block; font-size: .8125rem; }
+.field small { color: var(--muted); }
+.text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.45; }
+
+.conversation { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+
+@media (min-width: 900px) {
+  .recruiter { height: 100dvh; }
+  .workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+    min-height: 0;
+  }
+  .pane { min-height: 0; overflow-y: auto; }
+  .list-pane { border-right: 1px solid var(--line); }
+  .has-selection .list-pane, .recruiter:not(.has-selection) .detail-pane { display: block; }
+  .back { display: none; }
+}

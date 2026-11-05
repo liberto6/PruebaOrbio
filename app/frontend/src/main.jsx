@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import Recruiter from './Recruiter.jsx';
 import './style.css';
 
 const COPY = {
   es: {
     assistant: 'Asistente virtual',
+    recruiterView: 'Panel de selección',
     newApplication: 'Nueva candidatura',
     confirmNew: 'Esta candidatura quedará incompleta. ¿Empezar otra?',
     confirmYes: 'Sí, empezar otra',
@@ -22,6 +24,7 @@ const COPY = {
   },
   en: {
     assistant: 'Virtual assistant',
+    recruiterView: 'Recruiter panel',
     newApplication: 'New application',
     confirmNew: 'This application will stay incomplete. Start another?',
     confirmYes: 'Yes, start another',
@@ -264,10 +267,13 @@ function App() {
           <p className="brand">Grupo Sazón</p>
           <p className="role">{copy.assistant}</p>
         </div>
-        <button type="button" className="secondary" onClick={askForNewApplication}
-          disabled={sending || starting || confirmingNew}>
-          {copy.newApplication}
-        </button>
+        <div className="actions">
+          <a className="switch-view" href="/recruiter">{copy.recruiterView}</a>
+          <button type="button" className="secondary" onClick={askForNewApplication}
+            disabled={sending || starting || confirmingNew}>
+            {copy.newApplication}
+          </button>
+        </div>
       </header>
 
       {confirmingNew && (
@@ -329,4 +335,7 @@ function App() {
   );
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+// Chosen before mounting, so the recruiter page never touches the candidate session.
+const Screen = window.location.pathname === '/recruiter' ? Recruiter : App;
+
+createRoot(document.getElementById('root')).render(<Screen />);

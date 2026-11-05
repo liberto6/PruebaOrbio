@@ -1,7 +1,7 @@
 # Grupo Sazón
 
 Local candidate screening and recruiter tool. **A candidate can complete a screening in
-the web chat with the real model.** The recruiter tool is not implemented.
+the web chat with the real model, and a recruiter can review it and record a decision.**
 
 Read the [assignment](docs/assignment.html), [process design](docs/design/process-design.md),
 [roadmap](docs/planning/build-roadmap.md), [E1 checklist](docs/planning/e1-foundations.md),
@@ -29,7 +29,8 @@ python -m pytest
 python -m uvicorn backend.main:app --reload
 ```
 
-Open http://127.0.0.1:8000. In another PowerShell window:
+Open http://127.0.0.1:8000 for the candidate chat and
+http://127.0.0.1:8000/recruiter for the recruiter tool. In another PowerShell window:
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8000/api/health
@@ -52,13 +53,20 @@ language, closure, any pending turn and `reminder_due_at`. Resending the same `r
 text is the retry. `POST /api/applications/{id}/reminder` saves the single fixed reminder if the
 server finds it due after 10 minutes of inactivity, and otherwise changes nothing; the open
 page holds one timeout for it, so nothing is sent while the browser is closed.
+`GET /api/recruiter/applications` (optional `outcome` and `recruiter_decision` filters),
+`GET /api/recruiter/applications/{id}` and `PATCH /api/recruiter/applications/{id}/decision`
+serve the recruiter tool with their own projections. They need no provider credentials, never
+call the model, and a decision changes nothing else in the application.
 After building, FastAPI serves `app/frontend/dist/index.html` at
-`/` and the generated assets at `/assets`. Restart Uvicorn after creating the build.
+`/` and `/recruiter`, and the generated assets at `/assets`. Restart Uvicorn after creating the build.
 Unknown API paths return JSON 404; there is no frontend catch-all.
-Without a build, startup logs the build commands and `/` returns an actionable
+Without a build, startup logs the build commands and `/` and `/recruiter` return an actionable
 JSON 503 while the API stays available.
 
-The frontend is one chat screen with React, Vite, plain JavaScript and CSS. There is no
+The frontend is one React build with two screens, in plain JavaScript and CSS: the chat, and
+`Recruiter.jsx` when the path is exactly `/recruiter`, which never creates an application or
+reads the candidate session. A plain link in each header switches between them for the demo.
+There is no router and no
 separate frontend development server or CORS setup. The browser keeps the application id
 and any unconfirmed request in `localStorage`; SQLite is authoritative for the history.
 Opening the page without a saved id creates an application.
@@ -72,7 +80,12 @@ against `app/`. Python validates and determines outcomes while the LLM interpret
 `app/backend/conversation.py` chooses the next action and advances each candidate turn
 from saved state. `app/backend/llm.py` holds the model contract, prompts and OpenAI
 adapter. The model picks covered places from a closed list and reports others as stated;
-Python compares them with the catalog. This is a local demo without authentication or deployment infrastructure.
+Python compares them with the catalog.
+
+**This is a local demo, not production-ready.** There is no authentication or deployment
+infrastructure: anyone who can reach the server can read candidate data and change decisions at
+`/recruiter`. Separate routes and projections are not access control. The recruiter list returns
+all matches, without pagination.
 
 ## Model and evals
 
@@ -97,6 +110,9 @@ Latest results, the rationale for the model and the known limits are in the
 
 ## Verification recorded on 2026-11-05
 
+- `python -m pytest` after E4: 736 passed. `npm run build` passed. Recruiter screen checks in
+  real Chrome, with a temporary database and a fake model, and what was not checked: see the
+  [E4 evidence](docs/planning/e4-recruiter-tool.md#e4-evidence-2026-11-05).
 - `python -m pytest` after E3.4: 685 passed. `npm run build` passed.
 - Reminder in the served browser and focused real-model runs (stop/resume and imprecise start, all
   3/3): see the [E3.4 evidence](docs/planning/e3-conversational-agent.md#e34-evidence-2026-11-05).
@@ -130,5 +146,5 @@ versions are resolved by pip and are not a full environment lock.
 
 ## Next work
 
-The [E4 brief](docs/planning/e4-recruiter-tool.md) is written; implementation is pending.
-It adds the recruiter list, filters, detail and independent decision. E5 completes delivery.
+[E4](docs/planning/e4-recruiter-tool.md) is implemented and awaits user validation.
+E5 completes delivery.

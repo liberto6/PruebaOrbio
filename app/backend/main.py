@@ -2,6 +2,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Literal
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request
@@ -18,7 +19,15 @@ from backend.conversation import (
     start_application,
 )
 from backend.llm import ENV_FILE, DeferredLLM, ScreeningLLM
-from backend.rules import COVERAGE_CATALOG, CatalogError, NonBlank, StrictModel
+from backend.rules import (
+    COVERAGE_CATALOG,
+    CandidateFields,
+    CandidateSnapshot,
+    CatalogError,
+    NonBlank,
+    Outcome,
+    StrictModel,
+)
 from backend.storage import (
     ApplicationClosed,
     StorageFailure,
@@ -26,10 +35,12 @@ from backend.storage import (
     TurnPending,
     UnknownApplication,
     init_db,
+    list_applications,
     load_application,
     load_application_with_turn,
     reminder_due_at,
     send_reminder,
+    set_recruiter_decision,
 )
 
 logger = logging.getLogger(__name__)
@@ -84,10 +95,24 @@ PUBLIC_ERRORS = {
     "internal_error": (500, TECHNICAL_ERROR_TEXTS),
 }
 
+# Recruiter routes share the codes and statuses, with their own Spanish notices.
+RECRUITER_NOTICES = {
+    "invalid_request": "No hemos podido procesar esta petición. Revisa los datos e inténtalo de nuevo.",
+    "application_not_found": "No encontramos esta candidatura.",
+    "service_unavailable": "El servicio no está disponible ahora mismo. Inténtalo de nuevo.",
+    "internal_error": "Ha habido un problema técnico. Inténtalo de nuevo.",
+}
+
+RecruiterDecision = Literal["unreviewed", "advance", "rejected"]
+
 
 class MessageRequest(StrictModel):
     request_id: NonBlank
     text: NonBlank
+
+
+class DecisionRequest(StrictModel):
+    recruiter_decision: RecruiterDecision
 
 
 def resolve_db_path() -> Path:
@@ -139,6 +164,21 @@ def _public_state(request: Request, application_id: str) -> dict:
     }
 
 
+def _recruiter_item(snapshot: CandidateSnapshot) -> dict:
+    fields = snapshot.fields
+    return {
+        "id": snapshot.id,
+        "created_at": snapshot.created_at,
+        "outcome": snapshot.outcome,
+        "recruiter_decision": snapshot.recruiter_decision,
+        "full_name": fields.full_name.normalized,
+        "work_locations": fields.work_locations.model_dump(),
+        "resolved_fields": sum(
+            getattr(fields, name).status == "resolved" for name in CandidateFields.model_fields
+        ),
+    }
+
+
 def _active_language(request: Request) -> str:
     """Spanish when the application cannot be read: a notice must never fail itself."""
     application_id = request.path_params.get("application_id")
@@ -152,9 +192,11 @@ def _active_language(request: Request) -> str:
 
 def _error(request: Request, code: str) -> JSONResponse:
     status, notices = PUBLIC_ERRORS[code]
-    return JSONResponse(
-        {"code": code, "notice": notices[_active_language(request)]}, status_code=status
-    )
+    if request.url.path.startswith("/api/recruiter/"):
+        notice = RECRUITER_NOTICES[code]
+    else:
+        notice = notices[_active_language(request)]
+    return JSONResponse({"code": code, "notice": notice}, status_code=status)
 
 
 def _handler_for(code: str):
@@ -229,12 +271,50 @@ def request_reminder(application_id: str, request: Request):
     return _public_state(request, application_id)
 
 
+@app.get("/api/recruiter/applications")
+def recruiter_list(
+    request: Request,
+    outcome: Outcome | None = None,
+    recruiter_decision: RecruiterDecision | None = None,
+):
+    snapshots = list_applications(request.app.state.db_path, outcome, recruiter_decision)
+    return {"items": [_recruiter_item(snapshot) for snapshot in snapshots]}
+
+
+@app.get("/api/recruiter/applications/{application_id}")
+def recruiter_detail(application_id: str, request: Request):
+    stored = load_application(request.app.state.db_path, application_id)
+    snapshot = stored.snapshot
+    return {
+        "id": snapshot.id,
+        "created_at": snapshot.created_at,
+        "updated_at": snapshot.updated_at,
+        "closed_at": snapshot.closed_at,
+        "outcome": snapshot.outcome,
+        "outcome_reasons": snapshot.outcome_reasons,
+        "recruiter_decision": snapshot.recruiter_decision,
+        "fields": snapshot.fields.model_dump(),
+        "pending_questions": snapshot.pending_questions,
+        "summary": snapshot.summary,
+        "messages": [message.model_dump() for message in stored.messages],
+    }
+
+
+@app.patch("/api/recruiter/applications/{application_id}/decision")
+def recruiter_decide(application_id: str, body: DecisionRequest, request: Request):
+    saved = set_recruiter_decision(
+        request.app.state.db_path, application_id, body.recruiter_decision
+    )
+    return {"id": saved.id, "recruiter_decision": saved.recruiter_decision}
+
+
 frontend_dist = APP_DIR / "frontend" / "dist"
 
 if (frontend_dist / "index.html").is_file():
     app.mount("/assets", StaticFiles(directory=frontend_dist / "assets"), name="assets")
 
     @app.get("/", include_in_schema=False)
+    @app.get("/recruiter", include_in_schema=False)
     def index():
         return FileResponse(frontend_dist / "index.html")
 else:
@@ -244,6 +324,7 @@ else:
     )
 
     @app.get("/", include_in_schema=False)
+    @app.get("/recruiter", include_in_schema=False)
     def index():
         raise HTTPException(
             status_code=503,
