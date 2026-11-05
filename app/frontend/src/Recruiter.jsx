@@ -530,14 +530,16 @@ export default function Recruiter() {
                   </section>
                 )}
 
-                <section className="card">
-                  <h3>Datos recogidos <span>{collected} de 7</span></h3>
-                  <dl className="fields">
-                    {Object.keys(FIELDS).map((name) => (
-                      <Field key={name} name={name} state={detail.fields[name]} />
-                    ))}
-                  </dl>
-                </section>
+                {!detail.summary && (
+                  <section className="card">
+                    <h3>Datos recogidos <span>{collected} de 7</span></h3>
+                    <dl className="fields">
+                      {Object.keys(FIELDS).map((name) => (
+                        <Field key={name} name={name} state={detail.fields[name]} />
+                      ))}
+                    </dl>
+                  </section>
+                )}
 
                 <section className="card">
                   <h3>Conversación</h3>

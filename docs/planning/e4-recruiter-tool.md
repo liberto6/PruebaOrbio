@@ -111,7 +111,9 @@ when present; the seven fields in process order; and the entire conversation in
 sequence. Use Spanish labels and
 readable category/place names; retain restrictions, approximate start wording and
 raw evidence for unresolved fields. Make the stored raw answer available alongside
-each collected value. Distinguish “No recogido”, “Por aclarar”, “No”, zero experience
+each collected value. **User decision, 2026-11-05:** the seven fields, with their raw answers,
+now appear only when an application has no summary; otherwise the summary is the single view of
+the collected data and the raw answers remain in the conversation. Distinguish “No recogido”, “Por aclarar”, “No”, zero experience
 and explicitly unknown start timing; never render them all as an empty dash.
 
 For incomplete applications, show saved progress and “Sin resumen: conversación
