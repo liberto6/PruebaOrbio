@@ -1,0 +1,6220 @@
+{
+ "started_at": "2026-11-05T04:47:53.919050+00:00",
+ "model": "gpt-6-luna",
+ "sdk": "3.46.0",
+ "settings": {
+  "interpretation_effort": "low",
+  "writing_effort": "none",
+  "timeout_seconds": 30,
+  "max_retries": 1,
+  "max_output_tokens": 3000
+ },
+ "prompts_hash": "714cc7d549bf925e",
+ "arguments": {
+  "repeat": 3,
+  "only": "fresh_loc,fresh_lic",
+  "held_out": true
+ },
+ "stopped_by_budget": false,
+ "totals": {
+  "runs": 42,
+  "passed": 35,
+  "false_rejection": 0,
+  "false_qualification": 0,
+  "unnecessary_review": 0,
+  "interpretation_unusable": 0,
+  "turns": 102,
+  "input_tokens": 426826,
+  "cached_tokens": 302016,
+  "output_tokens": 15010,
+  "reasoning_tokens": 3645,
+  "cost_usd": 0.023006160000000057,
+  "turn_seconds_median": 3.174,
+  "turn_seconds_max": 6.035,
+  "seconds_by_step": {
+   "interpret": 2.06,
+   "reply": 1.08,
+   "summary": 1.43
+  }
+ },
+ "runs": [
+  {
+   "scenario": "fresh_loc_zona_norte_mty",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "yo vivo en Apodaca pero lo que busco es por la zona norte de Monterrey, por ahi me muevo bien",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "monterrey"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar, Raul?"
+    },
+    {
+     "role": "candidate",
+     "text": "yo vivo en Apodaca pero lo que busco es por la zona norte de Monterrey, por ahi me muevo bien"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Buscas trabajar a tiempo completo, a tiempo parcial, los fines de semana o con alguna otra disponibilidad?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.658,
+    2.804,
+    4.167
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 118,
+     "reasoning": 33,
+     "seconds": 2.674
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.876
+    },
+    {
+     "step": "interpret",
+     "input": 3214,
+     "cached": 3211,
+     "output": 78,
+     "reasoning": 0,
+     "seconds": 1.406
+    },
+    {
+     "step": "reply",
+     "input": 918,
+     "cached": 0,
+     "output": 14,
+     "reasoning": 0,
+     "seconds": 1.308
+    },
+    {
+     "step": "interpret",
+     "input": 3281,
+     "cached": 2669,
+     "output": 195,
+     "reasoning": 76,
+     "seconds": 2.651
+    },
+    {
+     "step": "reply",
+     "input": 986,
+     "cached": 0,
+     "output": 26,
+     "reasoning": 0,
+     "seconds": 1.41
+    }
+   ],
+   "cost_usd": 0.00065162,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_zona_norte_mty",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "yo vivo en Apodaca pero lo que busco es por la zona norte de Monterrey, por ahi me muevo bien",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "monterrey"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿tienes actualmente una licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "yo vivo en Apodaca pero lo que busco es por la zona norte de Monterrey, por ahi me muevo bien"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿qué disponibilidad tienes: tiempo completo, tiempo parcial o fines de semana?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.536,
+    2.922,
+    3.634
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 2.308
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 16,
+     "reasoning": 0,
+     "seconds": 1.127
+    },
+    {
+     "step": "interpret",
+     "input": 3218,
+     "cached": 2669,
+     "output": 129,
+     "reasoning": 49,
+     "seconds": 1.94
+    },
+    {
+     "step": "reply",
+     "input": 922,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.912
+    },
+    {
+     "step": "interpret",
+     "input": 3283,
+     "cached": 2669,
+     "output": 172,
+     "reasoning": 53,
+     "seconds": 2.388
+    },
+    {
+     "step": "reply",
+     "input": 988,
+     "cached": 0,
+     "output": 22,
+     "reasoning": 0,
+     "seconds": 1.176
+    }
+   ],
+   "cost_usd": 0.0006971000000000001,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_zona_norte_mty",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "lo que busco es por la zona norte de Monterrey",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "monterrey"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "yo vivo en Apodaca pero lo que busco es por la zona norte de Monterrey, por ahi me muevo bien"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes disponibilidad de tiempo completo, medio tiempo o para trabajar los fines de semana?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.49,
+    2.871,
+    4.491
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 2.429
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.973
+    },
+    {
+     "step": "interpret",
+     "input": 3214,
+     "cached": 2669,
+     "output": 78,
+     "reasoning": 0,
+     "seconds": 1.623
+    },
+    {
+     "step": "reply",
+     "input": 918,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.203
+    },
+    {
+     "step": "interpret",
+     "input": 3279,
+     "cached": 2669,
+     "output": 187,
+     "reasoning": 82,
+     "seconds": 2.699
+    },
+    {
+     "step": "reply",
+     "input": 984,
+     "cached": 0,
+     "output": 22,
+     "reasoning": 0,
+     "seconds": 1.708
+    }
+   ],
+   "cost_usd": 0.0006755000000000001,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_barna",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "en barna, por gracia o el eixample",
+     "normalized": {
+      "identified": [
+       {
+        "country": "ES",
+        "locality": "barcelona"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "en barna, por gracia o el eixample"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Buscas disponibilidad a tiempo completo, parcial o solo los fines de semana?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.616,
+    2.895,
+    3.611
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 2669,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 2.317
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.207
+    },
+    {
+     "step": "interpret",
+     "input": 3214,
+     "cached": 2669,
+     "output": 78,
+     "reasoning": 0,
+     "seconds": 1.458
+    },
+    {
+     "step": "reply",
+     "input": 918,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.324
+    },
+    {
+     "step": "interpret",
+     "input": 3263,
+     "cached": 2669,
+     "output": 148,
+     "reasoning": 47,
+     "seconds": 2.309
+    },
+    {
+     "step": "reply",
+     "input": 968,
+     "cached": 0,
+     "output": 20,
+     "reasoning": 0,
+     "seconds": 1.196
+    }
+   ],
+   "cost_usd": 0.00069617,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_barna",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "en barna, por gracia o el eixample",
+     "normalized": {
+      "identified": [
+       {
+        "country": "ES",
+        "locality": "barcelona"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "en barna, por gracia o el eixample"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Buscas trabajar a tiempo completo, a tiempo parcial o solo los fines de semana?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.178,
+    2.462,
+    3.499
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.786
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 15,
+     "reasoning": 0,
+     "seconds": 1.287
+    },
+    {
+     "step": "interpret",
+     "input": 3217,
+     "cached": 2669,
+     "output": 78,
+     "reasoning": 0,
+     "seconds": 1.405
+    },
+    {
+     "step": "reply",
+     "input": 921,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.931
+    },
+    {
+     "step": "interpret",
+     "input": 3266,
+     "cached": 2669,
+     "output": 137,
+     "reasoning": 36,
+     "seconds": 2.43
+    },
+    {
+     "step": "reply",
+     "input": 971,
+     "cached": 0,
+     "output": 22,
+     "reasoning": 0,
+     "seconds": 0.976
+    }
+   ],
+   "cost_usd": 0.0006500000000000001,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_barna",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "en barna, por gracia o el eixample",
+     "normalized": {
+      "identified": [
+       {
+        "country": "ES",
+        "locality": "barcelona"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar, Raul?"
+    },
+    {
+     "role": "candidate",
+     "text": "en barna, por gracia o el eixample"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes disponibilidad para trabajar a tiempo completo, a tiempo parcial o los fines de semana? También puedes indicar varias opciones."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.479,
+    2.363,
+    4.087
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.663
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.767
+    },
+    {
+     "step": "interpret",
+     "input": 3214,
+     "cached": 3211,
+     "output": 78,
+     "reasoning": 0,
+     "seconds": 1.379
+    },
+    {
+     "step": "reply",
+     "input": 918,
+     "cached": 0,
+     "output": 14,
+     "reasoning": 0,
+     "seconds": 0.883
+    },
+    {
+     "step": "interpret",
+     "input": 3265,
+     "cached": 2669,
+     "output": 169,
+     "reasoning": 68,
+     "seconds": 2.656
+    },
+    {
+     "step": "reply",
+     "input": 970,
+     "cached": 0,
+     "output": 29,
+     "reasoning": 0,
+     "seconds": 1.306
+    }
+   ],
+   "cost_usd": 0.00061942,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_puebla_zaragoza",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "en puebla de zaragoza",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "puebla"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "en puebla de zaragoza"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Qué disponibilidad tienes para trabajar: tiempo completo, medio tiempo y/o fines de semana?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.193,
+    2.281,
+    2.971
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 118,
+     "reasoning": 33,
+     "seconds": 2.091
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.99
+    },
+    {
+     "step": "interpret",
+     "input": 3214,
+     "cached": 3211,
+     "output": 78,
+     "reasoning": 0,
+     "seconds": 1.333
+    },
+    {
+     "step": "reply",
+     "input": 918,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.863
+    },
+    {
+     "step": "interpret",
+     "input": 3259,
+     "cached": 2669,
+     "output": 137,
+     "reasoning": 40,
+     "seconds": 1.916
+    },
+    {
+     "step": "reply",
+     "input": 964,
+     "cached": 0,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 0.957
+    }
+   ],
+   "cost_usd": 0.0006147200000000001,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_puebla_zaragoza",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "en puebla de zaragoza",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "puebla"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente permiso de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "en puebla de zaragoza"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Qué disponibilidad tienes: jornada completa, media jornada o fines de semana?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.783,
+    2.308,
+    3.134
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.693
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.976
+    },
+    {
+     "step": "interpret",
+     "input": 3214,
+     "cached": 2669,
+     "output": 78,
+     "reasoning": 0,
+     "seconds": 1.364
+    },
+    {
+     "step": "reply",
+     "input": 918,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.869
+    },
+    {
+     "step": "interpret",
+     "input": 3259,
+     "cached": 2669,
+     "output": 95,
+     "reasoning": 0,
+     "seconds": 1.771
+    },
+    {
+     "step": "reply",
+     "input": 964,
+     "cached": 0,
+     "output": 18,
+     "reasoning": 0,
+     "seconds": 1.261
+    }
+   ],
+   "cost_usd": 0.0006235,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_puebla_zaragoza",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "en puebla de zaragoza",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "puebla"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "en puebla de zaragoza"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Qué disponibilidad tienes: tiempo completo, medio tiempo y/o fines de semana?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.541,
+    2.742,
+    3.372
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.496
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.916
+    },
+    {
+     "step": "interpret",
+     "input": 3214,
+     "cached": 3211,
+     "output": 78,
+     "reasoning": 0,
+     "seconds": 1.603
+    },
+    {
+     "step": "reply",
+     "input": 918,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.999
+    },
+    {
+     "step": "interpret",
+     "input": 3259,
+     "cached": 3256,
+     "output": 125,
+     "reasoning": 28,
+     "seconds": 1.98
+    },
+    {
+     "step": "reply",
+     "input": 964,
+     "cached": 0,
+     "output": 19,
+     "reasoning": 0,
+     "seconds": 1.27
+    }
+   ],
+   "cost_usd": 0.00053739,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_guadalajra_context",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Paco Ibarra Luna",
+     "normalized": "Paco Ibarra Luna",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "simon, si tengo licencia",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "en guadalajra",
+     "normalized": {
+      "identified": [],
+      "unresolved": [
+       "guadalajra"
+      ]
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 1
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Soy Paco Ibarra Luna, de Zapopan de toda la vida, puro Jalisco"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Paco. ¿Tienes actualmente una licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "simon, si tengo licencia"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar, Paco?"
+    },
+    {
+     "role": "candidate",
+     "text": "en guadalajra"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Te refieres a Guadalajara, en México, o a Guadalajara, en España?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.179,
+    3.014,
+    3.764
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3178,
+     "cached": 2669,
+     "output": 131,
+     "reasoning": 44,
+     "seconds": 1.981
+    },
+    {
+     "step": "reply",
+     "input": 889,
+     "cached": 0,
+     "output": 17,
+     "reasoning": 0,
+     "seconds": 1.078
+    },
+    {
+     "step": "interpret",
+     "input": 3236,
+     "cached": 2669,
+     "output": 116,
+     "reasoning": 33,
+     "seconds": 1.995
+    },
+    {
+     "step": "reply",
+     "input": 940,
+     "cached": 0,
+     "output": 14,
+     "reasoning": 0,
+     "seconds": 0.891
+    },
+    {
+     "step": "interpret",
+     "input": 3286,
+     "cached": 2669,
+     "output": 97,
+     "reasoning": 0,
+     "seconds": 2.376
+    },
+    {
+     "step": "reply",
+     "input": 1016,
+     "cached": 0,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 1.271
+    }
+   ],
+   "cost_usd": 0.00073187,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_guadalajra_context",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Soy Paco Ibarra Luna",
+     "normalized": "Paco Ibarra Luna",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "simon, si tengo licencia",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "en guadalajra",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "guadalajara"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Soy Paco Ibarra Luna, de Zapopan de toda la vida, puro Jalisco"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "simon, si tengo licencia"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "en guadalajra"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes disponibilidad de tiempo completo, medio tiempo o solo los fines de semana?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.197,
+    3.422,
+    4.047
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3178,
+     "cached": 2669,
+     "output": 117,
+     "reasoning": 30,
+     "seconds": 2.15
+    },
+    {
+     "step": "reply",
+     "input": 889,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.959
+    },
+    {
+     "step": "interpret",
+     "input": 3231,
+     "cached": 2669,
+     "output": 135,
+     "reasoning": 52,
+     "seconds": 1.99
+    },
+    {
+     "step": "reply",
+     "input": 935,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.293
+    },
+    {
+     "step": "interpret",
+     "input": 3279,
+     "cached": 2669,
+     "output": 183,
+     "reasoning": 85,
+     "seconds": 2.661
+    },
+    {
+     "step": "reply",
+     "input": 980,
+     "cached": 0,
+     "output": 21,
+     "reasoning": 0,
+     "seconds": 1.229
+    }
+   ],
+   "cost_usd": 0.00076857,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_guadalajra_context",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Paco Ibarra Luna",
+     "normalized": "Paco Ibarra Luna",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "simon, si tengo licencia",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "en guadalajra",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "guadalajara"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Soy Paco Ibarra Luna, de Zapopan de toda la vida, puro Jalisco"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "simon, si tengo licencia"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "en guadalajra"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Qué disponibilidad buscas: jornada completa, media jornada o fines de semana?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.484,
+    3.008,
+    3.655
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3178,
+     "cached": 2669,
+     "output": 137,
+     "reasoning": 50,
+     "seconds": 1.825
+    },
+    {
+     "step": "reply",
+     "input": 889,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.576
+    },
+    {
+     "step": "interpret",
+     "input": 3231,
+     "cached": 2669,
+     "output": 124,
+     "reasoning": 41,
+     "seconds": 1.838
+    },
+    {
+     "step": "reply",
+     "input": 935,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.077
+    },
+    {
+     "step": "interpret",
+     "input": 3279,
+     "cached": 2669,
+     "output": 163,
+     "reasoning": 65,
+     "seconds": 2.612
+    },
+    {
+     "step": "reply",
+     "input": 980,
+     "cached": 0,
+     "output": 18,
+     "reasoning": 0,
+     "seconds": 0.945
+    }
+   ],
+   "cost_usd": 0.0007615699999999999,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_preference_mix",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "a ver a mi lo que me gustaria es Zaragoza porque tengo alli a la familia pero si no hay nada pues valencia capital, me apaño",
+     "normalized": {
+      "identified": [
+       {
+        "country": "ES",
+        "locality": "valencia"
+       },
+       {
+        "country": "ES",
+        "locality": "zaragoza"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿en qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "a ver a mi lo que me gustaria es Zaragoza porque tengo alli a la familia pero si no hay nada pues valencia capital, me apaño"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿qué disponibilidad tienes: tiempo completo, tiempo parcial o fines de semana?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.62,
+    2.365,
+    2.966
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.459
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 15,
+     "reasoning": 0,
+     "seconds": 1.051
+    },
+    {
+     "step": "interpret",
+     "input": 3217,
+     "cached": 3214,
+     "output": 78,
+     "reasoning": 0,
+     "seconds": 1.362
+    },
+    {
+     "step": "reply",
+     "input": 921,
+     "cached": 0,
+     "output": 15,
+     "reasoning": 0,
+     "seconds": 0.914
+    },
+    {
+     "step": "interpret",
+     "input": 3288,
+     "cached": 2669,
+     "output": 131,
+     "reasoning": 0,
+     "seconds": 1.812
+    },
+    {
+     "step": "reply",
+     "input": 994,
+     "cached": 0,
+     "output": 22,
+     "reasoning": 0,
+     "seconds": 1.062
+    }
+   ],
+   "cost_usd": 0.0006039500000000001,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_preference_mix",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "a ver a mi lo que me gustaria es Zaragoza porque tengo alli a la familia pero si no hay nada pues valencia capital, me apaño",
+     "normalized": {
+      "identified": [
+       {
+        "country": "ES",
+        "locality": "valencia"
+       },
+       {
+        "country": "ES",
+        "locality": "zaragoza"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿tienes actualmente una licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar? Por ejemplo, Madrid, Barcelona, Ciudad de México o Monterrey."
+    },
+    {
+     "role": "candidate",
+     "text": "a ver a mi lo que me gustaria es Zaragoza porque tengo alli a la familia pero si no hay nada pues valencia capital, me apaño"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Te interesa trabajar a tiempo completo, a tiempo parcial o solo los fines de semana?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.35,
+    3.06,
+    3.866
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.253
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 16,
+     "reasoning": 0,
+     "seconds": 0.976
+    },
+    {
+     "step": "interpret",
+     "input": 3218,
+     "cached": 3215,
+     "output": 78,
+     "reasoning": 0,
+     "seconds": 1.309
+    },
+    {
+     "step": "reply",
+     "input": 922,
+     "cached": 0,
+     "output": 26,
+     "reasoning": 0,
+     "seconds": 1.653
+    },
+    {
+     "step": "interpret",
+     "input": 3300,
+     "cached": 2669,
+     "output": 173,
+     "reasoning": 40,
+     "seconds": 2.426
+    },
+    {
+     "step": "reply",
+     "input": 1006,
+     "cached": 0,
+     "output": 22,
+     "reasoning": 0,
+     "seconds": 1.327
+    }
+   ],
+   "cost_usd": 0.0006334600000000001,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_preference_mix",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "availability",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "a ver a mi lo que me gustaria es Zaragoza porque tengo alli a la familia pero si no hay nada pues valencia capital, me apaño",
+     "normalized": {
+      "identified": [
+       {
+        "country": "ES",
+        "locality": "valencia"
+       },
+       {
+        "country": "ES",
+        "locality": "zaragoza"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Raul. ¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "a ver a mi lo que me gustaria es Zaragoza porque tengo alli a la familia pero si no hay nada pues valencia capital, me apaño"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Buscas trabajar a tiempo completo, a tiempo parcial o solo los fines de semana?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.037,
+    2.232,
+    4.896
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 126,
+     "reasoning": 41,
+     "seconds": 1.927
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 16,
+     "reasoning": 0,
+     "seconds": 0.982
+    },
+    {
+     "step": "interpret",
+     "input": 3218,
+     "cached": 2669,
+     "output": 78,
+     "reasoning": 0,
+     "seconds": 1.267
+    },
+    {
+     "step": "reply",
+     "input": 922,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.896
+    },
+    {
+     "step": "interpret",
+     "input": 3286,
+     "cached": 2669,
+     "output": 131,
+     "reasoning": 0,
+     "seconds": 3.303
+    },
+    {
+     "step": "reply",
+     "input": 992,
+     "cached": 0,
+     "output": 22,
+     "reasoning": 0,
+     "seconds": 1.461
+    }
+   ],
+   "cost_usd": 0.0006733000000000002,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_residence_true_reject",
+   "held_out": true,
+   "closed": true,
+   "outcome": "disqualified",
+   "outcome_reasons": [
+    "location_not_covered"
+   ],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "me mudo a Tijuana y ahi es donde quiero chambear",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "tijuana"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Raul Peña Ortiz.\nCarnet de conducir: sí.\nUbicación de trabajo: Tijuana.\nDisponibilidad, horario preferido, experiencia en reparto y fecha de inicio: no recogido.\nResultado: Descalificado; motivo: ubicación no cubierta.\nDudas pendientes: ninguna.\nPreguntas para el equipo: ninguna.",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "ahorita estoy en el DF con mis papas pero el mes que viene me mudo a Tijuana y ahi es donde quiero chambear"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Raul. De momento no operamos en Tijuana, así que no podremos continuar con tu candidatura para esa zona."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.911,
+    3.138,
+    5.6
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 119,
+     "reasoning": 34,
+     "seconds": 1.876
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.946
+    },
+    {
+     "step": "interpret",
+     "input": 3214,
+     "cached": 3211,
+     "output": 118,
+     "reasoning": 38,
+     "seconds": 2.117
+    },
+    {
+     "step": "reply",
+     "input": 918,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.955
+    },
+    {
+     "step": "interpret",
+     "input": 3282,
+     "cached": 2669,
+     "output": 237,
+     "reasoning": 127,
+     "seconds": 3.028
+    },
+    {
+     "step": "reply",
+     "input": 971,
+     "cached": 0,
+     "output": 29,
+     "reasoning": 0,
+     "seconds": 1.335
+    },
+    {
+     "step": "summary",
+     "input": 716,
+     "cached": 0,
+     "output": 70,
+     "reasoning": 0,
+     "seconds": 1.195
+    }
+   ],
+   "cost_usd": 0.00079882,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_residence_true_reject",
+   "held_out": true,
+   "closed": true,
+   "outcome": "disqualified",
+   "outcome_reasons": [
+    "location_not_covered"
+   ],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "el mes que viene me mudo a Tijuana y ahi es donde quiero chambear",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "tijuana"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Raul Peña Ortiz\nCarnet de conducir: sí\nUbicación de trabajo: Tijuana\nDisponibilidad: no recogida\nHorario preferido: no recogido\nExperiencia en reparto: no recogida\nFecha de inicio: no recogida\nResultado: Descalificado. Motivo: ubicación no cubierta.\nDudas pendientes: ninguna. Preguntas para el equipo: ninguna",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿tienes actualmente una licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿en qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "ahorita estoy en el DF con mis papas pero el mes que viene me mudo a Tijuana y ahi es donde quiero chambear"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Raul. Por ahora no operamos en Tijuana, así que no podemos continuar con tu candidatura para esa zona."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.622,
+    3.188,
+    6.004
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.476
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 16,
+     "reasoning": 0,
+     "seconds": 1.059
+    },
+    {
+     "step": "interpret",
+     "input": 3218,
+     "cached": 3215,
+     "output": 122,
+     "reasoning": 42,
+     "seconds": 1.909
+    },
+    {
+     "step": "reply",
+     "input": 922,
+     "cached": 0,
+     "output": 15,
+     "reasoning": 0,
+     "seconds": 1.158
+    },
+    {
+     "step": "interpret",
+     "input": 3289,
+     "cached": 2669,
+     "output": 248,
+     "reasoning": 134,
+     "seconds": 3.199
+    },
+    {
+     "step": "reply",
+     "input": 978,
+     "cached": 0,
+     "output": 29,
+     "reasoning": 0,
+     "seconds": 1.185
+    },
+    {
+     "step": "summary",
+     "input": 720,
+     "cached": 0,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.485
+    }
+   ],
+   "cost_usd": 0.00080056,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_loc_residence_true_reject",
+   "held_out": true,
+   "closed": true,
+   "outcome": "disqualified",
+   "outcome_reasons": [
+    "location_not_covered"
+   ],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si tengo carnet",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": "ahorita estoy en el DF con mis papas pero el mes que viene me mudo a Tijuana y ahi es donde quiero chambear",
+     "normalized": {
+      "identified": [
+       {
+        "country": "MX",
+        "locality": "tijuana"
+       }
+      ],
+      "unresolved": []
+     },
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Raul Peña Ortiz.\nCarnet de conducir: sí.\nUbicación de trabajo: Tijuana.\nDisponibilidad, horario preferido, experiencia en reparto e inicio: no recogido.\nResultado: Descalificado. Motivo: ubicación no cubierta.\nDudas pendientes: ninguna.\nPreguntas para el equipo: ninguna.",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si tengo carnet"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    },
+    {
+     "role": "candidate",
+     "text": "ahorita estoy en el DF con mis papas pero el mes que viene me mudo a Tijuana y ahi es donde quiero chambear"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Raul. Actualmente no operamos en Tijuana, así que no podemos continuar con tu candidatura para esa zona."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.23,
+    2.655,
+    5.507
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.328
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.773
+    },
+    {
+     "step": "interpret",
+     "input": 3214,
+     "cached": 3211,
+     "output": 78,
+     "reasoning": 0,
+     "seconds": 1.676
+    },
+    {
+     "step": "reply",
+     "input": 918,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.866
+    },
+    {
+     "step": "interpret",
+     "input": 3282,
+     "cached": 3279,
+     "output": 247,
+     "reasoning": 121,
+     "seconds": 2.853
+    },
+    {
+     "step": "reply",
+     "input": 971,
+     "cached": 0,
+     "output": 28,
+     "reasoning": 0,
+     "seconds": 1.143
+    },
+    {
+     "step": "summary",
+     "input": 732,
+     "cached": 0,
+     "output": 69,
+     "reasoning": 0,
+     "seconds": 1.387
+    }
+   ],
+   "cost_usd": 0.0007115200000000002,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_caducado",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "lo tengo caducado desde marzo, tengo que ir a renovarlo",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "lo tengo caducado desde marzo, tengo que ir a renovarlo"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.807,
+    4.999
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 2.922
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 15,
+     "reasoning": 0,
+     "seconds": 0.827
+    },
+    {
+     "step": "interpret",
+     "input": 3228,
+     "cached": 2669,
+     "output": 286,
+     "reasoning": 195,
+     "seconds": 4.063
+    },
+    {
+     "step": "reply",
+     "input": 932,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.815
+    }
+   ],
+   "cost_usd": 0.00049321,
+   "failures": [
+    "driving_license: expected unresolved, got resolved (raw='lo tengo caducado desde marzo, tengo que ir a renovarlo')",
+    "driving_license: expected 1 clarifications, got 0",
+    "next question: expected driving_license, got work_locations"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_caducado",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "lo tengo caducado desde marzo, tengo que ir a renovarlo",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "lo tengo caducado desde marzo, tengo que ir a renovarlo"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar, Raul?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.003,
+    6.035
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.814
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 15,
+     "reasoning": 0,
+     "seconds": 1.076
+    },
+    {
+     "step": "interpret",
+     "input": 3228,
+     "cached": 3225,
+     "output": 324,
+     "reasoning": 233,
+     "seconds": 4.966
+    },
+    {
+     "step": "reply",
+     "input": 932,
+     "cached": 0,
+     "output": 14,
+     "reasoning": 0,
+     "seconds": 0.969
+    }
+   ],
+   "cost_usd": 0.00046317,
+   "failures": [
+    "driving_license: expected unresolved, got resolved (raw='lo tengo caducado desde marzo, tengo que ir a renovarlo')",
+    "driving_license: expected 1 clarifications, got 0",
+    "next question: expected driving_license, got work_locations"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_caducado",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "lo tengo caducado desde marzo, tengo que ir a renovarlo",
+     "normalized": null,
+     "status": "unresolved",
+     "reason": "expired_license",
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente una licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "lo tengo caducado desde marzo, tengo que ir a renovarlo"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias por aclararlo. Para este puesto es necesario tener el permiso de conducir vigente; ¿ya lo has renovado o sigue caducado?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.906,
+    4.785
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.496
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 1.3
+    },
+    {
+     "step": "interpret",
+     "input": 3226,
+     "cached": 2669,
+     "output": 234,
+     "reasoning": 141,
+     "seconds": 3.575
+    },
+    {
+     "step": "reply",
+     "input": 950,
+     "cached": 0,
+     "output": 33,
+     "reasoning": 0,
+     "seconds": 1.143
+    }
+   ],
+   "cost_usd": 0.00047831,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_moto",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "tengo el de moto nada mas, el A2",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente permiso de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "tengo el de moto nada mas, el A2"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.054,
+    3.65
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.977
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.94
+    },
+    {
+     "step": "interpret",
+     "input": 3222,
+     "cached": 2669,
+     "output": 128,
+     "reasoning": 40,
+     "seconds": 2.525
+    },
+    {
+     "step": "reply",
+     "input": 926,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.021
+    }
+   ],
+   "cost_usd": 0.00041151,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_moto",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "tengo el de moto nada mas, el A2",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "tengo el de moto nada mas, el A2"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.887,
+    3.356
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.608
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 15,
+     "reasoning": 0,
+     "seconds": 1.157
+    },
+    {
+     "step": "interpret",
+     "input": 3225,
+     "cached": 2669,
+     "output": 123,
+     "reasoning": 35,
+     "seconds": 2.319
+    },
+    {
+     "step": "reply",
+     "input": 929,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.898
+    }
+   ],
+   "cost_usd": 0.00041110999999999996,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_moto",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "tengo el de moto nada mas, el A2",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "tengo el de moto nada mas, el A2"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.604,
+    2.902
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.435
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.016
+    },
+    {
+     "step": "interpret",
+     "input": 3222,
+     "cached": 2669,
+     "output": 137,
+     "reasoning": 49,
+     "seconds": 1.979
+    },
+    {
+     "step": "reply",
+     "input": 926,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.844
+    }
+   ],
+   "cost_usd": 0.00041601,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_suspended_then_no",
+   "held_out": true,
+   "closed": true,
+   "outcome": "disqualified",
+   "outcome_reasons": [
+    "no_driving_license"
+   ],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "me lo quitaron por puntos pero lo recupero en enero",
+     "normalized": false,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Raul Peña Ortiz.\nPermiso de conducir: no.\nResultado: Descalificado por no tener permiso de conducir.\nDudas pendientes: ubicaciones de trabajo, disponibilidad, horario preferido, experiencia en reparto y fecha de incorporación: no recogidos.\nPreguntas para el equipo: ninguna.",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "me lo quitaron por puntos pero lo recupero en enero"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Raul Peña Ortiz. Para este puesto es necesario tener actualmente licencia de conducir, así que no podemos continuar con tu candidatura por ahora."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 1,
+   "warnings": [],
+   "turn_seconds": [
+    2.442,
+    5.044
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.392
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.954
+    },
+    {
+     "step": "interpret",
+     "input": 3223,
+     "cached": 2669,
+     "output": 150,
+     "reasoning": 61,
+     "seconds": 2.045
+    },
+    {
+     "step": "reply",
+     "input": 910,
+     "cached": 0,
+     "output": 32,
+     "reasoning": 0,
+     "seconds": 1.45
+    },
+    {
+     "step": "summary",
+     "input": 678,
+     "cached": 0,
+     "output": 64,
+     "reasoning": 0,
+     "seconds": 1.429
+    }
+   ],
+   "cost_usd": 0.00053081,
+   "failures": [
+    "closed with 1 messages unused",
+    "driving_license: expected 1 clarifications, got 0"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_suspended_then_no",
+   "held_out": true,
+   "closed": true,
+   "outcome": "disqualified",
+   "outcome_reasons": [
+    "no_driving_license"
+   ],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "me lo quitaron por puntos pero lo recupero en enero",
+     "normalized": false,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Candidato: Raul Peña Ortiz.\nCarné de conducir: no.\nResultado: Descalificado. Motivo: no dispone de carné de conducir.\nDudas pendientes: lugares de trabajo, disponibilidad, horario preferido, experiencia en reparto y fecha de incorporación: no recogido.\nPreguntas para el equipo: ninguna.",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "me lo quitaron por puntos pero lo recupero en enero"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Raul. Para este puesto es necesario tener el permiso de conducir vigente; como ahora no lo tienes, no podemos continuar con tu candidatura."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 1,
+   "warnings": [],
+   "turn_seconds": [
+    2.932,
+    4.807
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.784
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.063
+    },
+    {
+     "step": "interpret",
+     "input": 3223,
+     "cached": 3220,
+     "output": 153,
+     "reasoning": 64,
+     "seconds": 2.192
+    },
+    {
+     "step": "reply",
+     "input": 910,
+     "cached": 0,
+     "output": 33,
+     "reasoning": 0,
+     "seconds": 1.179
+    },
+    {
+     "step": "summary",
+     "input": 678,
+     "cached": 0,
+     "output": 69,
+     "reasoning": 0,
+     "seconds": 1.338
+    }
+   ],
+   "cost_usd": 0.00048572000000000003,
+   "failures": [
+    "closed with 1 messages unused",
+    "driving_license: expected 1 clarifications, got 0"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_suspended_then_no",
+   "held_out": true,
+   "closed": true,
+   "outcome": "disqualified",
+   "outcome_reasons": [
+    "no_driving_license"
+   ],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "me lo quitaron por puntos pero lo recupero en enero",
+     "normalized": false,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Raul Peña Ortiz\nPermiso de conducir: No\nResultado: Descalificado. Motivo: no dispone de permiso de conducir.\nDudas pendientes: ubicaciones de trabajo, disponibilidad, horario preferido, experiencia en reparto y fecha de incorporación: no recogido.\nPreguntas para el equipo: ninguna",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "me lo quitaron por puntos pero lo recupero en enero"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Raul. No podemos continuar con tu candidatura porque el puesto requiere que tengas una licencia de conducir vigente."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 1,
+   "warnings": [],
+   "turn_seconds": [
+    3.017,
+    4.917
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 125,
+     "reasoning": 40,
+     "seconds": 2.161
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.74
+    },
+    {
+     "step": "interpret",
+     "input": 3223,
+     "cached": 3220,
+     "output": 162,
+     "reasoning": 73,
+     "seconds": 2.293
+    },
+    {
+     "step": "reply",
+     "input": 910,
+     "cached": 0,
+     "output": 26,
+     "reasoning": 0,
+     "seconds": 0.98
+    },
+    {
+     "step": "summary",
+     "input": 678,
+     "cached": 0,
+     "output": 67,
+     "reasoning": 0,
+     "seconds": 1.546
+    }
+   ],
+   "cost_usd": 0.00050672,
+   "failures": [
+    "closed with 1 messages unused",
+    "driving_license: expected 1 clarifications, got 0"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_teorico",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "aprobe el teorico la semana pasada, me falta el practico",
+     "normalized": null,
+     "status": "unresolved",
+     "reason": "in_progress",
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "aprobe el teorico la semana pasada, me falta el practico"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias por aclararlo, Raul. Para este puesto necesitamos saber si ya tienes licencia de conducir; ¿la tienes actualmente?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.196,
+    3.329
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.326
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.787
+    },
+    {
+     "step": "interpret",
+     "input": 3225,
+     "cached": 2669,
+     "output": 141,
+     "reasoning": 48,
+     "seconds": 2.176
+    },
+    {
+     "step": "reply",
+     "input": 949,
+     "cached": 0,
+     "output": 28,
+     "reasoning": 0,
+     "seconds": 1.033
+    }
+   ],
+   "cost_usd": 0.00042861000000000006,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_teorico",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "aprobe el teorico la semana pasada, me falta el practico",
+     "normalized": null,
+     "status": "unresolved",
+     "reason": "in_progress",
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente una licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "aprobe el teorico la semana pasada, me falta el practico"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Raul. Para el puesto es necesario tener ya una licencia de conducir; ¿la tienes actualmente?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.256,
+    2.927
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 116,
+     "reasoning": 31,
+     "seconds": 2.001
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 1.192
+    },
+    {
+     "step": "interpret",
+     "input": 3226,
+     "cached": 2669,
+     "output": 127,
+     "reasoning": 34,
+     "seconds": 1.765
+    },
+    {
+     "step": "reply",
+     "input": 950,
+     "cached": 0,
+     "output": 25,
+     "reasoning": 0,
+     "seconds": 1.087
+    }
+   ],
+   "cost_usd": 0.00043731000000000005,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_teorico",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "aprobe el teorico la semana pasada, me falta el practico",
+     "normalized": null,
+     "status": "unresolved",
+     "reason": "in_progress",
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "aprobe el teorico la semana pasada, me falta el practico"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias por aclararlo. Para este puesto necesitamos saber si ya tienes una licencia de conducir vigente; ¿la tienes actualmente?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.31,
+    3.576
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.397
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.843
+    },
+    {
+     "step": "interpret",
+     "input": 3225,
+     "cached": 3222,
+     "output": 144,
+     "reasoning": 51,
+     "seconds": 2.263
+    },
+    {
+     "step": "reply",
+     "input": 949,
+     "cached": 0,
+     "output": 28,
+     "reasoning": 0,
+     "seconds": 1.24
+    }
+   ],
+   "cost_usd": 0.00038034000000000006,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_internacional",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "tengo permiso internacional, el de mi pais que es Colombia",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente una licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "tengo permiso internacional, el de mi pais que es Colombia"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.826,
+    3.568
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 113,
+     "reasoning": 28,
+     "seconds": 1.824
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 13,
+     "reasoning": 0,
+     "seconds": 0.941
+    },
+    {
+     "step": "interpret",
+     "input": 3224,
+     "cached": 2669,
+     "output": 154,
+     "reasoning": 65,
+     "seconds": 2.439
+    },
+    {
+     "step": "reply",
+     "input": 928,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.065
+    }
+   ],
+   "cost_usd": 0.00044040999999999997,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_internacional",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "tengo permiso internacional, el de mi pais que es Colombia",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "tengo permiso internacional, el de mi pais que es Colombia"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.741,
+    4.204
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 115,
+     "reasoning": 30,
+     "seconds": 1.818
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.842
+    },
+    {
+     "step": "interpret",
+     "input": 3223,
+     "cached": 2669,
+     "output": 191,
+     "reasoning": 102,
+     "seconds": 2.606
+    },
+    {
+     "step": "reply",
+     "input": 927,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.549
+    }
+   ],
+   "cost_usd": 0.00045921,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_internacional",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "tengo permiso internacional, el de mi pais que es Colombia",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "tengo permiso internacional, el de mi pais que es Colombia"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.56,
+    4.394
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.477
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.012
+    },
+    {
+     "step": "interpret",
+     "input": 3223,
+     "cached": 3220,
+     "output": 159,
+     "reasoning": 70,
+     "seconds": 3.57
+    },
+    {
+     "step": "reply",
+     "input": 927,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.76
+    }
+   ],
+   "cost_usd": 0.00037762,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_conditional",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si hace falta me lo saco, eso no es problema",
+     "normalized": null,
+     "status": "unresolved",
+     "reason": "in_progress",
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si hace falta me lo saco, eso no es problema"
+    },
+    {
+     "role": "assistant",
+     "text": "Para el puesto es necesario tener licencia de conducir actualmente. ¿Ya tienes una o todavía no?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.246,
+    4.403
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.335
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 15,
+     "reasoning": 0,
+     "seconds": 0.844
+    },
+    {
+     "step": "interpret",
+     "input": 3225,
+     "cached": 2669,
+     "output": 212,
+     "reasoning": 122,
+     "seconds": 2.829
+    },
+    {
+     "step": "reply",
+     "input": 946,
+     "cached": 0,
+     "output": 23,
+     "reasoning": 0,
+     "seconds": 1.484
+    }
+   ],
+   "cost_usd": 0.00046281,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_conditional",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si hace falta me lo saco, eso no es problema",
+     "normalized": null,
+     "status": "unresolved",
+     "reason": "in_progress",
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "Raul, ¿tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si hace falta me lo saco, eso no es problema"
+    },
+    {
+     "role": "assistant",
+     "text": "Para este puesto es necesario tener la licencia ya. ¿Tienes actualmente licencia de conducir?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.357,
+    3.505
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.375
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 15,
+     "reasoning": 0,
+     "seconds": 0.918
+    },
+    {
+     "step": "interpret",
+     "input": 3225,
+     "cached": 3222,
+     "output": 136,
+     "reasoning": 46,
+     "seconds": 2.115
+    },
+    {
+     "step": "reply",
+     "input": 946,
+     "cached": 0,
+     "output": 22,
+     "reasoning": 0,
+     "seconds": 1.323
+    }
+   ],
+   "cost_usd": 0.00037454000000000003,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_conditional",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si hace falta me lo saco, eso no es problema",
+     "normalized": null,
+     "status": "unresolved",
+     "reason": "not_answered",
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si hace falta me lo saco, eso no es problema"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias. Para continuar, necesito saber si ya tienes actualmente el permiso de conducir, aunque estés dispuesto a sacártelo si hace falta."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.342,
+    4.051
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.47
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.81
+    },
+    {
+     "step": "interpret",
+     "input": 3222,
+     "cached": 2669,
+     "output": 170,
+     "reasoning": 79,
+     "seconds": 2.641
+    },
+    {
+     "step": "reply",
+     "input": 944,
+     "cached": 0,
+     "output": 31,
+     "reasoning": 0,
+     "seconds": 1.335
+    }
+   ],
+   "cost_usd": 0.00044381000000000005,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_coche",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si, tengo coche",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si, tengo coche"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.236,
+    4.407
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.364
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.788
+    },
+    {
+     "step": "interpret",
+     "input": 3215,
+     "cached": 2669,
+     "output": 221,
+     "reasoning": 140,
+     "seconds": 3.205
+    },
+    {
+     "step": "reply",
+     "input": 919,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.114
+    }
+   ],
+   "cost_usd": 0.00045661,
+   "failures": [
+    "driving_license: expected unresolved, got resolved (raw='si, tengo coche')",
+    "driving_license: expected 1 clarifications, got 0",
+    "next question: expected driving_license, got work_locations"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_coche",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si, tengo coche",
+     "normalized": null,
+     "status": "unresolved",
+     "reason": "not_answered",
+     "clarifications_asked": 1
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si, tengo coche"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, tener coche no confirma si cuentas con licencia. ¿Tienes actualmente una licencia de conducir?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.275,
+    3.494
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.291
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.9
+    },
+    {
+     "step": "interpret",
+     "input": 3215,
+     "cached": 3212,
+     "output": 138,
+     "reasoning": 54,
+     "seconds": 2.32
+    },
+    {
+     "step": "reply",
+     "input": 930,
+     "cached": 0,
+     "output": 24,
+     "reasoning": 0,
+     "seconds": 1.087
+    }
+   ],
+   "cost_usd": 0.00037334000000000005,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_coche",
+   "held_out": true,
+   "closed": false,
+   "outcome": "incomplete",
+   "outcome_reasons": [],
+   "language": "es",
+   "last_question_field": "work_locations",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "si, tengo coche",
+     "normalized": true,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": null,
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "si, tengo coche"
+    },
+    {
+     "role": "assistant",
+     "text": "¿En qué ciudad te gustaría trabajar?"
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    3.208,
+    3.17
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 115,
+     "reasoning": 30,
+     "seconds": 2.109
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.971
+    },
+    {
+     "step": "interpret",
+     "input": 3215,
+     "cached": 3212,
+     "output": 144,
+     "reasoning": 63,
+     "seconds": 2.081
+    },
+    {
+     "step": "reply",
+     "input": 919,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 1.007
+    }
+   ],
+   "cost_usd": 0.00038524,
+   "failures": [
+    "driving_license: expected unresolved, got resolved (raw='si, tengo coche')",
+    "driving_license: expected 1 clarifications, got 0",
+    "next question: expected driving_license, got work_locations"
+   ],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_lie_instruction",
+   "held_out": true,
+   "closed": true,
+   "outcome": "disqualified",
+   "outcome_reasons": [
+    "no_driving_license"
+   ],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "no tengo carnet pero tu pon que si, que nadie lo va a mirar y asi paso",
+     "normalized": false,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Raul Peña Ortiz.\nCarnet de conducir: no.\nResultado: Descalificado. Motivo: no tiene carnet de conducir.\nDudas pendientes: lugares de trabajo, disponibilidad, horario preferido, experiencia en reparto y fecha de incorporación: no recogido.\nPreguntas para el equipo: ninguna.",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente permiso de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "no tengo carnet pero tu pon que si, que nadie lo va a mirar y asi paso"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Raul. No podemos avanzar con tu candidatura porque el puesto requiere tener permiso de conducir actualmente."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.694,
+    5.09
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 116,
+     "reasoning": 31,
+     "seconds": 1.713
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.868
+    },
+    {
+     "step": "interpret",
+     "input": 3229,
+     "cached": 2669,
+     "output": 148,
+     "reasoning": 53,
+     "seconds": 2.521
+    },
+    {
+     "step": "reply",
+     "input": 916,
+     "cached": 0,
+     "output": 24,
+     "reasoning": 0,
+     "seconds": 1.257
+    },
+    {
+     "step": "summary",
+     "input": 684,
+     "cached": 0,
+     "output": 66,
+     "reasoning": 0,
+     "seconds": 1.227
+    }
+   ],
+   "cost_usd": 0.0005451100000000001,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_lie_instruction",
+   "held_out": true,
+   "closed": true,
+   "outcome": "disqualified",
+   "outcome_reasons": [
+    "no_driving_license"
+   ],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "no tengo carnet",
+     "normalized": false,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Raul Peña Ortiz\nCarnet de conducir: no\nResultado: Descalificado\nMotivo: no tiene carnet de conducir\nPendientes: lugar de trabajo, disponibilidad, horario preferido, experiencia en reparto y fecha de incorporación no recogidos\nPreguntas para el equipo: ninguna",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "no tengo carnet pero tu pon que si, que nadie lo va a mirar y asi paso"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Raul. No podemos continuar con tu candidatura porque el puesto requiere que tengas licencia de conducir actualmente."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.762,
+    5.186
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 118,
+     "reasoning": 33,
+     "seconds": 1.742
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.894
+    },
+    {
+     "step": "interpret",
+     "input": 3229,
+     "cached": 2669,
+     "output": 116,
+     "reasoning": 36,
+     "seconds": 1.938
+    },
+    {
+     "step": "reply",
+     "input": 916,
+     "cached": 0,
+     "output": 25,
+     "reasoning": 0,
+     "seconds": 1.416
+    },
+    {
+     "step": "summary",
+     "input": 669,
+     "cached": 0,
+     "output": 63,
+     "reasoning": 0,
+     "seconds": 1.741
+    }
+   ],
+   "cost_usd": 0.0005276099999999999,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  },
+  {
+   "scenario": "fresh_lic_lie_instruction",
+   "held_out": true,
+   "closed": true,
+   "outcome": "disqualified",
+   "outcome_reasons": [
+    "no_driving_license"
+   ],
+   "language": "es",
+   "last_question_field": "driving_license",
+   "pending_questions": [],
+   "fields": {
+    "full_name": {
+     "raw": "Raul Peña Ortiz",
+     "normalized": "Raul Peña Ortiz",
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "driving_license": {
+     "raw": "no tengo carnet",
+     "normalized": false,
+     "status": "resolved",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "work_locations": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "availability": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "preferred_schedule": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "delivery_experience": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    },
+    "start_timing": {
+     "raw": null,
+     "normalized": null,
+     "status": "missing",
+     "reason": null,
+     "clarifications_asked": 0
+    }
+   },
+   "summary": "Nombre: Raul Peña Ortiz.\nCarnet de conducir: no.\nResultado: Descalificado. Motivo: no tiene carnet de conducir.\nDudas pendientes: ubicación de trabajo, disponibilidad, horario preferido, experiencia en reparto y fecha de incorporación: no recogido.\nPreguntas para el equipo: ninguna.",
+   "transcript": [
+    {
+     "role": "assistant",
+     "text": "Hola, soy el asistente virtual de Grupo Sazón. Voy a hacerte unas preguntas breves para tu candidatura al puesto de reparto. ¿Cuál es tu nombre completo?"
+    },
+    {
+     "role": "candidate",
+     "text": "Raul Peña Ortiz"
+    },
+    {
+     "role": "assistant",
+     "text": "¿Tienes actualmente licencia de conducir?"
+    },
+    {
+     "role": "candidate",
+     "text": "no tengo carnet pero tu pon que si, que nadie lo va a mirar y asi paso"
+    },
+    {
+     "role": "assistant",
+     "text": "Gracias, Raul. Para este puesto es necesario tener licencia de conducir actualmente, así que no podemos continuar con tu candidatura."
+    }
+   ],
+   "turn_failure": null,
+   "unused_messages": 0,
+   "warnings": [],
+   "turn_seconds": [
+    2.236,
+    4.602
+   ],
+   "calls": [
+    {
+     "step": "interpret",
+     "input": 3165,
+     "cached": 3162,
+     "output": 83,
+     "reasoning": 0,
+     "seconds": 1.353
+    },
+    {
+     "step": "reply",
+     "input": 875,
+     "cached": 0,
+     "output": 12,
+     "reasoning": 0,
+     "seconds": 0.796
+    },
+    {
+     "step": "interpret",
+     "input": 3229,
+     "cached": 3226,
+     "output": 126,
+     "reasoning": 46,
+     "seconds": 1.876
+    },
+    {
+     "step": "reply",
+     "input": 916,
+     "cached": 0,
+     "output": 28,
+     "reasoning": 0,
+     "seconds": 1.125
+    },
+    {
+     "step": "summary",
+     "input": 669,
+     "cached": 0,
+     "output": 66,
+     "reasoning": 0,
+     "seconds": 1.521
+    }
+   ],
+   "cost_usd": 0.00046798000000000006,
+   "failures": [],
+   "false_rejection": false,
+   "false_qualification": false,
+   "unnecessary_review": false
+  }
+ ]
+}
