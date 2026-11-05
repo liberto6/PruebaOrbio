@@ -208,7 +208,7 @@ def _proposal(name: str, evidence: Evidence) -> Proposal:
     resolved = evidence.status == "resolved" or _has_only_doubtful_places(evidence)
     return Proposal(
         field=name,
-        status=evidence.status,
+        status="resolved" if resolved else "unresolved",
         value=VALUE_BUILDERS[name](evidence) if resolved else None,
         raw=evidence.raw,
         reason=None if resolved else evidence.reason,
