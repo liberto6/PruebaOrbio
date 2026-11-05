@@ -1,3 +1,4 @@
+import unicodedata
 from datetime import date, datetime
 from typing import Annotated, Any, Generic, Literal, TypeVar
 
@@ -293,6 +294,13 @@ COVERAGE_CATALOG = frozenset(
         ("MX", "puebla"),
     }
 )
+
+
+def folded(text: str) -> str:
+    """A place spelling without case, accents or separators; this is not fuzzy matching."""
+    decomposed = unicodedata.normalize("NFKD", text)
+    without_accents = "".join(char for char in decomposed if not unicodedata.combining(char))
+    return " ".join(without_accents.casefold().replace("_", " ").replace("-", " ").split())
 
 
 class CatalogError(Exception):

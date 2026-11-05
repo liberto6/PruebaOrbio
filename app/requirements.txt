@@ -1,3 +1,5 @@
 fastapi==0.135.1
 uvicorn==0.41.0
 pydantic==2.14.2
+openai==3.46.0
+python-dotenv==1.2.4

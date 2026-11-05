@@ -2,7 +2,6 @@
 
 import logging
 import re
-import unicodedata
 from datetime import datetime, timezone
 
 from pydantic import ValidationError
@@ -27,6 +26,7 @@ from backend.rules import (
     WorkLocations,
     evaluate,
     evaluate_coverage,
+    folded,
 )
 from backend.storage import (
     CannotClose,
@@ -65,7 +65,7 @@ REPEAT_REQUEST_TEXTS = {
 CLARIFICATION_BUDGET = {"start_timing": 1}
 
 # Known spellings of catalog places, per country: Guadalajara in Spain is another place.
-# Keys are folded by _folded. Anything not listed here must already be a clean identifier.
+# Keys are folded by rules.folded. Anything not listed here must already be a clean identifier.
 LOCALITY_ALIASES = {
     "ES": {
         "madrid": "madrid",
@@ -183,23 +183,16 @@ def _is_catalog_name_in_another_country(place: Location) -> bool:
     return (
         COUNTRY_ID.fullmatch(place.country) is not None
         and place.country not in LOCALITY_ALIASES
-        and _folded(place.locality) in CATALOG_SPELLINGS
+        and folded(place.locality) in CATALOG_SPELLINGS
     )
 
 
 def _canonical_place(place: Location) -> Location:
     aliases = LOCALITY_ALIASES.get(place.country, {})
-    locality = aliases.get(_folded(place.locality), place.locality)
+    locality = aliases.get(folded(place.locality), place.locality)
     if not (COUNTRY_ID.fullmatch(place.country) and LOCALITY_ID.fullmatch(locality)):
         raise InvalidExtraction([FieldError(field="work_locations", error="malformed_catalog_id")])
     return place.model_copy(update={"locality": locality})
-
-
-def _folded(text: str) -> str:
-    """Ignores only case, accents and separators; this is not fuzzy matching."""
-    decomposed = unicodedata.normalize("NFKD", text)
-    without_accents = "".join(char for char in decomposed if not unicodedata.combining(char))
-    return " ".join(without_accents.casefold().replace("_", " ").replace("-", " ").split())
 
 
 def _utc_now() -> datetime:
