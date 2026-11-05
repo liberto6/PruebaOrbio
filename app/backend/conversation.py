@@ -229,6 +229,7 @@ def _drive(db_path, application_id, request_id, llm, now) -> StoredApplication:
     reloads = 0
     try:
         while reloads <= MAX_RELOADS:
+            phase = None  # A failed read must not report the phase of the previous pass.
             # The turn goes first: a completed turn then always reads its committed history.
             phase = load_turn(db_path, application_id, request_id).phase
             stored = load_application(db_path, application_id)

@@ -853,12 +853,28 @@ def test_close_with_request_id_saves_everything_and_completes_the_turn(db):
 
 
 def test_surrogate_in_the_summary_no_longer_blocks_an_e2_style_close(db):
-    application_id, revision = interpreted(db, proposals=ALL_RESOLVED)
+    application = create_application(db)
+    save_turn(db, application.id, 0, proposals=ALL_RESOLVED)
 
-    closed = close_application(db, application_id, revision, "Gracias", "Resumen \ud83d")
+    closed = close_application(db, application.id, 1, "Gracias", "Resumen \ud83d")
 
     assert closed.summary == "Resumen ?"
-    assert load_application(db, application_id).snapshot == closed
+    assert load_application(db, application.id).snapshot == closed
+
+
+@pytest.mark.parametrize("phase", ["received", "interpreted"])
+def test_close_without_a_request_id_cannot_orphan_an_unfinished_turn(db, phase):
+    if phase == "received":
+        application_id = create_application(db).id
+        revision = receive_turn(db, application_id, "r1", "Hola").application.snapshot.revision
+    else:
+        application_id, revision = interpreted(db, proposals=ALL_RESOLVED)
+    before = everything(db, application_id)
+
+    with pytest.raises(CannotClose, match="turn_unfinished"):
+        close_application(db, application_id, revision, "Gracias", "Resumen")
+
+    assert everything(db, application_id) == before
 
 
 def test_retry_of_a_completed_closing_request_gets_its_committed_result(db):

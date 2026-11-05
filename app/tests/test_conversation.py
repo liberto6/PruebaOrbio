@@ -870,6 +870,24 @@ def test_storage_failure_is_retryable_and_hides_details(chat, monkeypatch, faili
     assert stored.snapshot.fields.full_name.status == "resolved"
 
 
+def test_failing_to_read_the_turn_later_reports_no_stale_phase(chat, db, app_id, monkeypatch):
+    real = conversation.load_turn
+    reads = []
+
+    def fail_on_the_second_read(*args):
+        reads.append(args)
+        if len(reads) == 2:
+            raise StorageFailure(SECRET)
+        return real(*args)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(conversation, "load_turn", fail_on_the_second_read)
+        with pytest.raises(TurnFailed) as raises:
+            chat.send("Ana Ruiz", interpretation(NAME))
+    assert_failed(raises, None, "storage_failure")
+    assert real(db, app_id, "request-1").phase == "interpreted"
+
+
 def test_storage_failure_while_closing_generates_again_and_closes_once(
     chat, db, app_id, monkeypatch
 ):

@@ -366,6 +366,8 @@ def close_application(
         if request_id is None:
             turn = None
             snapshot = _read_open_snapshot(connection, application_id, expected_revision)
+            if _unfinished_turn(connection, application_id) is not None:
+                raise CannotClose("turn_unfinished")
         else:
             snapshot, turn = _read_turn_state(
                 connection, application_id, request_id, "interpreted", expected_revision
