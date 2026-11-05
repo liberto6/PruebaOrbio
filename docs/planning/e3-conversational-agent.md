@@ -73,8 +73,13 @@ For each candidate message:
    Return proposals, job questions, language preference and stop/resume intent.
    Accept information given ahead of time and corrections while the application is open.
 3. **Validate and apply:** distinguish malformed model output from candidate doubt.
-   A schema/type failure, refusal, truncation or invalid proposal is a technical
-   failure: retain the saved message and existing fields, and retry interpretation.
+   A schema/type failure, refusal, truncation or invalid proposal applies no data:
+   retain the saved message and existing fields, and finish the turn with a fixed
+   ES/EN message asking the candidate to repeat it. This consumes no clarification
+   budget, keeps the screening question context and never blocks the conversation.
+   Record a stable code for each case so evals count it as a model failure.
+   Provider unavailability (timeout, quota, credentials) is different: show the
+   technical notice and keep the turn pending for an explicit retry.
    Prevalidate the complete extraction before applying it; E2's per-field error
    behaviour alone is not an atomic extraction commit. Genuine ambiguous/retracted
    evidence becomes a valid `unresolved` proposal and clears the stale value.
@@ -97,7 +102,9 @@ For each candidate message:
 
 A retry resumes the persisted phase: `received` interprets; `interpreted` chooses
 and writes without reapplying extraction; `completed` returns confirmed history.
-A failed summary leaves the candidate message and interpreted data intact. A lost
+A failed summary leaves the candidate message and interpreted data intact. A reply,
+closing message or summary that keeps failing holds its turn until a retry succeeds:
+an accepted, documented limit, unlikely because these outputs are plain text. A lost
 HTTP response after commit never repeats the append or close. On revision conflict,
 reload and discard work generated for an outdated state. Concurrent retries may
 repeat an external call, but must not duplicate its database effects; preventing
@@ -213,7 +220,9 @@ Critical E3.2 cases: a qualified path with early information and corrections; no
 license; "me lo estoy sacando" both ways; Madrid identifiers; Guadalajara ambiguity;
 residence versus work zone; uncovered and mixed zones; repeated ambiguity; explicit
 unknown start; months/no experience; ES/EN switch; job questions without invented
-terms; and an instruction to ignore the screening rules. Complete the rest of the
+terms; an instruction to ignore the screening rules; and a candidate who dodges an
+asked field, which must become `unresolved` and reach the clarification limit
+instead of repeating the initial question without end. Complete the rest of the
 Phase 1 scenarios in E3.4, including stop/resume and imprecise start after clarification.
 
 Fake-LLM/storage/HTTP checks must also cover malformed extraction preserving previous
