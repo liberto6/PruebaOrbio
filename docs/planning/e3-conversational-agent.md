@@ -1,7 +1,7 @@
 # E3 - Conversational agent
 
-**Status: In progress, revised 2026-11-05.** E3.1 is implemented with a fake LLM; no
-real model, HTTP endpoint or chat exists yet, so E3 is not complete. Sources:
+**Status: In progress, revised 2026-11-05.** E3.1 and E3.2 are implemented and run with
+the real model; no HTTP endpoint or chat exists yet, so E3 is not complete. Sources:
 [assignment](../assignment.html), [process design](../design/process-design.md),
 [roadmap](build-roadmap.md) and [E2 contracts and limits](e2-rules-and-persistence.md).
 
@@ -238,7 +238,7 @@ must be explicitly reflected in the design and roadmap.
 ## Closure
 
 - [x] E3.1: next action, turn recovery and atomic storage extensions verified.
-- [ ] E3.2: complete runner conversations, critical evals and documented model rationale.
+- [x] E3.2: complete runner conversations, critical evals and documented model rationale.
 - [ ] E3.3: browser chat, resume, public responses and failure paths verified.
 - [ ] E3.4: reminder, remaining evals, results and sample conversations recorded.
 - [ ] Existing E2 tests and new tests pass without network; no screening rule changed.
@@ -278,3 +278,58 @@ Known limits E3.2 and E3.3 must respect:
   public projection, because coordinator results include the internal summary.
 - A crash between the two repeat-request commits can make the resumed reply consume one
   clarification. The state stays valid; this is accepted as very unlikely.
+
+### E3.2 evidence (2026-11-05)
+
+- Commits `8fa5d01` onward: OpenAI adapter with a closed extraction schema, prompts and
+  the eval runner in `app/evals/`. Pins: `openai==3.46.0`, `python-dotenv==1.2.4`.
+- `python -m pytest` from `app/`: 593 passed, with no network or real LLM.
+- Final prompts, tuned cases (41 scenarios, 89 runs): 89 passed (`e3-2-20261105T052616Z`).
+- Final prompts, held-out and independent cases (28 scenarios, 84 runs): 82 passed
+  (`e3-2-20261105T052114Z`). One failure is the check not recognizing the spelling
+  "carné". The other is real: one job question was not stored in one run.
+- Those final runs had no false rejection, false qualification, unnecessary review or
+  `interpretation_unusable`. An earlier run of the previous prompts also failed 6 tuned
+  runs with `llm_transient` while two batteries ran in parallel. Repeated alone they
+  passed 9/9 and the final battery did not repeat them; the cause was not confirmed.
+- Cost of E3.2: about 0.83 USD of the 5 USD stage cap. Full-turn latency in the final
+  runs: median about 3.2 s; maximum 8.9 s tuned and 18 s held-out.
+- All runs, including failures, are in `docs/evals/`.
+
+What the counters do not show: an independent evaluator wrote 20 new cases from the
+design without reading the prompts. It got 53/60 with those counters at zero, because
+wrong license readings occurred in conversations still open at the end of the script.
+The prompt was then changed and three variants were added; those license cases went
+55/55 before the "tengo coche" decision below and are no longer a clean measurement. One
+evaluator expectation was changed by the tech lead (decision 1 below). The independent
+review was not repeated after these changes. Summaries are checked mainly by keywords.
+This is a small acceptance set, not a statistical claim about production reliability.
+
+Product decisions from E3.2:
+
+| # | Candidate says or case | Behaviour | Status |
+|---|---|---|---|
+| 1 | "Me lo quitaron, lo recupero en enero" | Rejects at once: not held today | Pending user validation |
+| 2 | "Lo tengo caducado" | Clarifies; still not valid rejects | Pending user validation |
+| 3 | Motorbike or foreign licence held now | Counts as holding a licence | Pending user validation |
+| 4 | "Sí, tengo coche" or another vehicle after a yes | Counts as holding a licence | **Decided by the user** |
+| 5a | "En Vallecas" (district, no city) | Asks which city | Pending user validation |
+| 5b | "En Getafe" (town near a catalog city) | Rejects: not in the catalog | Pending user validation |
+| 6 | Naming covered cities | Only on the second clarification, and all of them | Pending user validation |
+| 7 | Recruiter summary language | Always Spanish | Pending user validation |
+
+Decision 4 can produce a false qualification: a candidate with a car and no licence who
+answers this way passes that check. The user accepted the behaviour knowingly.
+
+Known limits:
+
+- A clean but wrong place identifier can still reject; there is no confirmation turn.
+- `TurnContext` has no stop state, so the interpreter infers it from history. E3.4 must
+  cover this with the stop/resume scenarios.
+- A job question can occasionally go unstored, as in the run above.
+- A rejection summary can omit nuance, such as a licence recovered in January, and
+  "Dudas pendientes" varies between summaries. The full conversation is kept.
+- Nothing in Python limits the repeated initial question if the model proposes nothing.
+
+Next: E3.3 web chat, starting only on the user's go-ahead. E3.4 adds the reminder,
+stop/resume and sample conversations, with no further eval breadth.

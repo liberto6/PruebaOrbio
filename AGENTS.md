@@ -9,10 +9,12 @@ order: [assignment](docs/assignment.html), [process design](docs/design/process-
 - Application code, dependencies and tests live in `app/`. Run Python setup,
   tests and Uvicorn from `app/`, and npm commands from `app/frontend/`.
 - Stack: Python venv/pip, FastAPI/Uvicorn, Pydantic, pytest/HTTPX; React/Vite with plain
-  JavaScript/CSS built and served by FastAPI, with SQLite for persistence.
+  JavaScript/CSS built and served by FastAPI, with SQLite for persistence; OpenAI SDK
+  and python-dotenv for the model.
 - Keep the backend flat. Add dependencies or abstractions only for implemented needs.
 - Use backend TDD: observe the relevant test fail, implement, then verify it passes.
-  Automated backend tests must not call an LLM or external services.
+  Automated backend tests must not call an LLM or external services. Real-model evals
+  live in `app/evals/`, outside pytest; they need credentials and cost money.
 - Code, README and commits are English; product copy and process design are Spanish.
 - E3 excludes the recruiter interface, authentication, Docker, CI, deployment,
   WhatsApp and voice. Later stages decide their own details.

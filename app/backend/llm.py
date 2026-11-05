@@ -265,10 +265,9 @@ unequivocal no. Being in the process ("me lo estoy sacando", "estoy en ello", "m
 pronto", "I am getting it") is NOT a no and NOT a yes: unresolved with reason `in_progress`. \
 After that, a later "ya lo tengo" is true and "aún no" or "todavía no" is false, because it now \
 answers whether they hold it today. A question about what kind of licence is not an answer. \
-Value true needs the candidate to affirm the licence itself or to answer with a bare yes. A \
-"sí" followed by something else is judged by that something else: "sí, tengo coche", "sí, tengo \
-furgoneta" and "conduzco desde los 18" mention a vehicle or driving, never a licence, so they \
-are unresolved with reason `not_answered`. An expired licence or one to renew ("lo tengo caducado") is \
+A yes is true, also when followed by a vehicle they own ("sí, tengo coche", "sí, tengo \
+furgoneta"). Mentioning driving with no yes ("conduzco desde los 18") is unresolved with reason \
+`not_answered`. An expired licence or one to renew ("lo tengo caducado") is \
 NOT a yes: unresolved with reason `validity_unclear`; a later answer that it is still not valid \
 is false and that it is renewed is true. A licence taken away and not yet recovered is false. The \
 kind or origin of a licence they hold now ("el de moto", "uno de otro país") is true: no category \

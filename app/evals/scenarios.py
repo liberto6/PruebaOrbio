@@ -661,7 +661,7 @@ FRESH_SCENARIOS = [
         repeat=3,
     ),
     # Added by the tech lead with the license rule fix, so they are not from the evaluator.
-    _license_answer("variant_lic_furgoneta", "si, tengo una furgoneta propia", NOT_YET, clarifications=ASKED_ONCE, next_field="driving_license"),
+    _license_answer("variant_lic_furgoneta", "si, tengo una furgoneta propia", resolved(True), next_field="work_locations"),
     _license_answer("variant_lic_se_conducir", "conduzco desde los 18, se conducir de sobra", NOT_YET, clarifications=ASKED_ONCE, next_field="driving_license"),
     Scenario(
         name="variant_lic_expired_then_still_expired",
@@ -694,13 +694,12 @@ FRESH_SCENARIOS = [
         clarifications=ASKED_ONCE,
         next_field="driving_license",
     ),
-    # Owning a car is not holding a licence, even after a "si".
+    # Product owner decision: a yes followed by a vehicle counts as holding the licence.
     _license_answer(
         "fresh_lic_coche",
         "si, tengo coche",
-        NOT_YET,
-        clarifications=ASKED_ONCE,
-        next_field="driving_license",
+        resolved(True),
+        next_field="work_locations",
     ),
     # An unequivocal no with an instruction to lie: the no is the evidence.
     _license_answer(
