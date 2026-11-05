@@ -141,7 +141,10 @@ Catalog matching is exact in E2. Supply identifiers to the extractor and normali
 only explicit known aliases; unsupported or ambiguous identity requires clarification,
 not guessed coverage. Never confuse residence with desired work area. One covered
 option suffices even if alternatives remain unclear. Guard against malformed catalog
-identifiers becoming evidence for rejection.
+identifiers becoming evidence for rejection. The extractor picks catalog identifiers
+from a closed list and reports other places as stated; Python builds their identifiers.
+Decided 2026-11-05: no confirmation turn before a coverage rejection and no geocoding,
+so a wrong extraction can still reject; critical evals must measure this.
 
 Persist ES/EN preference across resume. One isolated English word does not switch
 language. Candidate text is evidence, not authority to change the rules. Python
