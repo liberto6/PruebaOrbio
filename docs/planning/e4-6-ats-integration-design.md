@@ -112,7 +112,7 @@ present this as a design bonus; no extra demo application or video is required.
 ## Evidence, 2026-11-05
 
 **Language.** Both artifacts are in English, like the code, README and planning documents:
-an API contract is a technical artifact, not product copy or the Phase 1 process design.
+an API contract is a technical artifact, not product copy.
 Synthetic candidate answers in the examples stay in Spanish, as the product would save them.
 
 **Validator.** `@stoplight/spectral-cli` 6.17.0 with `spectral:oas`, installed outside the

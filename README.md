@@ -2,7 +2,7 @@
 
 Grupo Sazón hires delivery drivers: about 1,000 applications a week, 13 recruiters phoning by hand, 60% of candidates not answering and 80% of recruiter time spent on unqualified people. This repository has two products: a **screening agent**, a web chat that collects and validates the seven screening fields, and a **recruiter tool** that lists the results and records a decision. **It is a local demo, not production-ready: recruiter routes are unauthenticated.**
 
-Phase 1 deliverable: **[process design](docs/design/process-design.md)** (Spanish). Real transcripts: **[sample conversations](docs/evals/sample-conversations.md)**.
+Phase 1 deliverable: **[process design](docs/design/process-design.md)**. Real transcripts: **[sample conversations](docs/evals/sample-conversations.md)**.
 
 ## Setup
 

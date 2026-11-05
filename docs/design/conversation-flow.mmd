@@ -1,20 +1,20 @@
 ---
-title: Grupo Sazón · Screening de repartidores
+title: Grupo Sazón · Delivery driver screening
 ---
 flowchart LR
-    A(["<b>Bienvenida</b><br/>Pedir nombre completo"]) ==> B{"¿Tiene permiso<br/>de conducir?"}
-    B == "Sí o duda" ==> C{"¿Zona cubierta<br/>según catálogo?"}
-    C == "Alguna sí o duda" ==> D["<b>Perfil restante</b><br/>Disponibilidad · Horario<br/>Experiencia · Incorporación"]
-    D ==> E{"¿Los 7 campos<br/>resueltos?"}
-    E == "Sí" ==> OK["<b>Screening superado</b><br/>Cerrado · agradecer y<br/>dejar al equipo"]
-    E -- "No" --> REV["<b>Pendiente de revisión</b><br/>Cerrado · registrar la duda<br/>y avisar de la revisión"]
+    A(["<b>Welcome</b><br/>Ask for full name"]) ==> B{"Has a driver's<br/>license?"}
+    B == "Yes/doubt" ==> C{"Zone covered<br/>by the catalog?"}
+    C == "One yes or doubt" ==> D["<b>Remaining profile</b><br/>Availability · Schedule<br/>Experience · Start date"]
+    D ==> E{"All 7 fields<br/>resolved?"}
+    E == "Yes" ==> OK["<b>Qualified</b><br/>Closed · thank and<br/>leave to the team"]
+    E -- "No" --> REV["<b>Pending review</b><br/>Closed · log the doubt<br/>and flag the review"]
 
-    B -- "No inequívoco" --> REJ["<b>Descalificado</b><br/>Cerrado · explicar el motivo"]
-    C -- "Todas fuera" --> REJ
+    B -- "Clear no" --> REJ["<b>Disqualified</b><br/>Closed · explain the reason"]
+    C -- "All outside" --> REJ
 
-    A -. "En cualquier etapa: silencio<br/>(un recordatorio a los 10 min<br/>si el chat sigue abierto)<br/>o pide terminar" .-> INC["<b>Incompleto</b><br/>Sin cerrar · se reanuda<br/>sin repetir datos"]
+    A -. "At any stage: silence<br/>(one reminder at 10 min<br/>if the chat stays open)<br/>or asks to stop" .-> INC["<b>Incomplete</b><br/>Not closed · resumes<br/>without repeating data"]
 
-    OK ==> REC[["<b>Recruiter</b><br/>Decisión: sin revisar ·<br/>avanza · descartado"]]
+    OK ==> REC[["<b>Recruiter</b><br/>Decision: unreviewed ·<br/>advance · rejected"]]
     REV --> REC
     REJ --> REC
     INC --> REC

@@ -18,7 +18,7 @@ further or spend on model runs without a new request.
 - Use backend TDD: observe the relevant test fail, implement, then verify it passes.
   Automated backend tests must not call an LLM or external services. Real-model evals
   live in `app/evals/`, outside pytest; they need credentials and cost money.
-- Code, README and commits are English; product copy and process design are Spanish.
+- Code, README, commits and process design are English; product copy is Spanish.
 - Recruiter routes are unauthenticated: local demo only. Authentication, Docker, CI,
   deployment, WhatsApp, voice and bonus implementations remain excluded. The ATS API in
   `docs/design/` is a proposal, including its security: it is not implemented. Preserve the

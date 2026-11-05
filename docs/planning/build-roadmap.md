@@ -17,7 +17,7 @@ High-level plan for Phase 2. Each stage is detailed only when it starts. Source 
 - The LLM interprets and writes; code validates and decides the outcome.
 - FastAPI and SQLite; minimal React with Vite, built and served by FastAPI.
 - TDD on backend logic.
-- Code, README and commits in English. Phase 1 document and recruiter tool in Spanish.
+- Code, README, commits and Phase 1 document in English. Recruiter tool in Spanish.
 
 ## Stages
 
