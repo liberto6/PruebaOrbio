@@ -33,7 +33,16 @@ WORKERS = 4
 CLOCK = datetime(2026, 11, 5, 10, 0, tzinfo=timezone.utc)  # A Thursday, for relative dates.
 
 INTERNAL_TERMS = re.compile(
-    "|".join([*CandidateFields.model_fields, "pending_review", "not_answered", "unresolved", "qualified"])
+    # Only names that are not ordinary words: "availability" is plain English.
+    "|".join(
+        [
+            *(name for name in CandidateFields.model_fields if "_" in name),
+            "pending_review",
+            "not_answered",
+            "unresolved",
+            "qualified",
+        ]
+    )
 )
 EMOJI = re.compile("[\U0001f300-\U0001faff☀-➿]")
 MONEY = re.compile(r"\d\s*(€|euros?|pesos|usd|mxn|\$)|[€$]\s*\d")
