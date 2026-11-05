@@ -87,16 +87,29 @@ audit history are added. A candidate turn must retain a concurrently saved decis
 
 ## Recruiter screen
 
-**List.** Show name, work area, creation date, screening outcome, recruiter decision
-and “X/7 campos recogidos”. Provide separate labelled filters for screening outcome
-and recruiter decision, both defaulting to “Todos”, plus an “Actualizar” button.
+**List.** A full-width table with a sticky header: Candidato, Zona de trabajo, Screening,
+Decisión, Campos recogidos (“5/7”) and Fecha. It scrolls inside its area, horizontally on
+narrow widths. **User decision, replacing the two filters:** a mail-style sidebar with counts,
+one folder per recruiter decision: “Bandeja” (`unreviewed`, the default), “Avanzadas” and
+“Descartadas”. A decided application leaves the inbox for its folder. The inbox orders by
+outcome, then newest first: screening superado, pendiente de revisión, incompleto,
+descalificado. An “Actualizar” button remains. The screen reads the whole list once and
+filters it in the browser; the API filters remain, but the screen no longer filters by outcome.
 Include unnamed and greeting-only applications as “Nombre no recogido”; never hide
-them or infer that a person who opened the page has answered. Distinguish an empty
-database from no matches for the selected filters.
+them or infer that a person who opened the page has answered. “Todavía no hay candidaturas”
+appears only when there are none at all; an empty folder has its own message. **Recorded
+limit:** counts need the whole list, so at real volume they would have to come from the server.
 
-**Detail.** Selecting a row opens its detail in the same screen. Show the seven
-fields in process order, outcome and reasons, internal summary, unresolved doubts,
-job questions and the entire conversation in sequence. Use Spanish labels and
+**Detail.** Selecting a row opens its detail in a non-modal drawer of about 620 px from
+the right, taking the full width below 760 px. The left of the table stays usable, so another
+row can be picked with it open. “Cerrar” returns focus to the row, or to the list heading if
+the row left the list. A click outside the drawer, other than on a row, closes it and leaves
+focus on what was clicked. The conversation has a maximum height and scrolls inside its card,
+and the summary shows its “Label: value” lines as label and value, without changing how it
+is generated. The slide respects reduced motion. In order: name, area and date;
+outcome, reasons and decision; internal summary; unresolved doubts and job questions, only
+when present; the seven fields in process order; and the entire conversation in
+sequence. Use Spanish labels and
 readable category/place names; retain restrictions, approximate start wording and
 raw evidence for unresolved fields. Make the stored raw answer available alongside
 each collected value. Distinguish “No recogido”, “Por aclarar”, “No”, zero experience
@@ -109,8 +122,8 @@ including summaries; no Markdown/HTML rendering is required. Technical field rea
 codes get understandable labels, with a generic “Requiere revisión” fallback and
 the raw evidence for reasons outside the known set.
 
-**Decision.** Use a labelled select and “Guardar decisión”. Disable repeated saves
-while a request is in flight. Show success only after confirmation; then refresh the
+**Decision.** A labelled select with no separate save action: choosing a value saves it. After
+a failure it returns to the saved value, and choosing again retries. Ignore further choices while a request is in flight. Show success only after confirmation; then refresh the
 list so active filters reflect the saved decision. If a response is lost, reload the
 detail to reconcile the saved value before offering another save. Do not optimistically
 claim persistence. A failed list refresh must not turn a confirmed save into a failure.
@@ -199,6 +212,47 @@ path rests on the rejected-`fetch` case. The keyboard focus fix was confirmed th
 case, not by repeating the key presses. Not checked: a real narrow window or device, a screen
 reader, colour contrast measurements, other browsers, or high volumes. There are no automated
 frontend tests.
+
+**UI refactor, on top of 9cd59e8; frontend only, awaiting user validation.** The first
+browser evidence above describes the earlier side-by-side layout, and its failure checks
+were repeated below only where stated. `python -m pytest`: 736 passed. `npm run build`: passed.
+Real Chrome, built app, temporary SQLite database and fake model:
+
+- Default load: outcome `qualified`, “Screening superado” pressed. Sticky header held while
+  scrolling.
+- Quick views: “Han avanzado” listed an advanced `pending_review` record; “Todas” listed
+  all; a filter combination matching no view pressed none and showed the no-match message.
+- Drawer: opened and switched rows with real mouse clicks, one drawer at a time; order, optional
+  sections, “Por aclarar: Ana”, an unprocessed candidate turn and HTML shown as text.
+- Decision: saved with a real click and kept after a page reload. Failed save (503 by replacing
+  `fetch`): attempted choice kept beside “Decisión guardada: X”. Lost response on a committed
+  save: shown as saved.
+- Keyboard, real keys: quick view with Space, row with Enter, select, save, Cerrar. Focus goes to
+  the drawer, stays in the decision box after saving, and fell back to the heading when the
+  saved row left the filter. Return to the row was confirmed by script, not by key press.
+- Narrow: a 390 px iframe, because the window does not shrink: full-width drawer, the table
+  scrolls horizontally inside its area, no page overflow.
+- Fonts: both reported loaded and accented text rendered in screenshots; no request to another
+  host from the recruiter page. The chat in Spanish, its link, new application, not-found
+  state and closed state were seen in the browser.
+- Drawer fixes, real mouse clicks with a temporary database: a click inside keeps it open, a
+  row switches, empty table space closes it, and a quick view closes it and still applies. A
+  31-message conversation scrolls at 340 px. A summary in the saved format shows label and
+  value, and free text stays whole. At 390 px (iframe, scripted click) the summary stacks and
+  the page does not overflow. Only `npm run build` was rerun: no backend change.
+- Saving on selection replaced “Guardar decisión”, and the folder sidebar replaced the filters
+  and quick views, so earlier evidence that mentions those controls describes the previous
+  screen. Arrow keys on a closed select can save each value they pass through.
+
+Not checked in this refactor: the empty-database message, obsolete responses, list and detail
+error states and the save-and-reload-both-fail case (logic unchanged, checked before the
+refactor); actual reduced-motion behaviour (the rule is in the built CSS, the setting was not
+on); the chat's pending, retry, reminder and confirmation states and its English copy (the diff
+touches only its markup and classes); a real narrow window, a screen reader, measured
+contrast and other browsers.
+
+**Fonts.** Fraunces and DM Sans, Latin subset, in `app/frontend/src/fonts/` with their OFL
+licences; 97,844 bytes of woff2, no npm dependency and no runtime request to Google.
 
 **Limits.** Local demo: recruiter routes expose internal data without authentication. The list
 returns all matches, without pagination. The last committed write wins and there is no decision

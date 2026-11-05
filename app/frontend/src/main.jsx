@@ -263,73 +263,84 @@ function App() {
   return (
     <div className="chat">
       <header>
-        <div>
-          <p className="brand">Grupo Sazón</p>
-          <p className="role">{copy.assistant}</p>
-        </div>
-        <div className="actions">
-          <a className="switch-view" href="/recruiter">{copy.recruiterView}</a>
-          <button type="button" className="secondary" onClick={askForNewApplication}
-            disabled={sending || starting || confirmingNew}>
-            {copy.newApplication}
-          </button>
+        <div className="chat-width chat-bar">
+          <div className="brand-block">
+            <span className="monogram" aria-hidden="true">GS</span>
+            <div>
+              <p className="brand">Grupo Sazón</p>
+              <p className="role">{copy.assistant}</p>
+            </div>
+          </div>
+          <div className="actions">
+            <a className="switch-view" href="/recruiter">{copy.recruiterView}</a>
+            <button type="button" className="secondary" onClick={askForNewApplication}
+              disabled={sending || starting || confirmingNew}>
+              {copy.newApplication}
+            </button>
+          </div>
         </div>
       </header>
 
       {confirmingNew && (
-        <div className="bar">
-          <p>{copy.confirmNew}</p>
-          <div className="actions">
-            <button type="button" className="secondary" onClick={() => setConfirmingNew(false)}>
-              {copy.confirmNo}
-            </button>
-            <button type="button" onClick={createApplication} disabled={starting}>
-              {copy.confirmYes}
-            </button>
+        <div className="confirm">
+          <div className="chat-width chat-bar">
+            <p>{copy.confirmNew}</p>
+            <div className="actions">
+              <button type="button" className="secondary" onClick={() => setConfirmingNew(false)}>
+                {copy.confirmNo}
+              </button>
+              <button type="button" onClick={createApplication} disabled={starting}>
+                {copy.confirmYes}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       <main role="log" aria-live="polite">
-        {conversation?.messages.map((message) => (
-          <p key={message.sequence} className={`message ${message.role}`}>{message.text}</p>
-        ))}
-        {!notFound && unsaved && (
-          <div className="message candidate unsaved">
-            {unsaved.text}
-            {!sending && <small>{copy.unconfirmed}</small>}
-          </div>
-        )}
-        {starting && <p className="status">{copy.loading}</p>}
-        {sending && <p className="status">{copy.sending}</p>}
-        <div ref={endRef} />
+        <div className="chat-width log">
+          {conversation?.messages.map((message) => (
+            <p key={message.sequence} className={`message ${message.role}`}>{message.text}</p>
+          ))}
+          {!notFound && unsaved && (
+            <div className="message candidate unsaved">
+              {unsaved.text}
+              {!sending && <small>{copy.unconfirmed}</small>}
+            </div>
+          )}
+          {starting && <p className="status">{copy.loading}</p>}
+          {sending && <p className="status">{copy.sending}</p>}
+          <div ref={endRef} />
+        </div>
       </main>
 
       <footer>
-        {notice && <p className="notice" role="alert">{notice}</p>}
-        {conversation && !notice && !sending && retryable && (
-          <p className="notice">{copy.pending}</p>
-        )}
-        {conversation && !notFound && !sending && retryable && (
-          <button type="button" onClick={() => deliver(retryable)}>{copy.retry}</button>
-        )}
-        {!conversation && !notFound && !starting && (
-          <button type="button" onClick={start}>{copy.retry}</button>
-        )}
-        {notFound && (
-          <button type="button" onClick={createApplication} disabled={starting}>
-            {copy.newApplication}
-          </button>
-        )}
-        {closed && !retryable && !notice && <p className="notice">{copy.closed}</p>}
-        {conversation && !closed && !notFound && (
-          <form onSubmit={submit}>
-            <textarea ref={inputRef} rows="2" value={draft} aria-label={copy.inputLabel}
-              placeholder={copy.placeholder} disabled={!canWrite}
-              onChange={(event) => setDraft(event.target.value)} onKeyDown={pressKey} />
-            <button type="submit" disabled={!canWrite || !draft.trim()}>{copy.send}</button>
-          </form>
-        )}
+        <div className="chat-width composer-area">
+          {notice && <p className="notice" role="alert">{notice}</p>}
+          {conversation && !notice && !sending && retryable && (
+            <p className="notice">{copy.pending}</p>
+          )}
+          {conversation && !notFound && !sending && retryable && (
+            <button type="button" onClick={() => deliver(retryable)}>{copy.retry}</button>
+          )}
+          {!conversation && !notFound && !starting && (
+            <button type="button" onClick={start}>{copy.retry}</button>
+          )}
+          {notFound && (
+            <button type="button" onClick={createApplication} disabled={starting}>
+              {copy.newApplication}
+            </button>
+          )}
+          {closed && !retryable && !notice && <p className="notice closed-notice">{copy.closed}</p>}
+          {conversation && !closed && !notFound && (
+            <form className="composer" onSubmit={submit}>
+              <textarea ref={inputRef} rows="2" value={draft} aria-label={copy.inputLabel}
+                placeholder={copy.placeholder} disabled={!canWrite}
+                onChange={(event) => setDraft(event.target.value)} onKeyDown={pressKey} />
+              <button type="submit" disabled={!canWrite || !draft.trim()}>{copy.send}</button>
+            </form>
+          )}
+        </div>
       </footer>
     </div>
   );

@@ -50,6 +50,15 @@ const AVAILABILITY = {
 };
 const SCHEDULE = { morning: 'Mañana', afternoon: 'Tarde', evening: 'Noche', flexible: 'Flexible' };
 const COUNTRIES = { ES: 'España', MX: 'México' };
+// Shortcuts over the two filters; they use the same list request.
+// Each folder holds one recruiter decision, so a decided application leaves the inbox.
+const FOLDERS = [
+  { decision: 'unreviewed', label: 'Bandeja', empty: 'No hay candidaturas por revisar' },
+  { decision: 'advance', label: 'Avanzadas', empty: 'Todavía no hay candidaturas avanzadas' },
+  { decision: 'rejected', label: 'Descartadas', empty: 'Todavía no hay candidaturas descartadas' },
+];
+// Inbox order: what a recruiter can act on first. Within an outcome, the list's newest first.
+const OUTCOME_PRIORITY = { qualified: 0, pending_review: 1, incomplete: 2, disqualified: 3 };
 const PLACES = { ciudad_de_mexico: 'Ciudad de México' };
 
 async function call(path, options) {
@@ -131,9 +140,9 @@ function doubtsOf(fields) {
 
 function Field({ name, state }) {
   return (
-    <div className="field">
+    <div>
       <dt>{FIELDS[name]}</dt>
-      <dd>
+      <dd className={state.status}>
         {state.status === 'missing' && NOT_COLLECTED}
         {state.status === 'unresolved' && (
           <>
@@ -152,23 +161,24 @@ function Field({ name, state }) {
   );
 }
 
-function Filter({ label, value, options, onChange }) {
+
+// Saved summaries are plain "Label: value" lines; any other line is shown whole.
+function Summary({ text }) {
+  const lines = text.split('\n').filter((line) => line.trim());
   return (
-    <label>
-      {label}
-      <select value={value} onChange={(event) => onChange(event.target.value)}>
-        <option value="">Todos</option>
-        {Object.entries(options).map(([key, text]) => (
-          <option key={key} value={key}>{text}</option>
-        ))}
-      </select>
-    </label>
+    <div className="summary">
+      {lines.map((line, index) => {
+        const match = line.match(/^([^:.]{1,40}):\s*(.+)$/);
+        return match
+          ? <p key={index}><strong>{match[1]}</strong><span>{match[2]}</span></p>
+          : <p key={index} className="whole">{line}</p>;
+      })}
+    </div>
   );
 }
 
 export default function Recruiter() {
-  const [outcome, setOutcome] = useState('');
-  const [decisionFilter, setDecisionFilter] = useState('');
+  const [folderDecision, setFolderDecision] = useState('unreviewed');
   const [items, setItems] = useState(null);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState(null);
@@ -178,8 +188,8 @@ export default function Recruiter() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState(null);
 
-  const [choice, setChoice] = useState('unreviewed');
   const [saving, setSaving] = useState(false);
+  const [attempt, setAttempt] = useState(null);
   const [saveResult, setSaveResult] = useState(null);
   // A save whose result is unknown: no other save until the detail has been read again.
   const [unconfirmed, setUnconfirmed] = useState(null);
@@ -187,21 +197,19 @@ export default function Recruiter() {
   const latestList = useRef(0);
   const latestDetail = useRef(0);
   const current = useRef({});
-  current.current = { outcome, decisionFilter, selectedId };
+  current.current = { selectedId };
   const detailPane = useRef(null);
-  const decisionBox = useRef(null);
+  const listHeading = useRef(null);
   const lastSelected = useRef(null);
 
   async function loadList() {
     const request = ++latestList.current;
     setListLoading(true);
     setListError(null);
-    const params = new URLSearchParams();
-    if (current.current.outcome) params.set('outcome', current.current.outcome);
-    if (current.current.decisionFilter) params.set('recruiter_decision', current.current.decisionFilter);
     let notice = NETWORK;
     try {
-      const { ok, body } = await call(`${API}?${params}`);
+      // The whole list is read once: the sidebar needs a count for every folder.
+      const { ok, body } = await call(API);
       if (request !== latestList.current) return;
       if (ok) {
         setItems(body.items);
@@ -219,7 +227,7 @@ export default function Recruiter() {
 
   useEffect(() => {
     loadList();
-  }, [outcome, decisionFilter]);
+  }, []);
 
   // The detail, or null if it failed or stopped being the one wanted.
   async function readDetail(id) {
@@ -245,10 +253,10 @@ export default function Recruiter() {
     const body = await readDetail(id);
     if (!body) return;
     setDetail(body);
-    setChoice(body.recruiter_decision);
   }
 
   function select(id) {
+    if (id === selectedId) return;
     setSelectedId(id);
     current.current.selectedId = id;
     lastSelected.current = id;
@@ -258,7 +266,7 @@ export default function Recruiter() {
     openDetail(id);
   }
 
-  function backToList() {
+  function closeDetail() {
     latestDetail.current += 1;
     setSelectedId(null);
     setDetail(null);
@@ -270,7 +278,23 @@ export default function Recruiter() {
 
   useEffect(() => {
     if (selectedId) detailPane.current?.focus();
-    else if (lastSelected.current) document.getElementById(`row-${lastSelected.current}`)?.focus();
+    else if (lastSelected.current) {
+      // The row may have left the list if a saved decision no longer matches the filters.
+      (document.getElementById(`row-${lastSelected.current}`) ?? listHeading.current)?.focus();
+    }
+  }, [selectedId]);
+
+  // A click outside closes the drawer, except on a row, which switches to that application.
+  useEffect(() => {
+    if (!selectedId) return undefined;
+    function closeOnOutsideClick(event) {
+      if (detailPane.current?.contains(event.target)) return;
+      if (event.target.closest?.('.applications tbody tr')) return;
+      lastSelected.current = null; // Focus stays on what was clicked, not on the row.
+      closeDetail();
+    }
+    document.addEventListener('pointerdown', closeOnOutsideClick);
+    return () => document.removeEventListener('pointerdown', closeOnOutsideClick);
   }, [selectedId]);
 
   async function reconcile(id, attempted, failure) {
@@ -286,11 +310,11 @@ export default function Recruiter() {
     }
   }
 
-  async function save() {
+  // Choosing saves. After a failure the select returns to the saved value.
+  async function save(attempted) {
+    if (decisionBlocked || attempted === detail.recruiter_decision) return;
     const { id } = detail;
-    const attempted = choice;
-    // The button is about to be disabled: keep the keyboard position in this box.
-    decisionBox.current?.focus();
+    setAttempt(attempted);
     setSaving(true);
     setSaveResult(null);
     let failure = NETWORK;
@@ -312,6 +336,7 @@ export default function Recruiter() {
     } catch {
       // The save may have been committed even though its response was lost.
     } finally {
+      setAttempt(null);
       setSaving(false);
     }
     if (current.current.selectedId !== id) {
@@ -327,148 +352,211 @@ export default function Recruiter() {
     else openDetail(selectedId);
   }
 
-  const filtered = Boolean(outcome || decisionFilter);
-  const canSave = detail && !saving && !detailLoading && !unconfirmed
-    && choice !== detail.recruiter_decision;
+  const inFolder = (decision) => (items ?? []).filter((item) => item.recruiter_decision === decision);
+  const folder = FOLDERS.find((entry) => entry.decision === folderDecision);
+  const visible = inFolder(folderDecision)
+    .sort((a, b) => OUTCOME_PRIORITY[a.outcome] - OUTCOME_PRIORITY[b.outcome]);
+  const decisionBlocked = saving || detailLoading || Boolean(unconfirmed);
   const summary = detail?.summary ?? (detail?.outcome === 'incomplete'
     ? 'Sin resumen: conversación incompleta'
     : 'Sin resumen');
   const doubts = detail ? doubtsOf(detail.fields) : [];
+  const collected = detail
+    ? Object.keys(FIELDS).filter((name) => detail.fields[name].status === 'resolved').length
+    : 0;
+  let listStatus = '';
+  if (listLoading) listStatus = 'Cargando candidaturas…';
+  else if (items) listStatus = visible.length === 1 ? '1 candidatura' : `${visible.length} candidaturas`;
 
   return (
-    <div className={`recruiter${selectedId ? ' has-selection' : ''}`}>
+    <div className="recruiter">
       <header>
-        <div>
-          <p className="brand">Grupo Sazón</p>
-          <p className="role">Panel de selección</p>
+        <div className="brand-block">
+          <span className="monogram" aria-hidden="true">GS</span>
+          <div>
+            <p className="brand">Grupo Sazón</p>
+            <p className="role">Panel de selección</p>
+          </div>
         </div>
         <a className="switch-view" href="/">Chat del candidato</a>
       </header>
 
-      <main className="workspace">
-        <section className="pane list-pane" aria-label="Candidaturas">
-          <div className="filters">
-            <Filter label="Resultado del screening" value={outcome} options={OUTCOMES} onChange={setOutcome} />
-            <Filter label="Decisión del recruiter" value={decisionFilter} options={DECISIONS}
-              onChange={setDecisionFilter} />
-            <button type="button" className="secondary" onClick={loadList}>Actualizar</button>
+      <div className="inbox">
+      <nav className="folders" aria-label="Carpetas">
+        {FOLDERS.map((entry) => (
+          <button key={entry.decision} type="button"
+            aria-current={entry.decision === folderDecision ? 'page' : undefined}
+            onClick={() => setFolderDecision(entry.decision)}>
+            <span>{entry.label}</span>
+            {items && <span>{inFolder(entry.decision).length}</span>}
+          </button>
+        ))}
+      </nav>
+
+      <div className="inbox-main">
+      <section className="toolbar">
+        <div className="toolbar-title">
+          <h1 tabIndex={-1} ref={listHeading}>{folder.label}</h1>
+          <p className="status" role="status">{listStatus}</p>
+        </div>
+        <button type="button" className="secondary" onClick={loadList}>Actualizar</button>
+      </section>
+
+      <main className="table-area">
+        {listError && (
+          <div className="problem table-message">
+            <p className="notice" role="alert">{listError}</p>
+            <button type="button" onClick={loadList}>Reintentar</button>
+          </div>
+        )}
+        {items && !items.length && !listLoading && (
+          <p className="status table-message">Todavía no hay candidaturas</p>
+        )}
+        {items && items.length > 0 && !visible.length && !listLoading && (
+          <p className="status table-message">{folder.empty}</p>
+        )}
+        {visible.length > 0 && (
+          <table className="applications">
+            <thead>
+              <tr>
+                <th scope="col">Candidato</th>
+                <th scope="col">Zona de trabajo</th>
+                <th scope="col">Screening</th>
+                <th scope="col">Decisión</th>
+                <th scope="col">Campos recogidos</th>
+                <th scope="col">Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((item) => (
+                <tr key={item.id} className={item.id === selectedId ? 'current' : undefined}
+                  onClick={() => select(item.id)}>
+                  <td>
+                    <button type="button" id={`row-${item.id}`}
+                      className={`name${item.full_name ? '' : ' unnamed'}`}
+                      aria-current={item.id === selectedId ? 'true' : undefined}>
+                      {item.full_name ?? NO_NAME}
+                    </button>
+                  </td>
+                  <td className="secondary-cell">{workAreaText(item.work_locations)}</td>
+                  <td><span className={`pill ${item.outcome}`}>{OUTCOMES[item.outcome]}</span></td>
+                  <td>
+                    <span className={`verdict ${item.recruiter_decision}`}>
+                      {DECISIONS[item.recruiter_decision]}
+                    </span>
+                  </td>
+                  <td className="secondary-cell">{item.resolved_fields}/7</td>
+                  <td className="secondary-cell nowrap">{formatDate(item.created_at)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </main>
+      </div>
+      </div>
+
+      {selectedId && (
+        <aside className="drawer" aria-label="Detalle de la candidatura" tabIndex={-1} ref={detailPane}>
+          <div className="drawer-head">
+            {detail && (
+              <div>
+                <h2>{detail.fields.full_name.normalized ?? NO_NAME}</h2>
+                <p>{workAreaText(detail.fields.work_locations)} · {formatDate(detail.created_at)}</p>
+              </div>
+            )}
+            <button type="button" className="secondary" onClick={closeDetail}>Cerrar</button>
           </div>
 
-          {listLoading && <p className="status" role="status">Cargando candidaturas…</p>}
-          {listError && (
-            <div className="problem">
-              <p className="notice" role="alert">{listError}</p>
-              <button type="button" onClick={loadList}>Reintentar</button>
-            </div>
-          )}
-          {items && !items.length && !listLoading && (
-            <p className="status">
-              {filtered ? 'Ninguna candidatura coincide con estos filtros' : 'Todavía no hay candidaturas'}
-            </p>
-          )}
-          {items && (
-            <ul className="applications">
-              {items.map((item) => (
-                <li key={item.id}>
-                  <button type="button" id={`row-${item.id}`} className="application"
-                    aria-current={item.id === selectedId ? 'true' : undefined}
-                    onClick={() => select(item.id)}>
-                    <strong>{item.full_name ?? NO_NAME}</strong>
-                    <span>{workAreaText(item.work_locations)}</span>
-                    <span>{formatDate(item.created_at)} · {item.resolved_fields}/7 campos recogidos</span>
-                    <span>Screening: {OUTCOMES[item.outcome]}</span>
-                    <span>Decisión: {DECISIONS[item.recruiter_decision]}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="pane detail-pane" aria-label="Detalle de la candidatura" tabIndex={-1} ref={detailPane}>
-          {!selectedId && <p className="status">Selecciona una candidatura para ver su detalle.</p>}
-          {selectedId && (
-            <button type="button" className="secondary back" onClick={backToList}>Volver al listado</button>
-          )}
-          {detailLoading && <p className="status" role="status">Cargando candidatura…</p>}
-          {detailError && (
-            <div className="problem">
-              <p className="notice" role="alert">{detailError}</p>
-              <button type="button" onClick={retryDetail}>Reintentar</button>
-            </div>
-          )}
-
-          {detail && (
-            <>
-              <h1>{detail.fields.full_name.normalized ?? NO_NAME}</h1>
-              <p className="status">Creada el {formatDate(detail.created_at)}</p>
-
-              <div className="decision" tabIndex={-1} ref={decisionBox}>
-                <p><strong>Decisión guardada: {DECISIONS[detail.recruiter_decision]}</strong></p>
-                <label>
-                  Decisión del recruiter
-                  <select value={choice} disabled={saving}
-                    onChange={(event) => {
-                      setChoice(event.target.value);
-                      setSaveResult(null);
-                    }}>
-                    {Object.entries(DECISIONS).map(([key, text]) => (
-                      <option key={key} value={key}>{text}</option>
-                    ))}
-                  </select>
-                </label>
-                <button type="button" onClick={save} disabled={!canSave}>Guardar decisión</button>
-                {saving && <p className="status" role="status">Guardando…</p>}
-                {saveResult && (
-                  <p className="notice" role={saveResult.saved ? 'status' : 'alert'}>{saveResult.text}</p>
-                )}
+          <div className="drawer-body">
+            {detailLoading && <p className="status" role="status">Cargando candidatura…</p>}
+            {detailError && (
+              <div className="problem">
+                <p className="notice" role="alert">{detailError}</p>
+                <button type="button" onClick={retryDetail}>Reintentar</button>
               </div>
+            )}
 
-              <h2>Datos recogidos</h2>
-              <dl>
-                {Object.keys(FIELDS).map((name) => (
-                  <Field key={name} name={name} state={detail.fields[name]} />
-                ))}
-              </dl>
+            {detail && (
+              <>
+                <section className="card columns">
+                  <div className="outcome-box">
+                    <span className="box-label">Resultado del screening</span>
+                    <span className={`pill ${detail.outcome}`}>{OUTCOMES[detail.outcome]}</span>
+                    {detail.outcome === 'incomplete'
+                      ? <p>Conversación sin cerrar</p>
+                      : detail.outcome_reasons.map((code) => <p key={code}>{outcomeReason(code)}</p>)}
+                  </div>
+                  <div className="decision-box">
+                    <label>
+                      Decisión del recruiter
+                      <select value={attempt ?? detail.recruiter_decision} aria-disabled={decisionBlocked}
+                        onChange={(event) => save(event.target.value)}>
+                        {Object.entries(DECISIONS).map(([key, text]) => (
+                          <option key={key} value={key}>{text}</option>
+                        ))}
+                      </select>
+                    </label>
+                    {saving &&<p className="status" role="status">Guardando…</p>}
+                    {saveResult && (
+                      <p className="notice" role={saveResult.saved ? 'status' : 'alert'}>{saveResult.text}</p>
+                    )}
+                  </div>
+                </section>
 
-              <h2>Resultado del screening</h2>
-              <p>{OUTCOMES[detail.outcome]}</p>
-              {detail.outcome === 'incomplete'
-                ? <p className="status">Conversación sin cerrar</p>
-                : (
-                  <ul>
-                    {detail.outcome_reasons.map((code) => <li key={code}>{outcomeReason(code)}</li>)}
-                  </ul>
+                <section className="card">
+                  <h3>Resumen interno</h3>
+                  {detail.summary
+                    ? <Summary text={detail.summary} />
+                    : <p className="text empty">{summary}</p>}
+                </section>
+
+                {(doubts.length > 0 || detail.pending_questions.length > 0) && (
+                  <section className="card attention columns">
+                    {doubts.length > 0 && (
+                      <div>
+                        <h3>Dudas sin resolver</h3>
+                        <ul>{doubts.map((doubt) => <li key={doubt}>{doubt}</li>)}</ul>
+                      </div>
+                    )}
+                    {detail.pending_questions.length > 0 && (
+                      <div>
+                        <h3>Consultas sobre el puesto</h3>
+                        <ul>
+                          {detail.pending_questions.map((question, index) => <li key={index}>{question}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                  </section>
                 )}
 
-              <h2>Resumen interno</h2>
-              <p className="text">{summary}</p>
+                <section className="card">
+                  <h3>Datos recogidos <span>{collected} de 7</span></h3>
+                  <dl className="fields">
+                    {Object.keys(FIELDS).map((name) => (
+                      <Field key={name} name={name} state={detail.fields[name]} />
+                    ))}
+                  </dl>
+                </section>
 
-              <h2>Dudas sin resolver</h2>
-              {doubts.length
-                ? <ul>{doubts.map((doubt) => <li key={doubt}>{doubt}</li>)}</ul>
-                : <p className="status">Sin dudas pendientes</p>}
-
-              <h2>Consultas sobre el puesto</h2>
-              {detail.pending_questions.length
-                ? <ul>{detail.pending_questions.map((question, index) => <li key={index}>{question}</li>)}</ul>
-                : <p className="status">Sin consultas</p>}
-
-              <h2>Conversación</h2>
-              <ol className="conversation">
-                {detail.messages.map((message) => (
-                  <li key={message.sequence} className={`message ${message.role}`}>
-                    <small>
-                      {message.role === 'candidate' ? 'Candidato' : 'Asistente'} · {formatDate(message.created_at)}
-                    </small>
-                    {message.text}
-                  </li>
-                ))}
-              </ol>
-            </>
-          )}
-        </section>
-      </main>
+                <section className="card">
+                  <h3>Conversación</h3>
+                  <ol className="conversation" tabIndex={0} aria-label="Conversación completa">
+                    {detail.messages.map((message) => (
+                      <li key={message.sequence} className={`turn ${message.role}`}>
+                        <small>
+                          {message.role === 'candidate' ? 'Candidato' : 'Asistente'} · {formatDate(message.created_at)}
+                        </small>
+                        <p>{message.text}</p>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              </>
+            )}
+          </div>
+        </aside>
+      )}
     </div>
   );
 }

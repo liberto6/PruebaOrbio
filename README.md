@@ -66,7 +66,8 @@ JSON 503 while the API stays available.
 The frontend is one React build with two screens, in plain JavaScript and CSS: the chat, and
 `Recruiter.jsx` when the path is exactly `/recruiter`, which never creates an application or
 reads the candidate session. A plain link in each header switches between them for the demo.
-There is no router and no
+Fraunces and DM Sans are bundled from `app/frontend/src/fonts/` under the OFL, so nothing is
+requested from Google. There is no router and no
 separate frontend development server or CORS setup. The browser keeps the application id
 and any unconfirmed request in `localStorage`; SQLite is authoritative for the history.
 Opening the page without a saved id creates an application.
