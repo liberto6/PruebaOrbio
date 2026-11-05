@@ -651,11 +651,24 @@ FRESH_SCENARIOS = [
     # state. One could read it as a no because the design asks about now; the safe reading clarifies.
     Scenario(
         name="fresh_lic_suspended_then_no",
-        messages=[RAUL, "me lo quitaron por puntos pero lo recupero en enero", "ahora mismo no, hasta enero nada"],
+        # The evaluator expected one clarification. Tech lead decision: not holding it today is
+        # unequivocal, as with "aún no, me examino en marzo", so it closes at once.
+        messages=[RAUL, "me lo quitaron por puntos pero lo recupero en enero"],
+        outcome="disqualified",
+        fields={"driving_license": resolved(False)},
+        checks=[reason_is("no_driving_license")],
+        held_out=True,
+        repeat=3,
+    ),
+    # Added by the tech lead with the license rule fix, so they are not from the evaluator.
+    _license_answer("variant_lic_furgoneta", "si, tengo una furgoneta propia", NOT_YET, clarifications=ASKED_ONCE, next_field="driving_license"),
+    _license_answer("variant_lic_se_conducir", "conduzco desde los 18, se conducir de sobra", NOT_YET, clarifications=ASKED_ONCE, next_field="driving_license"),
+    Scenario(
+        name="variant_lic_expired_then_still_expired",
+        messages=[RAUL, "se me caduco el año pasado, ya pedi cita", "no, sigue sin renovar"],
         outcome="disqualified",
         fields={"driving_license": resolved(False)},
         clarifications=ASKED_ONCE,
-        checks=[reason_is("no_driving_license")],
         held_out=True,
         repeat=3,
     ),

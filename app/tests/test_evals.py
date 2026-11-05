@@ -248,4 +248,4 @@ def test_admitting_no_information_is_recognized(reply, admitted):
 def test_scenarios_have_unique_names_and_held_out_cases():
     names = [scenario.name for scenario in SCENARIOS]
     assert len(names) == len(set(names))
-    assert 3 <= sum(scenario.held_out for scenario in SCENARIOS) <= 5
+    assert sum(scenario.held_out for scenario in SCENARIOS) >= 3

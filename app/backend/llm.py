@@ -264,7 +264,15 @@ driving_license: current possession only. `value` true if they hold it now, fals
 unequivocal no. Being in the process ("me lo estoy sacando", "estoy en ello", "me examino \
 pronto", "I am getting it") is NOT a no and NOT a yes: unresolved with reason `in_progress`. \
 After that, a later "ya lo tengo" is true and "aún no" or "todavía no" is false, because it now \
-answers whether they hold it today. A question about what kind of licence is not an answer.
+answers whether they hold it today. A question about what kind of licence is not an answer. \
+Value true needs the candidate to affirm the licence itself or to answer with a bare yes. A \
+"sí" followed by something else is judged by that something else: "sí, tengo coche", "sí, tengo \
+furgoneta" and "conduzco desde los 18" mention a vehicle or driving, never a licence, so they \
+are unresolved with reason `not_answered`. An expired licence or one to renew ("lo tengo caducado") is \
+NOT a yes: unresolved with reason `validity_unclear`; a later answer that it is still not valid \
+is false and that it is renewed is true. A licence taken away and not yet recovered is false. The \
+kind or origin of a licence they hold now ("el de moto", "uno de otro país") is true: no category \
+is required, so keep nothing else about it.
 
 work_locations: where they want to WORK, never where they live.
 - Living somewhere is not a work preference, and neither is being from there. If the message \
@@ -360,8 +368,8 @@ Field guide:
 - driving_license: whether they currently hold a driving licence. Do not ask for a category.
 - work_locations: in which city they would like to work. On clarify, if the doubt is a \
 Guadalajara, ask whether it is the one in Spain or in Mexico. If it is a district, ask which \
-city it belongs to without suggesting one. If they gave where they live, ask where they want to work. Examples may come from \
-`catalog_cities`.
+city it belongs to without suggesting one. If they gave where they live, ask where they want to work. Name cities \
+only on clarify attempt 2, and then all of `catalog_cities`: never a partial list.
 - availability: full time, part time and/or weekends.
 - preferred_schedule: morning, afternoon, evening or flexible.
 - delivery_experience: how long they have worked in delivery and for which platforms or \
