@@ -33,11 +33,11 @@ Order is linear. E4 may start alongside E3 with sample data once E2 is done.
 
 ## Current state — 2026-11-05
 
-**E1 and E2 are complete; E3 is in progress, with E3.1 and E3.2 implemented.** Field
-validation, coverage, the four outcomes, the clarification limit, SQLite persistence,
-turn coordination and the real model (`gpt-6-luna`) exist in `app/backend/`, but are not
-yet connected to the application. No chat or recruiter tool exists yet.
-`python -m pytest` reports 593 passed. Real-model evals are in `app/evals/` and their
+**E1 and E2 are complete; E3 is in progress, with E3.1, E3.2 and E3.3 implemented.** A
+candidate can complete a screening in the browser with the real model (`gpt-6-luna`),
+reload, retry and resume; closed applications are read-only. The reminder and remaining
+E3.4 scenarios are pending, and no recruiter tool exists yet.
+`python -m pytest` reports 641 passed. Real-model evals are in `app/evals/` and their
 results in `docs/evals/`. See [E3 plan and evidence](e3-conversational-agent.md),
 [E2 evidence](e2-rules-and-persistence.md), [E1 evidence](e1-foundations.md) and
 [README](../../README.md).
@@ -45,9 +45,9 @@ results in `docs/evals/`. See [E3 plan and evidence](e3-conversational-agent.md)
 The roadmap's "every Phase 1 rule" covers E2's deterministic rules only; E3 must
 prove the conversational behaviour through its scenarios.
 
-Next: E3.3 web chat from the [E3 plan](e3-conversational-agent.md), on the user's
-go-ahead, then E3.4 final validation. The E3.2 product decisions recorded there are
-validated by the user.
+Next: E3.4 final validation (reminder, stop/resume, sample conversations), on the user's
+go-ahead. [E3.3 evidence and limits](e3-conversational-agent.md#e33-evidence-2026-11-05)
+and the product decisions validated by the user are in the plan.
 
 ## If time runs short
 

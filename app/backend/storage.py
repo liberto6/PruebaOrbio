@@ -227,6 +227,15 @@ def load_unfinished_turn(db_path, application_id: str) -> Turn | None:
         return _unfinished_turn(connection, application_id)
 
 
+def load_application_with_turn(
+    db_path, application_id: str
+) -> tuple[StoredApplication, Turn | None]:
+    """The application and its unfinished turn, read together so they cannot disagree."""
+    with _transaction(db_path) as connection:
+        stored = _read_stored(connection, application_id)
+        return stored, _unfinished_turn(connection, application_id)
+
+
 def receive_turn(db_path, application_id: str, request_id: str, text: str) -> ReceivedTurn:
     if not isinstance(request_id, str) or not isinstance(text, str):
         raise TypeError("request_id and text must be strings")

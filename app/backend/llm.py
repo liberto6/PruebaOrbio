@@ -553,3 +553,24 @@ def llm_from_env() -> OpenAILLM:
         raise PermanentLLMFailure("openai_api_key_missing")
     client = openai.OpenAI(api_key=key, timeout=TIMEOUT_SECONDS, max_retries=MAX_RETRIES)
     return OpenAILLM(client, os.environ.get("SCREENING_MODEL", "").strip() or DEFAULT_MODEL)
+
+
+class DeferredLLM:
+    """Builds the provider on the first model call: saving or recovering a turn needs no key."""
+
+    def __init__(self):
+        self._llm = None
+
+    def _provider(self) -> OpenAILLM:
+        if self._llm is None:
+            self._llm = llm_from_env()
+        return self._llm
+
+    def interpret(self, context: TurnContext) -> Interpretation:
+        return self._provider().interpret(context)
+
+    def write_reply(self, context: TurnContext, action: Action) -> str:
+        return self._provider().write_reply(context, action)
+
+    def write_summary(self, context: TurnContext) -> str:
+        return self._provider().write_summary(context)

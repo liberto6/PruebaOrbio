@@ -1,7 +1,7 @@
 # E3 - Conversational agent
 
-**Status: In progress, revised 2026-11-05.** E3.1 and E3.2 are implemented and run with
-the real model; no HTTP endpoint or chat exists yet, so E3 is not complete. Sources:
+**Status: In progress, revised 2026-11-05.** E3.1, E3.2 and E3.3 are implemented; the
+browser chat works with the real model. E3 is not complete until E3.4. Sources:
 [assignment](../assignment.html), [process design](../design/process-design.md),
 [roadmap](build-roadmap.md) and [E2 contracts and limits](e2-rules-and-persistence.md).
 
@@ -194,6 +194,155 @@ Real calls require the relevant provider credentials. Agree a small spending cap
 before running paid comparisons; this plan does not authorize unlimited API usage.
 No real candidate data is needed: use synthetic cases. No E4 interface in these blocks.
 
+## E3.3 implementation brief — revised 2026-11-05
+
+**Status: implemented; see [E3.3 evidence](#e33-evidence-2026-11-05).** Connect the existing coordinator and model to
+the browser: three endpoints and one chat screen. Reuse E3.1/E3.2; do not reopen
+screening rules or model selection. Prioritize completing the candidate journey
+and moving on to the recruiter tool over additional infrastructure hardening.
+
+### Scope and implementation
+
+- In `main.py`, load `app/.env` without overriding environment variables before
+  resolving `SCREENING_DB`. Resolve relative database paths against `app/`; default
+  to `app/data/screening.db`. Create the parent directory, initialize SQLite and
+  validate the catalog before accepting screening requests. Ignore `app/data/`,
+  including SQLite journal files; custom database locations remain the operator's
+  responsibility.
+- Keep health/static behaviour. Missing provider credentials must not prevent
+  startup, creation or loading of a conversation.
+- Reuse `start_application` and `handle_message`. Persist a valid incoming message
+  before provider initialization can fail. A completed request must be recoverable
+  without constructing a provider client or requiring credentials. Use a deferred
+  provider dependency or an equivalent small change, not a new orchestration layer.
+- Keep modules flat and inject a fake model for HTTP tests. Read the application,
+  messages and unfinished turn in one transaction for a consistent public response.
+  No new table is required.
+- Build one React chat screen with existing JavaScript/CSS. No streaming,
+  WebSockets, periodic polling, frontend router or new UI/state library.
+- The reminder and its timed browser check remain E3.4. Recruiter screens remain
+  E4. No new model-comparison battery or submission packaging in this block.
+
+### HTTP and public response
+
+| Operation | Endpoint | Contract |
+|---|---|---|
+| Create | `POST /api/applications` | Return 201 with a new application and its single saved greeting |
+| Load | `GET /api/applications/{id}` | Return 200 with saved public state; no model call |
+| Send or retry | `POST /api/applications/{id}/messages` | Accept strict string `request_id` and `text`; return 200 after processing or recovering a completed turn |
+
+There is no separate retry endpoint. Resubmit the same request id and exact text;
+the coordinator already resumes the recorded phase without duplicating committed
+effects. The same id with different text is a conflict.
+
+Use an explicit response allowlist: `id`, `messages` (sequence, role, text and
+created_at), `language`, `closed` and `pending` (null or request_id and candidate
+message sequence). The message sequence lets the browser recover the pending text
+from history even when its local request copy is missing. Do not serialize a
+snapshot and then remove selected keys. Summary, fields, recruiter decision and
+internal diagnostics are absent from successful and error responses alike.
+
+Validate blank/non-string ids and text and invalid Unicode before storage. Use
+stable public error codes with localized notices; do not return exception text or
+the raw validation input. The browser reloads public state when reconciliation is
+needed, rather than assuming whether a failed HTTP request committed.
+
+| Situation | HTTP / public code | Browser behaviour |
+|---|---|---|
+| Invalid request envelope | 422 / `invalid_request` | Keep the text for correction; no automatic retry |
+| Unknown application | 404 / `application_not_found` | Offer a new conversation; do not silently create one |
+| Same request id, different text | 409 / `request_conflict` | Reload state; do not change the id and silently resend |
+| Another unfinished turn | 409 / `turn_pending` | Reload and recover that turn; block new messages |
+| New message to a closed application | 409 / `application_closed` | Reload the closure and disable the input |
+| Missing/invalid credentials or quota failure | 503 / `service_configuration` | Keep the request; explain that the service is unavailable now and retry later |
+| Other handled technical failure (provider, generated reply/summary, coordination or storage) | 503 / `service_unavailable` | Keep the request, reload state and offer explicit retry; do not claim a successful save |
+| Unexpected failure | 500 / `internal_error` | Same recovery behaviour with a generic notice |
+
+An unusable interpretation already handled by the coordinator is a completed
+conversational turn, not an HTTP error: return its saved repeat-request message.
+A duplicate completed closing request returns 200, not `application_closed`.
+Technical notices remain outside conversation history. Detailed causes stay in
+server diagnostics; the UI shares one recovery path for technical failures.
+
+### Browser state and recovery
+
+- Persist the application id and only the unconfirmed request's id and exact text
+  locally before sending. SQLite is authoritative for conversation history.
+- On reload, fetch saved state and recover any unfinished turn. GET does not
+  identify which completed turn matches a local request: never infer completion
+  by matching message text. If the local request remains unconfirmed, keep it
+  and offer explicit resubmission with the same id and exact text. POST already
+  handles both an unreceived request and a completed turn. Clear the local copy
+  after its successful response. No model call on page load and no loss of the
+  local request on a failed load. A closed conversation stays read-only; retrying
+  an unconfirmed closing request only recovers its committed result.
+- Show sending status immediately. Disable new messages during sending, an
+  unconfirmed request, an unfinished turn and closure. The server enforces pending
+  turns and closure; the browser also guards its local unconfirmed request.
+  A voluntary stop is not closure: writing must remain possible to resume.
+- On reload during processing, say that a message is pending confirmation, not
+  that it necessarily failed. The original server request may still be running.
+  Concurrent retries may duplicate provider calls, but not committed messages;
+  this is the existing accepted local-demo limit. Do not add cross-tab
+  synchronization, active-request tracking or a separate recovery protocol.
+- Render saved messages as text, preserve keyboard access and support mobile
+  widths. Errors appear beside the input; the closing message stays in history.
+- Use the active conversation language for buttons and notices, Spanish by
+  default. For configuration/quota failures use the equivalent of
+  “El servicio no está disponible ahora mismo. Puedes volver a intentarlo más
+  tarde”, rather than implying that immediate repetition fixes the cause.
+- “Nueva candidatura” creates another record. Confirm before leaving an open
+  application; retain it as incomplete. Never reopen or alter the earlier record.
+  Without identity, repeated attempts by the same person cannot be prevented.
+
+Creation is not covered by candidate-turn idempotency: a lost creation response
+can leave an unused record with only its greeting. Do not add a creation-recovery
+protocol for this demo or claim exactly-once creation.
+
+**Visual style, selected by the user on 2026-11-05:** extend existing CSS with an
+off-white background, charcoal text, terracotta accent and system fonts. One responsive
+column, virtual-assistant header, messages and input; no extra screens or panels.
+
+**First visit, decided by the user on 2026-11-05:** opening the page creates the
+application and shows the greeting. Someone who only opens the page therefore leaves an
+incomplete record holding just the greeting, which will appear in the E4 panel.
+
+### Delivery and acceptance
+
+Implement backend behaviour through TDD: observe the relevant failing test, then
+implement and verify. All HTTP tests, including existing health tests, must use a
+temporary database and no real provider. Test new HTTP wiring and browser-facing
+behaviour. E3.1 retains exhaustive phase/concurrency coverage: do not reproduce
+that matrix over HTTP or add another stress/mutation campaign.
+
+1. Startup, configuration, creation/load and public projection.
+2. Message processing, error mapping, idempotency and recovery.
+3. Browser chat and session restoration.
+4. Browser verification, regression checks and documentation.
+
+- [x] HTTP checks cover unique greeting, strict inputs, unknown/closed ids,
+  missing credentials, provider/storage/unexpected failures and public allowlist.
+- [x] HTTP checks cover sending, duplicate/conflicting ids, refusal of a new
+  message while a turn is pending, one recoverable failure and retrieval of a
+  completed closing request after a lost response, including without credentials.
+- [x] Browser checks cover reload mid-conversation and during an unfinished turn,
+  retry without duplicate messages, closed state, unknown stored id and a new
+  candidature that leaves the old record intact.
+- [x] A complete qualified screening and an early rejection work in the browser
+  with the real model and synthetic data, within the remaining documented E3 cap.
+  Verify saved summary and history, and that the summary is absent from public
+  responses. Record actual evidence; fake-model checks alone do not close E3.3.
+- [x] Backend suite and frontend build pass. Record concise evidence and limits
+  here; update roadmap and README with current behaviour and a link to the evidence,
+  without duplicating the report. Check AGENTS.md still matches delivered scope.
+
+Show waiting feedback immediately, but do not promise a 60-second turn limit:
+provider timeout/retry settings apply to individual calls and a turn uses several
+sequential calls. Existing model limits remain; demo contingency packaging is E5.
+
+Planning baseline checked on 2026-11-05: 593 pytest tests passed and the frontend
+build passed. These are pre-E3.3 checks, not acceptance evidence for this block.
+
 ## Evals
 
 One adapter implements the interpretation/reply/summary contract; no plugin registry,
@@ -239,7 +388,7 @@ must be explicitly reflected in the design and roadmap.
 
 - [x] E3.1: next action, turn recovery and atomic storage extensions verified.
 - [x] E3.2: complete runner conversations, critical evals and documented model rationale.
-- [ ] E3.3: browser chat, resume, public responses and failure paths verified.
+- [x] E3.3: browser chat, resume, public responses and failure paths verified.
 - [ ] E3.4: reminder, remaining evals, results and sample conversations recorded.
 - [ ] Existing E2 tests and new tests pass without network; no screening rule changed.
 - [ ] Stage plan, roadmap, README and AGENTS.md reflect delivered work and real limits.
@@ -331,5 +480,46 @@ Known limits:
   "Dudas pendientes" varies between summaries. The full conversation is kept.
 - Nothing in Python limits the repeated initial question if the model proposes nothing.
 
-Next: E3.3 web chat, starting only on the user's go-ahead. E3.4 adds the reminder,
-stop/resume and sample conversations, with no further eval breadth.
+### E3.3 evidence (2026-11-05)
+
+- `main.py` has the three endpoints, an explicit public allowlist and one stable code per
+  failure. `DeferredLLM` builds the provider on the first model call, so saving and
+  recovering a turn need no credentials. The chat is one React screen; no dependency added.
+- `python -m pytest` from `app/`: 641 passed, 48 of them new, with no network or real LLM.
+  `npm run build` and `pip check` passed. New HTTP tests were first seen failing, except a
+  storage-failure-on-load test that the previous step's handler already satisfied.
+- Checked in Chrome through the served build, on a temporary database with synthetic data:
+
+| Check | Result |
+|---|---|
+| Send without credentials | Message saved once, 503 notice, input blocked, retry offered |
+| Restart with the key, then retry | Real model answered; 3 messages, none duplicated |
+| Reload during a running turn | Says pending confirmation; the server finished it; retry returned it, 5 messages |
+| Plain reload | Same history, one greeting, input ready |
+| Qualified screening, real model | Outcome `qualified`, 7 fields, 15 messages, 7 completed turns |
+| Early rejection, real model | Outcome `disqualified` after the licence answer, 5 messages |
+| Saved summary and public response | Summary saved in both closed records; absent from public responses |
+| Closed application after reload | Read-only, closing message in history |
+| New application | Direct if closed; confirms if open; cancel keeps it; old record intact and open |
+| Unknown stored id | Notice and new-conversation button, nothing created until pressed |
+| English conversation | Buttons, placeholder and page language switch; a new application returns to Spanish |
+| 386 px wide frame | No horizontal page overflow; the transcript was also inspected in a screenshot |
+
+Limits of this evidence: browser checks were run once by a script driving the page, with
+no repeatable frontend test suite. Width was tested in an iframe, not on a device, because
+resizing the window had no effect. Most steps were read from the DOM; screenshots timed out
+for part of the session. Real-model cost was not metered: about 13 turns, against 0.09 USD
+for a full eval battery. The browser did not exercise a lost closing response or provider
+timeouts; HTTP tests cover those.
+
+Known limits:
+
+- A request confirmed by neither side after the server finished it shows a dimmed
+  "waiting for confirmation" copy of the text until the candidate retries. The retry only
+  recovers the saved result. This is by design: completion is never inferred from text.
+- A record opened and never used stays as an incomplete application with its greeting;
+  2 of the 5 test records were like that. E4 must decide how to show them.
+- Two tabs on one application are not synchronized; the server still refuses a second turn.
+
+Next: E3.4 adds the reminder, stop/resume and sample conversations, with no further eval
+breadth, starting only on the user's go-ahead.

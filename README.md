@@ -1,9 +1,7 @@
 # Grupo Sazón
 
-Local candidate screening and recruiter tool. **Rules, persistence, turn coordination and
-the real model integration are implemented but not connected to the application.** The
-Spanish placeholder does not accept applications. The chat and recruiter tool are not
-implemented.
+Local candidate screening and recruiter tool. **A candidate can complete a screening in
+the web chat with the real model.** The reminder and the recruiter tool are not implemented.
 
 Read the [assignment](docs/assignment.html), [process design](docs/design/process-design.md),
 [roadmap](docs/planning/build-roadmap.md), [E1 checklist](docs/planning/e1-foundations.md),
@@ -47,32 +45,38 @@ Application code, tests and dependency files live in `app/`; design and planning
 live in `docs/`. Agent instructions and this README remain at the repository root.
 
 `app/backend/main.py` contains one FastAPI app. `/api/health` works independently of
-the frontend build. After building, FastAPI serves `app/frontend/dist/index.html` at
+the frontend build. `POST /api/applications`, `GET /api/applications/{id}` and
+`POST /api/applications/{id}/messages` drive the chat and return only public state: messages,
+language, closure and any pending turn. Resending the same `request_id` and text is the retry.
+After building, FastAPI serves `app/frontend/dist/index.html` at
 `/` and the generated assets at `/assets`. Restart Uvicorn after creating the build.
 Unknown API paths return JSON 404; there is no frontend catch-all.
 Without a build, startup logs the build commands and `/` returns an actionable
 JSON 503 while the API stays available.
 
-The frontend uses React, Vite, plain JavaScript and CSS. There is no separate
-frontend development server or CORS setup.
+The frontend is one chat screen with React, Vite, plain JavaScript and CSS. There is no
+separate frontend development server or CORS setup. The browser keeps the application id
+and any unconfirmed request in `localStorage`; SQLite is authoritative for the history.
+Opening the page without a saved id creates an application.
 
 `app/backend/rules.py` holds the strict Pydantic candidate model, field validation,
 coverage catalog, clarification limit and outcome evaluation. `app/backend/storage.py`
 persists applications and messages in SQLite through standard-library `sqlite3`, with
-each operation in one transaction. Neither is used by `main.py` yet, and the caller
-supplies the database path, so running the application creates no database. Python
-validates and determines outcomes while the LLM interprets and writes.
+each operation in one transaction. The database defaults to `app/data/screening.db`, created
+at startup and ignored by Git; `SCREENING_DB` overrides it, with relative paths resolved
+against `app/`. Python validates and determines outcomes while the LLM interprets and writes.
 `app/backend/conversation.py` chooses the next action and advances each candidate turn
 from saved state. `app/backend/llm.py` holds the model contract, prompts and OpenAI
 adapter. The model picks covered places from a closed list and reports others as stated;
-Python compares them with the catalog. These modules run only in tests and evals so far.
-This is a local demo without authentication or deployment infrastructure.
+Python compares them with the catalog. This is a local demo without authentication or deployment infrastructure.
 
 ## Model and evals
 
 The model is OpenAI `gpt-6-luna`: economical, with strict structured output. Configure it
 by copying `app/.env.example` to `app/.env` and setting `OPENAI_API_KEY`; `SCREENING_MODEL`
 is optional. `.env` is ignored by Git. Pytest needs no credentials and makes no network calls.
+Without a key the app still starts and saves messages; the chat says the service is unavailable.
+**Each chat message costs money**, because it calls the real model.
 
 From `app/`, these commands run scripted conversations against the real model. **Each run
 costs money** (a full battery was about 0.09 USD) and saves its results in `docs/evals/`:
@@ -88,6 +92,9 @@ Latest results, the rationale for the model and the known limits are in the
 
 ## Verification recorded on 2026-11-05
 
+- `python -m pytest` after E3.3: 641 passed. `npm run build` passed.
+- Browser checks with the real model (qualified and rejected screenings, reload, retry, closed
+  state, new application): see the [E3.3 evidence](docs/planning/e3-conversational-agent.md#e33-evidence-2026-11-05).
 - `python -m pytest` after E3.2: 593 passed.
 - Final evals with the real model: tuned 89/89 and held-out 82/84, with no false rejection
   or false qualification.
@@ -112,5 +119,5 @@ versions are resolved by pip and are not a full environment lock.
 
 ## Next work
 
-E3 continues with the web chat, reminder and sample conversations; E4 adds the recruiter
+E3 continues with the reminder, stop/resume checks and sample conversations; E4 adds the recruiter
 tool; E5 completes delivery.
